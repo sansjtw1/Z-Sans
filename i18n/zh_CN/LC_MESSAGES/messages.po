@@ -1,0 +1,1610 @@
+# Chinese (Simplified, China) translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-08-14 12:07+0800\n"
+"PO-Revision-Date: 2025-08-14 10:24+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: zh_Hans_CN\n"
+"Language-Team: zh_Hans_CN <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: main.py:119
+#, python-brace-format
+msgid "Z-Sans Asset Breeding Engine v{VERSION} initialized"
+msgstr "Z-Sans 资产繁殖引擎 v{VERSION} 已初始化"
+
+#: main.py:127
+msgid "Received stop signal, shutting down gracefully..."
+msgstr "收到停止信号，正在优雅关闭..."
+
+#: main.py:135
+#, python-brace-format
+msgid "Added seed asset: {uid}"
+msgstr "已添加种子资产: {uid}"
+
+#: main.py:157
+#, python-brace-format
+msgid "Extracted domain from URL seed: {domain}"
+msgstr "从URL种子中提取域名: {domain}"
+
+#: main.py:159
+#, python-brace-format
+msgid "Error extracting domain from URL: {error}"
+msgstr "从URL提取域名出错: {error}"
+
+#: main.py:168
+#, python-brace-format
+msgid "Error recording IP range: {error}"
+msgstr "记录IP范围出错: {error}"
+
+#: main.py:171
+#, python-brace-format
+msgid "Current seed domain list: {domains}"
+msgstr "当前种子域名列表: {domains}"
+
+#: main.py:173
+msgid "Seed domain list is empty, this may cause domain relevance judgment errors"
+msgstr "种子域名列表为空，可能导致域名相关性判断错误"
+
+#: main.py:180
+#, python-brace-format
+msgid "Engine is in state {state}, cannot start"
+msgstr "引擎处于 {state} 状态，无法启动"
+
+#: main.py:185
+msgid "Breeding engine started"
+msgstr "繁殖引擎已启动"
+
+#: main.py:193
+msgid "Saving scan results before stopping engine..."
+msgstr "正在停止引擎前保存扫描结果..."
+
+#: main.py:195
+#, python-brace-format
+msgid "Scan results saved: {files}"
+msgstr "扫描结果已保存: {files}"
+
+#: main.py:197
+#, python-brace-format
+msgid "Error saving scan results: {error}"
+msgstr "保存扫描结果出错: {error}"
+
+#: main.py:202
+msgid "Breeding engine stopped"
+msgstr "繁殖引擎已停止"
+
+#: main.py:207
+msgid "Breeding engine paused"
+msgstr "繁殖引擎已暂停"
+
+#: main.py:214
+msgid "Breeding engine resumed"
+msgstr "繁殖引擎已恢复"
+
+#: main.py:223
+msgid "Breeding queue is empty, breeding cycle completed"
+msgstr "繁殖队列为空，繁殖周期已完成"
+
+#: main.py:233
+#, python-brace-format
+msgid "Asset {uid} exceeds max depth {depth}, skipping"
+msgstr "资产 {uid} 超过最大深度 {depth}，跳过"
+
+#: main.py:239
+#, python-brace-format
+msgid "Asset {uid} exceeds resource limits, skipping"
+msgstr "资产 {uid} 超过资源限制，跳过"
+
+#: main.py:244
+#, python-brace-format
+msgid "Asset {uid} matches exclusion rules, skipping"
+msgstr "资产 {uid} 符合排除规则，跳过"
+
+#: main.py:250
+#, python-brace-format
+msgid "No suitable breeder found for asset type {type}, skipping"
+msgstr "未找到适合资产类型 {type} 的繁殖器，跳过"
+
+#: main.py:255
+#, python-brace-format
+msgid "Start processing asset: {uid}"
+msgstr "开始处理资产: {uid}"
+
+#: main.py:265
+#, python-brace-format
+msgid "Maintaining asset {uid} elimination status"
+msgstr "维护资产 {uid} 的淘汰状态"
+
+#: main.py:272
+#, python-brace-format
+msgid "Asset {uid} processed, found {count} new assets"
+msgstr "资产 {uid} 已处理，发现 {count} 个新资产"
+
+#: main.py:276
+#, python-brace-format
+msgid "Error processing asset {uid}: {error}"
+msgstr "处理资产 {uid} 出错: {error}"
+
+#: main.py:349
+msgid "Breeding engine completed all tasks, generating output..."
+msgstr "繁殖引擎已完成所有任务，正在生成输出..."
+
+#: main.py:351
+#, python-brace-format
+msgid "Output generated: {files}"
+msgstr "输出已生成: {files}"
+
+#: main.py:355
+msgid "Received user interrupt, stopping..."
+msgstr "收到用户中断，正在停止..."
+
+#: main.py:360
+#, python-brace-format
+msgid "Error running breeding engine: {error}"
+msgstr "运行繁殖引擎出错: {error}"
+
+#: main.py:373
+#, python-brace-format
+msgid "Config file {path} does not exist, using default configuration"
+msgstr "配置文件 {path} 不存在，使用默认配置"
+
+#: main.py:387
+#, python-brace-format
+msgid "Loaded config file: {path}"
+msgstr "已加载配置文件: {path}"
+
+#: main.py:391
+#, python-brace-format
+msgid "Failed to load config file {path}: {error}"
+msgstr "加载配置文件 {path} 失败: {error}"
+
+#: main.py:399
+#, python-brace-format
+msgid "Config file {path} already exists, skipping creation"
+msgstr "配置文件 {path} 已存在，跳过创建"
+
+#: main.py:406
+#, python-brace-format
+msgid "Created default config file: {path}"
+msgstr "已创建默认配置文件: {path}"
+
+#: main.py:410
+#, python-brace-format
+msgid "Failed to create default config file: {error}"
+msgstr "创建默认配置文件失败: {error}"
+
+#: main.py:442
+#, python-brace-format
+msgid "Z-Sans Asset Breeding Engine v{VERSION} Help Information"
+msgstr "Z-Sans 资产繁殖引擎 v{VERSION} 帮助信息"
+
+#: main.py:443
+msgid "Configuration file path"
+msgstr "配置文件路径"
+
+#: main.py:444
+msgid "Add domain seed"
+msgstr "添加域名种子"
+
+#: main.py:445
+msgid "Add IP seed"
+msgstr "添加IP种子"
+
+#: main.py:446
+msgid "Add URL seed"
+msgstr "添加URL种子"
+
+#: main.py:447
+msgid "Output directory"
+msgstr "输出目录"
+
+#: main.py:448
+msgid "Verbose output"
+msgstr "详细输出"
+
+#: main.py:449
+msgid "Create default configuration file"
+msgstr "创建默认配置文件"
+
+#: main.py:450
+msgid "Show version information"
+msgstr "显示版本信息"
+
+#: main.py:451
+msgid "Set maximum scan depth"
+msgstr "设置最大扫描深度"
+
+#: main.py:456
+#, python-brace-format
+msgid "Z-Sans Asset Breeding Engine v{VERSION}"
+msgstr "Z-Sans 资产繁殖引擎 v{VERSION}"
+
+#: main.py:476
+#, python-brace-format
+msgid "Maximum scan depth set: {depth}"
+msgstr "最大扫描深度已设置: {depth}"
+
+#: main.py:498
+msgid "No seed assets provided, unable to start breeding engine"
+msgstr "未提供种子资产，无法启动繁殖引擎"
+
+#: core/output.py:51
+#, python-brace-format
+msgid "Unsupported output format: {format}"
+msgstr "不支持的输出格式: {format}"
+
+#: core/output.py:53
+#, python-brace-format
+msgid "Failed to export {format} format: {error}"
+msgstr "导出 {format} 格式失败: {error}"
+
+#: core/output.py:63
+#, python-brace-format
+msgid "Exported JSON asset graph: {filename}"
+msgstr "已导出JSON资产图: {filename}"
+
+#: core/output.py:73
+msgid "ID"
+msgstr "ID"
+
+#: core/output.py:74
+msgid "Type"
+msgstr "类型"
+
+#: core/output.py:75
+msgid "Value"
+msgstr "值"
+
+#: core/output.py:76
+msgid "Depth"
+msgstr "深度"
+
+#: core/output.py:77
+msgid "Discovery Time"
+msgstr "发现时间"
+
+#: core/output.py:78
+msgid "State"
+msgstr "状态"
+
+#: core/output.py:79
+msgid "Title/Note"
+msgstr "标题/备注"
+
+#: core/output.py:80
+msgid "Fingerprints"
+msgstr "指纹"
+
+#: core/output.py:81
+msgid "CMS"
+msgstr "CMS"
+
+#: core/output.py:82
+msgid "Server"
+msgstr "服务器"
+
+#: core/output.py:109 core/output.py:330
+msgid "Unknown Service"
+msgstr "未知服务"
+
+#: core/output.py:127
+msgid "Source Asset ID"
+msgstr "源资产ID"
+
+#: core/output.py:128
+msgid "Target Asset ID"
+msgstr "目标资产ID"
+
+#: core/output.py:129
+msgid "Relation Type"
+msgstr "关系类型"
+
+#: core/output.py:137
+#, python-brace-format
+msgid "Exported CSV asset list: {assets_file}, {relations_file}"
+msgstr "已导出CSV资产列表: {assets_file}, {relations_file}"
+
+#: core/output.py:198
+#, python-brace-format
+msgid "Exported GraphML asset graph: {filename}"
+msgstr "已导出GraphML资产图: {filename}"
+
+#: core/output.py:300
+#, python-brace-format
+msgid "Processing HTML report, total assets: {count}"
+msgstr "正在处理HTML报告，总资产数: {count}"
+
+#: core/output.py:303
+#, python-brace-format
+msgid "Processing asset: {uid}, state: {state}"
+msgstr "正在处理资产: {uid}, 状态: {state}"
+
+#: core/output.py:306
+#, python-brace-format
+msgid "Added to eliminated assets: {uid}"
+msgstr "已添加到淘汰资产: {uid}"
+
+#: core/output.py:310
+#, python-brace-format
+msgid "Collected eliminated assets: {count}"
+msgstr "已收集淘汰资产: {count}"
+
+#: core/output.py:383
+#, python-brace-format
+msgid "Preparing to display eliminated assets, count: {count}"
+msgstr "准备显示淘汰资产，数量: {count}"
+
+#: core/output.py:398
+#, python-brace-format
+msgid "Got elimination reason from eliminated_reason: {reason}"
+msgstr "从淘汰原因中获取淘汰理由: {reason}"
+
+#: core/output.py:400
+#, python-brace-format
+msgid "HTTP status code: {code}"
+msgstr "HTTP状态码: {code}"
+
+#: core/output.py:409
+msgid "Inaccessible URL"
+msgstr "无法访问的URL"
+
+#: core/output.py:411
+msgid "Closed port"
+msgstr "关闭的端口"
+
+#: core/output.py:413
+msgid "Unresolvable domain"
+msgstr "无法解析的域名"
+
+#: core/output.py:415
+msgid "Unreachable IP"
+msgstr "无法访问的IP"
+
+#: core/output.py:417
+#, python-brace-format
+msgid ""
+"Adding eliminated asset to HTML report: {type} - {value} - {state} - "
+"{reason}"
+msgstr "正在添加淘汰资产到HTML报告: {type} - {value} - {state} - {reason}"
+
+#: core/output.py:485
+#, python-brace-format
+msgid "Generated HTML report: {filename}"
+msgstr "已生成HTML报告: {filename}"
+
+#: core/breeders/breeders.py:36
+msgid "Subclasses must implement this method"
+msgstr "子类必须实现此方法"
+
+#: core/breeders/breeders.py:46
+#, python-brace-format
+msgid "Skipping system path: {path}"
+msgstr "跳过系统路径: {path}"
+
+#: core/breeders/breeders.py:56
+#, python-brace-format
+msgid "Failed to process relative path: {path}, error: {error}"
+msgstr "处理相对路径失败: {path}, 错误: {error}"
+
+#: core/breeders/breeders.py:68
+msgid ""
+"Engine instance does not exist, defaulting to False to avoid adding "
+"unrelated domains"
+msgstr "引擎实例不存在，默认为False以避免添加无关域名"
+
+#: core/breeders/breeders.py:72
+msgid "Seed domains list attribute not found in engine, defaulting to False"
+msgstr "引擎中未找到种子域名列表属性，默认为False"
+
+#: core/breeders/breeders.py:76
+msgid "Seed domains list is empty, defaulting to False"
+msgstr "种子域名列表为空，默认为False"
+
+#: core/breeders/breeders.py:80
+#, python-brace-format
+msgid "Invalid domain format: {domain}"
+msgstr "无效的域名格式: {domain}"
+
+#: core/breeders/breeders.py:84
+#, python-brace-format
+msgid "Domain contains invalid characters: {domain}"
+msgstr "域名包含无效字符: {domain}"
+
+#: core/breeders/breeders.py:88
+#, python-brace-format
+msgid "Domain {domain} is a seed domain"
+msgstr "域名 {domain} 是种子域名"
+
+#: core/breeders/breeders.py:97
+#, python-brace-format
+msgid "Domain {domain} is a subdomain of seed domain {seed}"
+msgstr "域名 {domain} 是种子域名 {seed} 的子域名"
+
+#: core/breeders/breeders.py:100
+#, python-brace-format
+msgid "Domain {domain} ends with .{seed} but is not a direct subdomain"
+msgstr "域名 {domain} 以 .{seed} 结尾但不是直接子域名"
+
+#: core/breeders/breeders.py:109
+#, python-brace-format
+msgid "Domain {domain} contains all parts of seed domain {seed}"
+msgstr "域名 {domain} 包含种子域名 {seed} 的所有部分"
+
+#: core/breeders/breeders.py:112
+#, python-brace-format
+msgid "Domain {domain} is not related to any seed domain"
+msgstr "域名 {domain} 与任何种子域名无关"
+
+#: core/breeders/breeders.py:136
+#, python-brace-format
+msgid "IP range check error: {error}"
+msgstr "IP范围检查错误: {error}"
+
+#: core/breeders/breeders.py:143
+#, python-brace-format
+msgid "Domain breeder received non-domain asset: {uid}"
+msgstr "域名繁殖器收到非域名资产: {uid}"
+
+#: core/breeders/breeders.py:155
+#, python-brace-format
+msgid "Subdomain relevance check: {subdomain}, related: {related}"
+msgstr "子域名相关性检查: {subdomain}, 相关: {related}"
+
+#: core/breeders/breeders.py:157 core/breeders/breeders.py:535
+#: core/breeders/breeders.py:949
+#, python-brace-format
+msgid "Skipping non-seed-related subdomain: {subdomain}"
+msgstr "跳过非种子相关子域名: {subdomain}"
+
+#: core/breeders/breeders.py:160 core/breeders/breeders.py:541
+#, python-brace-format
+msgid "Adding seed-related subdomain: {subdomain}"
+msgstr "添加种子相关子域名: {subdomain}"
+
+#: core/breeders/breeders.py:162
+#, python-brace-format
+msgid "Domain scope restriction disabled, adding all subdomains: {subdomain}"
+msgstr "域名范围限制已禁用，添加所有子域名: {subdomain}"
+
+#: core/breeders/breeders.py:171 core/breeders/breeders.py:303
+#, python-brace-format
+msgid "Skipping IP outside seed range: {ip}"
+msgstr "跳过种子范围外的IP: {ip}"
+
+#: core/breeders/breeders.py:181
+#, python-brace-format
+msgid "Skipping non-seed-related certificate domain: {domain}"
+msgstr "跳过非种子相关证书域名: {domain}"
+
+#: core/breeders/breeders.py:201
+#, python-brace-format
+msgid "Using subfinder tool to discover subdomains: {domain}"
+msgstr "使用subfinder工具发现子域名: {domain}"
+
+#: core/breeders/breeders.py:204
+#, python-brace-format
+msgid "Subfinder found {count} subdomains"
+msgstr "subfinder发现了 {count} 个子域名"
+
+#: core/breeders/breeders.py:207
+msgid "Subfinder found no subdomains"
+msgstr "subfinder未发现子域名"
+
+#: core/breeders/breeders.py:210
+#, python-brace-format
+msgid "Using free-subfinder tool to discover subdomains: {domain}"
+msgstr "使用free-subfinder工具发现子域名: {domain}"
+
+#: core/breeders/breeders.py:213
+#, python-brace-format
+msgid "Free-subfinder found {count} subdomains"
+msgstr "free-subfinder发现了 {count} 个子域名"
+
+#: core/breeders/breeders.py:216
+msgid "Free-subfinder found no subdomains"
+msgstr "free-subfinder未发现子域名"
+
+#: core/breeders/breeders.py:222
+#, python-brace-format
+msgid "Querying crt.sh for subdomains: {domain}"
+msgstr "查询crt.sh获取子域名: {domain}"
+
+#: core/breeders/breeders.py:225
+#, python-brace-format
+msgid "crt.sh found {count} subdomains"
+msgstr "crt.sh发现了 {count} 个子域名"
+
+#: core/breeders/breeders.py:228
+msgid "crt.sh query disabled"
+msgstr "crt.sh查询已禁用"
+
+#: core/breeders/breeders.py:231
+#, python-brace-format
+msgid "Subdomain discovery failed: {error}"
+msgstr "子域名发现失败: {error}"
+
+#: core/breeders/breeders.py:250
+#, python-brace-format
+msgid "crt.sh query failed: {error}"
+msgstr "crt.sh查询失败: {error}"
+
+#: core/breeders/breeders.py:263
+#, python-brace-format
+msgid "Domain resolution failed: {error}"
+msgstr "域名解析失败: {error}"
+
+#: core/breeders/breeders.py:287
+#, python-brace-format
+msgid "Certificate check failed: {error}"
+msgstr "证书检查失败: {error}"
+
+#: core/breeders/breeders.py:295
+#, python-brace-format
+msgid "IP breeder received non-IP asset: {uid}"
+msgstr "IP繁殖器收到非IP资产: {uid}"
+
+#: core/breeders/breeders.py:321
+#, python-brace-format
+msgid "Reverse DNS for IP {ip} found {count} domains"
+msgstr "IP {ip} 的反向DNS解析发现 {count} 个域名"
+
+#: core/breeders/breeders.py:323
+msgid "Reverse DNS query disabled"
+msgstr "反向DNS查询已禁用"
+
+#: core/breeders/breeders.py:328
+#, python-brace-format
+msgid "Reverse DNS domain relevance check: {domain}, related: {related}"
+msgstr "反向DNS域名相关性检查: {domain}, 相关: {related}"
+
+#: core/breeders/breeders.py:330
+#, python-brace-format
+msgid "Skipping non-seed-related domain: {domain} from IP {ip}"
+msgstr "跳过非种子相关域名: {domain}，来自IP {ip}"
+
+#: core/breeders/breeders.py:333
+#, python-brace-format
+msgid "Adding seed-related domain: {domain} from IP {ip}"
+msgstr "添加种子相关域名: {domain}，来自IP {ip}"
+
+#: core/breeders/breeders.py:335
+#, python-brace-format
+msgid "Domain scope restriction disabled, adding all domains: {domain}"
+msgstr "域名范围限制已禁用，添加所有域名: {domain}"
+
+#: core/breeders/breeders.py:363
+#, python-brace-format
+msgid "Port {port} scan failed: {error}"
+msgstr "端口 {port} 扫描失败: {error}"
+
+#: core/breeders/breeders.py:377
+#, python-brace-format
+msgid "Port not open: {result}"
+msgstr "端口未开放: {result}"
+
+#: core/breeders/breeders.py:387
+#, python-brace-format
+msgid "Asset marked as eliminated: {ip}:{port}, reason: {reason}"
+msgstr "资产标记为淘汰: {ip}:{port}, 原因: {reason}"
+
+#: core/breeders/breeders.py:422
+#, python-brace-format
+msgid "Starting reverse DNS for IP: {ip}"
+msgstr "开始对IP进行反向DNS解析: {ip}"
+
+#: core/breeders/breeders.py:426
+#, python-brace-format
+msgid "Reverse DNS successful: IP {ip} resolved to {hostname}"
+msgstr "反向DNS解析成功: IP {ip} 解析到 {hostname}"
+
+#: core/breeders/breeders.py:429
+#, python-brace-format
+msgid "Reverse DNS failed: IP {ip}, error: {error}"
+msgstr "反向DNS解析失败: IP {ip}, 错误: {error}"
+
+#: core/breeders/breeders.py:440
+#, python-brace-format
+msgid "URL breeder received non-URL asset: {uid}"
+msgstr "URL繁殖器收到非URL资产: {uid}"
+
+#: core/breeders/breeders.py:444
+#, python-brace-format
+msgid "URL asset already processed, skipping: {uid}, state: {state}"
+msgstr "URL资产已处理过，跳过: {uid}, 状态: {state}"
+
+#: core/breeders/breeders.py:458
+#, python-brace-format
+msgid "Using JSFinder tool for URL: {url}"
+msgstr "使用JSFinder工具处理URL: {url}"
+
+#: core/breeders/breeders.py:471 core/breeders/breeders.py:880
+#, python-brace-format
+msgid "Skipping invalid URL: {url}"
+msgstr "跳过无效URL: {url}"
+
+#: core/breeders/breeders.py:479 core/breeders/breeders.py:888
+#: core/breeders/breeders.py:1051
+#, python-brace-format
+msgid "Skipping URL without domain: {url}"
+msgstr "跳过无域名的URL: {url}"
+
+#: core/breeders/breeders.py:483 core/breeders/breeders.py:892
+#: core/breeders/breeders.py:990
+#, python-brace-format
+msgid "Skipping non-HTTP URL: {url}"
+msgstr "跳过非HTTP协议URL: {url}"
+
+#: core/breeders/breeders.py:486 core/breeders/breeders.py:895
+#, python-brace-format
+msgid "URL parsing failed: {url}, error: {error}"
+msgstr "URL解析失败: {url}, 错误: {error}"
+
+#: core/breeders/breeders.py:493 core/breeders/breeders.py:910
+#, python-brace-format
+msgid "Skipping non-seed-related domain: {domain}, URL: {url}"
+msgstr "跳过非种子相关域名: {domain}, URL: {url}"
+
+#: core/breeders/breeders.py:496 core/breeders/breeders.py:500
+#, python-brace-format
+msgid "Adding seed-related URL: {url}"
+msgstr "添加种子相关URL: {url}"
+
+#: core/breeders/breeders.py:503
+#, python-brace-format
+msgid "Adding non-seed-related URL (restriction disabled): {url}"
+msgstr "添加非种子相关URL(限制已禁用): {url}"
+
+#: core/breeders/breeders.py:515 core/breeders/breeders.py:923
+#, python-brace-format
+msgid "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+msgstr "JSFinder从 {url} 中提取到 {related} 个与种子域名相关的URL，总共 {total} 个URL"
+
+#: core/breeders/breeders.py:517
+#, python-brace-format
+msgid "JSFinder extracted {total} URLs from {url}, no domain restriction"
+msgstr "JSFinder从 {url} 中提取到 {total} 个URL，不限制域名范围"
+
+#: core/breeders/breeders.py:519
+#, python-brace-format
+msgid "JSFinder extracted {count} URLs from {url}"
+msgstr "JSFinder从 {url} 中提取到 {count} 个URL"
+
+#: core/breeders/breeders.py:523
+#, python-brace-format
+msgid "Skipping invalid subdomain format: {subdomain}"
+msgstr "跳过无效子域名格式: {subdomain}"
+
+#: core/breeders/breeders.py:527
+#, python-brace-format
+msgid "Skipping non-domain string: {subdomain}"
+msgstr "跳过非域名字符串: {subdomain}"
+
+#: core/breeders/breeders.py:531
+#, python-brace-format
+msgid "Skipping invalid domain format: {subdomain}"
+msgstr "跳过无效域名格式: {subdomain}"
+
+#: core/breeders/breeders.py:563
+#, python-brace-format
+msgid "Skipping non-seed-related redirect domain: {domain}"
+msgstr "跳过非种子相关重定向域名: {domain}"
+
+#: core/breeders/breeders.py:568 core/breeders/breeders.py:576
+msgid "Unable to fetch content"
+msgstr "无法获取内容"
+
+#: core/breeders/breeders.py:577
+#, python-brace-format
+msgid "Updated asset graph state to eliminated: {uid}, state: {state}"
+msgstr "资产图状态更新为淘汰: {uid}, 状态: {state}"
+
+#: core/breeders/breeders.py:579 core/breeders/breeders.py:777
+#, python-brace-format
+msgid "Asset not found in graph: {uid}"
+msgstr "资产图中未找到资产: {uid}"
+
+#: core/breeders/breeders.py:581
+#, python-brace-format
+msgid "Unable to access asset graph, cannot update state: {url}"
+msgstr "无法访问资产图，无法更新状态: {url}"
+
+#: core/breeders/breeders.py:583
+#, python-brace-format
+msgid ""
+"URL asset content fetch failed, marked as eliminated: {url}, state: "
+"{state}"
+msgstr "URL资产内容获取失败，标记为淘汰: {url}, 状态: {state}"
+
+#: core/breeders/breeders.py:602
+#, python-brace-format
+msgid "URL link domain relevance: {domain}, related: {related}"
+msgstr "URL链接域名相关性: {domain}, 相关: {related}"
+
+#: core/breeders/breeders.py:604
+#, python-brace-format
+msgid "Skipping non-seed-related link: {link}, domain: {domain}"
+msgstr "跳过非种子相关链接: {link}, 域名: {domain}"
+
+#: core/breeders/breeders.py:607
+#, python-brace-format
+msgid "Adding seed-related link: {link}, domain: {domain}"
+msgstr "添加种子相关链接: {link}, 域名: {domain}"
+
+#: core/breeders/breeders.py:610
+#, python-brace-format
+msgid "Link has no domain part, possibly relative: {link}"
+msgstr "链接没有域名部分，可能是相对路径: {link}"
+
+#: core/breeders/breeders.py:612
+#, python-brace-format
+msgid ""
+"Domain scope restriction disabled, adding all links: {link}, domain: "
+"{domain}"
+msgstr "域名范围限制已禁用，添加所有链接: {link}, 域名: {domain}"
+
+#: core/breeders/breeders.py:622
+#, python-brace-format
+msgid "Skipping non-seed-related domain asset: {domain}"
+msgstr "跳过非种子相关域名资产: {domain}"
+
+#: core/breeders/breeders.py:632
+#, python-brace-format
+msgid "Processing URL: {url}"
+msgstr "处理URL: {url}"
+
+#: core/breeders/breeders.py:638
+#, python-brace-format
+msgid "URL asset exists in graph: {uid}, state: {state}"
+msgstr "URL资产存在于图中: {uid}, 状态: {state}"
+
+#: core/breeders/breeders.py:640
+#, python-brace-format
+msgid "URL asset not found in graph: {uid}"
+msgstr "图中未找到URL资产: {uid}"
+
+#: core/breeders/breeders.py:642
+#, python-brace-format
+msgid "Sending HTTP request: {url}"
+msgstr "发送HTTP请求: {url}"
+
+#: core/breeders/breeders.py:650
+#, python-brace-format
+msgid "HTTP request completed: {url}, status: {status}"
+msgstr "HTTP请求完成: {url}, 状态: {status}"
+
+#: core/breeders/breeders.py:656
+#, python-brace-format
+msgid "Handling redirect: {from_} -> {to}"
+msgstr "处理重定向: {from_} -> {to}"
+
+#: core/breeders/breeders.py:660
+#, python-brace-format
+msgid "URL request successful: {url}, status: 200"
+msgstr "URL请求成功: {url}, 状态: 200"
+
+#: core/breeders/breeders.py:671
+#, python-brace-format
+msgid "Invalid URL format for fingerprinting: {url}"
+msgstr "无效的指纹识别URL格式: {url}"
+
+#: core/breeders/breeders.py:673
+#, python-brace-format
+msgid "Starting fingerprinting, original URL: {url}, cleaned URL: {cleaned}"
+msgstr "开始指纹识别，原始URL: {url}, 清理后URL: {cleaned}"
+
+#: core/breeders/breeders.py:686
+#, python-brace-format
+msgid "Title extracted from EHole: {url}, title: {title}"
+msgstr "从EHole提取标题: {url}, 标题: {title}"
+
+#: core/breeders/breeders.py:687
+#, python-brace-format
+msgid "URL fingerprint extracted: {url}, fingerprints: {fingerprints}"
+msgstr "URL指纹已提取: {url}, 指纹: {fingerprints}"
+
+#: core/breeders/breeders.py:689
+#, python-brace-format
+msgid "Fingerprinting returned no results: {url}"
+msgstr "指纹识别未返回结果: {url}"
+
+#: core/breeders/breeders.py:691
+#, python-brace-format
+msgid "Fingerprinting failed: {url}, {error}"
+msgstr "指纹识别失败: {url}, {error}"
+
+#: core/breeders/breeders.py:700
+#, python-brace-format
+msgid "Title already extracted from EHole, skipping BeautifulSoup: {url}"
+msgstr "标题已从EHole提取，跳过BeautifulSoup: {url}"
+
+#: core/breeders/breeders.py:705 core/breeders/breeders.py:710
+msgid "No title"
+msgstr "无标题"
+
+#: core/breeders/breeders.py:719
+#, python-brace-format
+msgid "Title extracted from BeautifulSoup: {url}, title: {title}"
+msgstr "从BeautifulSoup提取标题: {url}, 标题: {title}"
+
+#: core/breeders/breeders.py:721
+#, python-brace-format
+msgid "Title extraction failed: {url}, {error}"
+msgstr "标题提取失败: {url}, {error}"
+
+#: core/breeders/breeders.py:723
+#, python-brace-format
+msgid "Title extraction disabled for URL: {url}"
+msgstr "URL标题提取已禁用: {url}"
+
+#: core/breeders/breeders.py:727
+#, python-brace-format
+msgid "URL request returned non-200 status: {url}, status: {status}"
+msgstr "URL请求返回非200状态: {url}, 状态: {status}"
+
+#: core/breeders/breeders.py:728 core/breeders/breeders.py:1006
+#, python-brace-format
+msgid "HTTP status code: {status}"
+msgstr "HTTP状态码: {status}"
+
+#: core/breeders/breeders.py:736
+#, python-brace-format
+msgid "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+msgstr "URL资产标记为淘汰: {url}, 状态: {status}, 状态: {state}"
+
+#: core/breeders/breeders.py:738 core/breeders/breeders.py:775
+#, python-brace-format
+msgid "Rechecking asset state: {uid}, state: {state}"
+msgstr "重新检查资产状态: {uid}, 状态: {state}"
+
+#: core/breeders/breeders.py:740
+#, python-brace-format
+msgid "Asset not found in graph, cannot set state: {uid}"
+msgstr "图中未找到资产，无法设置状态: {uid}"
+
+#: core/breeders/breeders.py:742
+#, python-brace-format
+msgid "Unable to access asset graph, cannot set state: {url}"
+msgstr "无法访问资产图，无法设置状态: {url}"
+
+#: core/breeders/breeders.py:744
+#, python-brace-format
+msgid "URL content fetch failed: {url}, {error}"
+msgstr "URL内容获取失败: {url}, {error}"
+
+#: core/breeders/breeders.py:745 core/breeders/breeders.py:1009
+#, python-brace-format
+msgid "Access failed: {error}"
+msgstr "访问失败: {error}"
+
+#: core/breeders/breeders.py:749
+#, python-brace-format
+msgid "Redirect detected: {from_} -> {to}"
+msgstr "检测到重定向: {from_} -> {to}"
+
+#: core/breeders/breeders.py:754
+#, python-brace-format
+msgid "Marking asset as eliminated: {url}, reason: {reason}"
+msgstr "将资产标记为淘汰: {url}, 原因: {reason}"
+
+#: core/breeders/breeders.py:757
+#, python-brace-format
+msgid "Checking if asset exists in graph: {uid}"
+msgstr "检查资产是否存在于图中: {uid}"
+
+#: core/breeders/breeders.py:760
+#, python-brace-format
+msgid "Found asset: {uid}, current state: {state}"
+msgstr "找到资产: {uid}, 当前状态: {state}"
+
+#: core/breeders/breeders.py:763
+#, python-brace-format
+msgid "Asset state updated to eliminated: {uid}, new state: {state}"
+msgstr "资产状态更新为淘汰: {uid}, 新状态: {state}"
+
+#: core/breeders/breeders.py:765
+msgid "HTTP status code:"
+msgstr "HTTP状态码:"
+
+#: core/breeders/breeders.py:769
+#, python-brace-format
+msgid "Status code set for asset: {uid}, code: {code}"
+msgstr "为资产设置状态码: {uid}, 代码: {code}"
+
+#: core/breeders/breeders.py:771
+#, python-brace-format
+msgid "Unable to extract status code from reason: {reason}"
+msgstr "无法从原因中提取状态码: {reason}"
+
+#: core/breeders/breeders.py:773
+#, python-brace-format
+msgid "Asset marked as eliminated: {url}, reason: {reason}, state: {state}"
+msgstr "资产标记为淘汰: {url}, 原因: {reason}, 状态: {state}"
+
+#: core/breeders/breeders.py:779
+#, python-brace-format
+msgid "Unable to access asset graph, cannot mark asset: {url}"
+msgstr "无法访问资产图，无法标记资产: {url}"
+
+#: core/breeders/breeders.py:782
+#, python-brace-format
+msgid "Updating current asset state: {url}"
+msgstr "更新当前资产状态: {url}"
+
+#: core/breeders/breeders.py:785
+#, python-brace-format
+msgid "Current asset state updated to eliminated: {url}, state: {state}"
+msgstr "当前资产状态更新为淘汰: {url}, 状态: {state}"
+
+#: core/breeders/breeders.py:787
+#, python-brace-format
+msgid "No current URL asset being processed: {url}"
+msgstr "当前没有正在处理的URL资产: {url}"
+
+#: core/breeders/breeders.py:800
+#, python-brace-format
+msgid "JS file extracted from HTML: {url}"
+msgstr "从HTML中提取JS文件: {url}"
+
+#: core/breeders/breeders.py:802
+#, python-brace-format
+msgid "JS extraction failed: {error}"
+msgstr "JS提取失败: {error}"
+
+#: core/breeders/breeders.py:817
+#, python-brace-format
+msgid "Link extraction failed: {error}"
+msgstr "链接提取失败: {error}"
+
+#: core/breeders/breeders.py:849
+#, python-brace-format
+msgid "JS breeder received non-JS asset: {uid}"
+msgstr "JS繁殖器收到非JS资产: {uid}"
+
+#: core/breeders/breeders.py:854
+msgid "Seed domains list is empty, all domains will be considered unrelated"
+msgstr "种子域名列表为空，所有域名将被视为不相关"
+
+#: core/breeders/breeders.py:856 core/breeders/breeders.py:996
+#: core/breeders/breeders.py:1032
+#, python-brace-format
+msgid "Current seed domains: {domains}"
+msgstr "当前种子域名: {domains}"
+
+#: core/breeders/breeders.py:858
+msgid ""
+"Seed domains list attribute not found in engine, all domains will be "
+"considered unrelated"
+msgstr "引擎中未找到种子域名列表属性，所有域名将被视为不相关"
+
+#: core/breeders/breeders.py:867
+#, python-brace-format
+msgid "Using JSFinder tool for JS: {url}"
+msgstr "使用JSFinder工具处理JS: {url}"
+
+#: core/breeders/breeders.py:902 core/breeders/breeders.py:1067
+#, python-brace-format
+msgid "Domain {domain} is seed-related"
+msgstr "域名 {domain} 与种子域名相关"
+
+#: core/breeders/breeders.py:907 core/breeders/breeders.py:985
+#, python-brace-format
+msgid "Adding seed-related URL asset: {url}"
+msgstr "添加种子相关URL资产: {url}"
+
+#: core/breeders/breeders.py:917
+#, python-brace-format
+msgid "Domain {domain} is seed-related, adding URL asset: {url}"
+msgstr "域名 {domain} 与种子域名相关，添加URL资产: {url}"
+
+#: core/breeders/breeders.py:919
+#, python-brace-format
+msgid "Domain {domain} not seed-related but added due to no restriction: {url}"
+msgstr "域名 {domain} 与种子域名不相关，但因不限制域名范围而添加: {url}"
+
+#: core/breeders/breeders.py:925
+#, python-brace-format
+msgid "JSFinder extracted {total} URLs from {url}, {related} seed-related"
+msgstr "JSFinder从 {url} 中提取到 {total} 个URL，其中 {related} 个与种子域名相关"
+
+#: core/breeders/breeders.py:932 core/tools/tools.py:268
+#, python-brace-format
+msgid "Skipping invalid subdomain: {subdomain}"
+msgstr "跳过无效子域名: {subdomain}"
+
+#: core/breeders/breeders.py:936
+#, python-brace-format
+msgid "Skipping subdomain with invalid characters: {subdomain}"
+msgstr "跳过包含无效字符的子域名: {subdomain}"
+
+#: core/breeders/breeders.py:940
+#, python-brace-format
+msgid "Skipping malformed subdomain: {subdomain}"
+msgstr "跳过格式不正确的子域名: {subdomain}"
+
+#: core/breeders/breeders.py:952 core/breeders/breeders.py:956
+#, python-brace-format
+msgid "Subdomain {subdomain} is seed-related, adding as domain asset"
+msgstr "子域名 {subdomain} 与种子域名相关，添加为域名资产"
+
+#: core/breeders/breeders.py:959
+#, python-brace-format
+msgid "Subdomain {subdomain} not seed-related but added due to no restriction"
+msgstr "子域名 {subdomain} 与种子域名不相关，但因不限制域名范围而添加"
+
+#: core/breeders/breeders.py:966
+#, python-brace-format
+msgid ""
+"JSFinder extracted {related} seed-related subdomains from {url}, total: "
+"{total}"
+msgstr "JSFinder从 {url} 中提取到 {related} 个与种子域名相关的子域名，总共 {total} 个子域名"
+
+#: core/breeders/breeders.py:968
+#, python-brace-format
+msgid "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+msgstr "JSFinder从 {url} 中提取到 {count} 个子域名，其中 {related} 个与种子域名相关"
+
+#: core/breeders/breeders.py:975 core/breeders/breeders.py:1079
+#, python-brace-format
+msgid "Extracted {count} URLs from JS content (filtered)"
+msgstr "从JS内容中提取到 {count} 个URL(已过滤)"
+
+#: core/breeders/breeders.py:987
+#, python-brace-format
+msgid "URL processing failed: {url}, error: {error}"
+msgstr "URL处理失败: {url}, 错误: {error}"
+
+#: core/breeders/breeders.py:993
+#, python-brace-format
+msgid "JS asset {url} processed, found {count} new assets"
+msgstr "JS资产 {url} 已处理，发现 {count} 个新资产"
+
+#: core/breeders/breeders.py:1008
+#, python-brace-format
+msgid "JS content fetch failed: {url}, {error}"
+msgstr "JS内容获取失败: {url}, {error}"
+
+#: core/breeders/breeders.py:1019
+#, python-brace-format
+msgid "Asset marked as eliminated: {url}, reason: {reason}"
+msgstr "资产标记为淘汰: {url}, 原因: {reason}"
+
+#: core/breeders/breeders.py:1034
+msgid "Seed domains list not found, domain relevance may be inaccurate"
+msgstr "未找到种子域名列表，域名相关性可能不准确"
+
+#: core/breeders/breeders.py:1039
+#, python-brace-format
+msgid "Skipping possible JavaScript code URL: {url}"
+msgstr "跳过可能是JavaScript代码的URL: {url}"
+
+#: core/breeders/breeders.py:1043
+#, python-brace-format
+msgid "Preliminary extraction: {initial} URLs, cleaned: {cleaned} valid URLs"
+msgstr "初步提取: {initial} 个URL，清理后: {cleaned} 个有效URL"
+
+#: core/breeders/breeders.py:1058
+#, python-brace-format
+msgid "Domain {domain} is seed-related, adding URL asset"
+msgstr "域名 {domain} 与种子域名相关，添加URL资产"
+
+#: core/breeders/breeders.py:1062
+#, python-brace-format
+msgid "Domain {domain} not seed-related, skipping URL: {url}"
+msgstr "域名 {domain} 与种子域名不相关，跳过URL: {url}"
+
+#: core/breeders/breeders.py:1069
+#, python-brace-format
+msgid "Domain {domain} not seed-related but added due to no restriction"
+msgstr "域名 {domain} 与种子域名不相关，但因不限制域名范围而添加"
+
+#: core/breeders/breeders.py:1071
+#, python-brace-format
+msgid "Pre-filtering: URL processing failed: {url}, error: {error}"
+msgstr "预过滤: URL处理失败: {url}, 错误: {error}"
+
+#: core/breeders/breeders.py:1075
+#, python-brace-format
+msgid "Extracted {count} seed-related URLs from JS content"
+msgstr "从JS内容中提取到 {count} 个与种子域名相关的URL"
+
+#: core/breeders/breeders.py:1077
+#, python-brace-format
+msgid "Extracted {related} seed-related URLs from JS content, total: {total}"
+msgstr "从JS内容中提取到 {related} 个与种子域名相关的URL，总共 {total} 个URL"
+
+#: core/breeders/breeders.py:1087
+#, python-brace-format
+msgid "Port breeder received non-port asset: {uid}"
+msgstr "端口繁殖器收到非端口资产: {uid}"
+
+#: core/breeders/breeders.py:1118
+#, python-brace-format
+msgid "Unknown asset type: {type}, using base breeder"
+msgstr "未知资产类型: {type}, 使用基础繁殖器"
+
+#: core/tools/tools.py:32
+#, python-brace-format
+msgid "Loaded external tool path configuration: {paths}"
+msgstr "已加载外部工具路径配置: {paths}"
+
+#: core/tools/tools.py:34
+msgid "No external tool path configuration found, using default paths"
+msgstr "未找到外部工具路径配置，使用默认路径"
+
+#: core/tools/tools.py:40
+#, python-brace-format
+msgid "Tool {tool} path is empty, ignoring configuration"
+msgstr "工具 {tool} 路径为空，忽略配置"
+
+#: core/tools/tools.py:49
+msgid "Subfinder tool not found, using internal method instead"
+msgstr "未找到subfinder工具，使用内置方法替代"
+
+#: core/tools/tools.py:63
+#, python-brace-format
+msgid "Using subfinder path from configuration: {path}"
+msgstr "使用配置文件中指定的subfinder路径: {path}"
+
+#: core/tools/tools.py:66
+#, python-brace-format
+msgid "Using subfinder.exe from assets directory: {path}"
+msgstr "使用assets目录下的subfinder.exe: {path}"
+
+#: core/tools/tools.py:69 core/tools/tools.py:83 core/tools/tools.py:517
+#, python-brace-format
+msgid "Executing command: {cmd}"
+msgstr "执行命令: {cmd}"
+
+#: core/tools/tools.py:74
+#, python-brace-format
+msgid "Using shell execution: {cmd}"
+msgstr "使用shell执行: {cmd}"
+
+#: core/tools/tools.py:79
+#, python-brace-format
+msgid "Failed to use {path}: {error}"
+msgstr "使用 {path} 失败: {error}"
+
+#: core/tools/tools.py:81
+msgid "Trying subfinder from system PATH"
+msgstr "尝试使用系统PATH中的subfinder"
+
+#: core/tools/tools.py:87
+msgid "System PATH subfinder failed, using internal method instead"
+msgstr "系统PATH中的subfinder失败，使用内置方法替代"
+
+#: core/tools/tools.py:100
+#, python-brace-format
+msgid "Subfinder execution failed: {error}"
+msgstr "subfinder执行失败: {error}"
+
+#: core/tools/tools.py:103
+#, python-brace-format
+msgid "Subfinder call exception: {error}"
+msgstr "subfinder调用异常: {error}"
+
+#: core/tools/tools.py:109
+#, python-brace-format
+msgid "Using internal DNS resolver for {domain}"
+msgstr "使用内置DNS解析器处理 {domain}"
+
+#: core/tools/tools.py:115
+msgid "DNSx resolution disabled"
+msgstr "DNSx解析已禁用"
+
+#: core/tools/tools.py:119
+msgid "Internal DNS resolver dnsxs.py does not exist"
+msgstr "内置DNS解析器dnsxs.py不存在"
+
+#: core/tools/tools.py:142
+#, python-brace-format
+msgid "Internal DNS resolver execution failed: {error}"
+msgstr "内置DNS解析器执行失败: {error}"
+
+#: core/tools/tools.py:144
+#, python-brace-format
+msgid "Internal DNS resolver call exception: {error}"
+msgstr "内置DNS解析器调用异常: {error}"
+
+#: core/tools/tools.py:151
+msgid "Naabu tool not found or invalid path, using internal method instead"
+msgstr "未找到naabu工具或路径无效，使用内置方法替代"
+
+#: core/tools/tools.py:160
+#, python-brace-format
+msgid "Executing naabu command: {cmd}"
+msgstr "执行naabu命令: {cmd}"
+
+#: core/tools/tools.py:175
+#, python-brace-format
+msgid "Naabu execution failed: {error}"
+msgstr "naabu执行失败: {error}"
+
+#: core/tools/tools.py:178
+#, python-brace-format
+msgid "Naabu call exception: {error}"
+msgstr "naabu调用异常: {error}"
+
+#: core/tools/tools.py:184
+#, python-brace-format
+msgid "Using internal port scanner for {ip}"
+msgstr "使用内置端口扫描器处理 {ip}"
+
+#: core/tools/tools.py:188
+msgid "Internal port scanner port.py does not exist"
+msgstr "内置端口扫描器port.py不存在"
+
+#: core/tools/tools.py:206
+#, python-brace-format
+msgid "Internal port scanner execution failed: {error}"
+msgstr "内置端口扫描器执行失败: {error}"
+
+#: core/tools/tools.py:208
+#, python-brace-format
+msgid "Internal port scanner call exception: {error}"
+msgstr "内置端口扫描器调用异常: {error}"
+
+#: core/tools/tools.py:214
+#, python-brace-format
+msgid "Invalid URL format: {url}"
+msgstr "无效的URL格式: {url}"
+
+#: core/tools/tools.py:218
+#, python-brace-format
+msgid "Skipping system path: {url}"
+msgstr "跳过系统路径: {url}"
+
+#: core/tools/tools.py:223
+#, python-brace-format
+msgid "Normalized URL: {url}"
+msgstr "规范化URL: {url}"
+
+#: core/tools/tools.py:226
+msgid "JSfinder.py not found, using internal method instead"
+msgstr "未找到JSfinder.py，使用内置方法替代"
+
+#: core/tools/tools.py:229
+#, python-brace-format
+msgid "Starting JSFinder for URL: {url}"
+msgstr "开始使用JSFinder处理URL: {url}"
+
+#: core/tools/tools.py:240
+#, python-brace-format
+msgid "Executing JSFinder command: {cmd}"
+msgstr "执行JSFinder命令: {cmd}"
+
+#: core/tools/tools.py:243
+#, python-brace-format
+msgid ""
+"JSFinder full output:\n"
+"{output}"
+msgstr ""
+"JSFinder完整输出:\n"
+"{output}"
+
+#: core/tools/tools.py:245
+#, python-brace-format
+msgid ""
+"JSFinder error output:\n"
+"{error}"
+msgstr ""
+"JSFinder错误输出:\n"
+"{error}"
+
+#: core/tools/tools.py:247
+#, python-brace-format
+msgid "JSFinder execution completed, exit code: {code}"
+msgstr "JSFinder执行完成，退出码: {code}"
+
+#: core/tools/tools.py:255
+#, python-brace-format
+msgid "Skipping system path URL: {url}"
+msgstr "跳过系统路径URL: {url}"
+
+#: core/tools/tools.py:258
+#, python-brace-format
+msgid "JSFinder found URL: {url}"
+msgstr "JSFinder发现URL: {url}"
+
+#: core/tools/tools.py:260
+#, python-brace-format
+msgid "Failed to read JSFinder URL result file: {error}"
+msgstr "读取JSFinder URL结果文件失败: {error}"
+
+#: core/tools/tools.py:271
+#, python-brace-format
+msgid "JSFinder found subdomain: {subdomain}"
+msgstr "JSFinder发现子域名: {subdomain}"
+
+#: core/tools/tools.py:273
+#, python-brace-format
+msgid "Failed to read JSFinder subdomain result file: {error}"
+msgstr "读取JSFinder子域名结果文件失败: {error}"
+
+#: core/tools/tools.py:279
+#, python-brace-format
+msgid "Failed to delete JSFinder temporary files: {error}"
+msgstr "删除JSFinder临时文件失败: {error}"
+
+#: core/tools/tools.py:300
+#, python-brace-format
+msgid "Extracted URL from command output: {url}"
+msgstr "从命令输出中提取URL: {url}"
+
+#: core/tools/tools.py:305
+#, python-brace-format
+msgid "Extracted subdomain from command output: {subdomain}"
+msgstr "从命令输出中提取子域名: {subdomain}"
+
+#: core/tools/tools.py:311
+#, python-brace-format
+msgid "Using seed domains list from engine: {domains}"
+msgstr "使用引擎中的种子域名列表: {domains}"
+
+#: core/tools/tools.py:320
+#, python-brace-format
+msgid "Extracted seed domain from URL {url}: {domain}"
+msgstr "从URL {url} 中提取种子域名: {domain}"
+
+#: core/tools/tools.py:322
+#, python-brace-format
+msgid "Failed to extract seed domain from URL: {error}"
+msgstr "从URL提取种子域名失败: {error}"
+
+#: core/tools/tools.py:338
+#, python-brace-format
+msgid "Keeping seed-related URL: {url}"
+msgstr "保留种子相关URL: {url}"
+
+#: core/tools/tools.py:340
+#, python-brace-format
+msgid "Filtering non-seed-related URL: {url}"
+msgstr "过滤非种子相关URL: {url}"
+
+#: core/tools/tools.py:342
+#, python-brace-format
+msgid "URL filtering error: {error}, URL: {url}"
+msgstr "URL过滤错误: {error}, URL: {url}"
+
+#: core/tools/tools.py:354
+#, python-brace-format
+msgid "Keeping seed-related subdomain: {subdomain}"
+msgstr "保留种子相关子域名: {subdomain}"
+
+#: core/tools/tools.py:356
+#, python-brace-format
+msgid "Filtering non-seed-related subdomain: {subdomain}"
+msgstr "过滤非种子相关子域名: {subdomain}"
+
+#: core/tools/tools.py:358
+#, python-brace-format
+msgid "Before filtering: {url_count} URLs, {subdomain_count} subdomains"
+msgstr "过滤前: {url_count} 个URL, {subdomain_count} 个子域名"
+
+#: core/tools/tools.py:361
+#, python-brace-format
+msgid "After filtering: {url_count} URLs, {subdomain_count} subdomains"
+msgstr "过滤后: {url_count} 个URL, {subdomain_count} 个子域名"
+
+#: core/tools/tools.py:363
+#, python-brace-format
+msgid ""
+"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from"
+" {url}"
+msgstr "JSFinder从 {url} 中提取到 {url_count} 个URL和 {subdomain_count} 个子域名"
+
+#: core/tools/tools.py:365
+#, python-brace-format
+msgid "JSFinder execution failed: {error}"
+msgstr "JSFinder执行失败: {error}"
+
+#: core/tools/tools.py:366 core/tools/tools.py:373
+msgid "Trying internal method instead"
+msgstr "尝试使用内部方法替代"
+
+#: core/tools/tools.py:369
+msgid "JSFinder execution timed out, trying internal method instead"
+msgstr "JSFinder执行超时，尝试使用内部方法替代"
+
+#: core/tools/tools.py:372
+#, python-brace-format
+msgid "JSFinder call exception: {error}"
+msgstr "JSFinder调用异常: {error}"
+
+#: core/tools/tools.py:389
+#, python-brace-format
+msgid "Failed to get URL content, status code: {code}"
+msgstr "获取URL内容失败，状态码: {code}"
+
+#: core/tools/tools.py:437
+#, python-brace-format
+msgid ""
+"Internal JSFinder extracted {url_count} URLs and {subdomain_count} "
+"subdomains from {url}"
+msgstr "内置JSFinder从 {url} 中提取到 {url_count} 个URL和 {subdomain_count} 个子域名"
+
+#: core/tools/tools.py:439
+#, python-brace-format
+msgid "Internal JSFinder execution failed: {error}"
+msgstr "内置JSFinder执行失败: {error}"
+
+#: core/tools/tools.py:445
+msgid "free-subfinder.py not found, using internal method instead"
+msgstr "未找到free-subfinder.py，使用内置方法替代"
+
+#: core/tools/tools.py:452
+#, python-brace-format
+msgid "Adding original domain to subdomains list: {domain}"
+msgstr "将原始域名添加到子域名列表: {domain}"
+
+#: core/tools/tools.py:470
+#, python-brace-format
+msgid "Added original domain from ww-prefix domain: {domain}"
+msgstr "从ww前缀域名推导添加原始域名: {domain}"
+
+#: core/tools/tools.py:472
+#, python-brace-format
+msgid "free-subfinder found {count} subdomains: {subdomains}"
+msgstr "free-subfinder发现了 {count} 个子域名: {subdomains}"
+
+#: core/tools/tools.py:474
+#, python-brace-format
+msgid "free-subfinder execution failed: {error}"
+msgstr "free-subfinder执行失败: {error}"
+
+#: core/tools/tools.py:476
+#, python-brace-format
+msgid "free-subfinder call exception: {error}"
+msgstr "free-subfinder调用异常: {error}"
+
+#: core/tools/tools.py:483
+msgid "Fingerprinting feature not enabled, skipping EHole call"
+msgstr "指纹识别功能未启用，跳过EHole调用"
+
+#: core/tools/tools.py:487
+msgid "EHole tool not found, cannot perform fingerprinting"
+msgstr "未找到EHole工具，无法进行指纹识别"
+
+#: core/tools/tools.py:493
+#, python-brace-format
+msgid "Invalid URL format: {url}, skipping fingerprinting"
+msgstr "无效的URL格式: {url}, 跳过指纹识别"
+
+#: core/tools/tools.py:496 core/tools/tools.py:526
+#, python-brace-format
+msgid "Cleaned URL: {url}"
+msgstr "清理后URL: {url}"
+
+#: core/tools/tools.py:514
+#, python-brace-format
+msgid "Using EHole path from configuration: {path}"
+msgstr "使用配置文件中指定的EHole路径: {path}"
+
+#: core/tools/tools.py:525
+#, python-brace-format
+msgid "Original URL: {url}"
+msgstr "原始URL: {url}"
+
+#: core/tools/tools.py:527
+#, python-brace-format
+msgid "Final URL: {url}"
+msgstr "最终URL: {url}"
+
+#: core/tools/tools.py:529
+#, python-brace-format
+msgid "Using shell string execution: {cmd}"
+msgstr "使用shell字符串执行: {cmd}"
+
+#: core/tools/tools.py:535
+#, python-brace-format
+msgid "EHole raw output: {output}"
+msgstr "EHole原始输出: {output}"
+
+#: core/tools/tools.py:541
+#, python-brace-format
+msgid "EHole output parsing: {parts}"
+msgstr "EHole输出解析: {parts}"
+
+#: core/tools/tools.py:555
+#, python-brace-format
+msgid "Title extracted from EHole: {title}"
+msgstr "从EHole提取标题: {title}"
+
+#: core/tools/tools.py:557
+#, python-brace-format
+msgid "Fingerprint result: {result}"
+msgstr "指纹识别结果: {result}"
+
+#: core/tools/tools.py:562
+msgid "No exact match found, trying looser matching"
+msgstr "未找到精确匹配，尝试更宽松的匹配"
+
+#: core/tools/tools.py:566
+#, python-brace-format
+msgid "EHole loose match output parsing: {parts}"
+msgstr "EHole宽松匹配输出解析: {parts}"
+
+#: core/tools/tools.py:580
+#, python-brace-format
+msgid "Title extracted from EHole loose match: {title}"
+msgstr "从EHole宽松匹配提取标题: {title}"
+
+#: core/tools/tools.py:582
+#, python-brace-format
+msgid "Fingerprint loose match result: {result}"
+msgstr "指纹宽松匹配结果: {result}"
+
+#: core/tools/tools.py:589
+#, python-brace-format
+msgid "EHole execution failed: {error}"
+msgstr "EHole执行失败: {error}"
+
+#: core/tools/tools.py:592
+#, python-brace-format
+msgid "EHole error details: {error}"
+msgstr "EHole错误详情: {error}"
+
+#: core/tools/tools.py:595
+#, python-brace-format
+msgid "Possible URL format issue caused EHole failure: {url}"
+msgstr "可能的URL格式问题导致EHole失败: {url}"
+
+#: core/tools/tools.py:599
+#, python-brace-format
+msgid "EHole call exception: {error}"
+msgstr "EHole调用异常: {error}"
+
+#: core/tools/tools.py:601
+#, python-brace-format
+msgid "EHole exception details: {traceback}"
+msgstr "EHole异常详情: {traceback}"
+
+#: core/tools/tools.py:608
+#, python-brace-format
+msgid "Found tool {tool} at configured path: {path}"
+msgstr "在配置路径找到工具 {tool}: {path}"
+
+#: core/tools/tools.py:613 core/tools/tools.py:619
+#, python-brace-format
+msgid "Found tool {tool} in assets directory: {path}"
+msgstr "在assets目录找到工具 {tool}: {path}"
+
+#: core/tools/tools.py:627
+#, python-brace-format
+msgid "Found tool {tool} in system PATH"
+msgstr "在系统PATH中找到工具 {tool}"
+
+#: core/tools/tools.py:630
+#, python-brace-format
+msgid "Tool {tool} not found"
+msgstr "未找到工具 {tool}"
+
+#: core/tools/tools.py:640
+#, python-brace-format
+msgid "Reduced concurrency to {concurrency}"
+msgstr "并发数减少至 {concurrency}"
+
+#: core/tools/tools.py:650
+#, python-brace-format
+msgid "Increased concurrency to {concurrency}"
+msgstr "并发数增加至 {concurrency}"
+
+#: core/tools/tools.py:672
+#, python-brace-format
+msgid "Task {func} completed, duration: {duration:.2f} seconds"
+msgstr "任务 {func} 完成，耗时: {duration:.2f} 秒"
+
+#: core/tools/tools.py:686
+msgid "Tool manager shutdown"
+msgstr "工具管理器已关闭"
+

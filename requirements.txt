@@ -1,0 +1,7 @@
+beautifulsoup4==4.10.0
+colorama==0.4.4
+colorlog==6.9.0
+dnspython==2.7.0
+PyYAML==6.0.2
+Requests==2.32.4
+urllib3==1.26.6

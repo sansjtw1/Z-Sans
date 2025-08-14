@@ -1,0 +1,135 @@
+# Breeding strategy: priority_based (priority), depth_first (depth-first), breadth_first (breadth-first), time_based (time sequence)
+strategy: priority_based  # Priority-based strategy
+
+# Asset scope configuration
+asset_scope:
+  restrict_to_seed_domains: true    # Limit to seed domain scope
+  restrict_to_seed_ip_ranges: false  # Limit to seed IP ranges
+  include_subdomains: true          # Include subdomains
+  include_ip_ranges: true           # Include IP ranges
+
+# Concurrency configuration
+concurrency:
+  max_tasks: 20        # Maximum concurrent tasks
+  tools:               # Tool concurrency settings
+    subfinder: 2       # Subdomain discovery tool concurrency
+    naabu: 2          # Port scanning tool concurrency
+    jsfinder: 2       # JS file discovery tool concurrency
+
+max_depth: 4          # Maximum discovery depth
+
+# Asset quantity limits
+resource_limits:
+  max_domains: 2000    # Maximum domain count
+  max_ips: 2000       # Maximum IP count
+  max_urls: 5000      # Maximum URL count
+  max_ports: 5000     # Maximum port count
+  max_js: 2000        # Maximum JS file count
+
+# Asset type configuration
+asset_types:
+  # Domain asset configuration
+  domain:
+    enabled: true      # Enable domain discovery
+    depth_limit: 3     # Domain discovery depth limit
+    priority: 10       # Priority (higher = more prioritized)
+    tools:             # Tools used
+      subfinder: true      # subfinder tool
+      free_subfinder: false # Free version of subfinder
+      crtsh: true         # Certificate Transparency query
+      dnsx: true          # DNS resolution tool
+
+  # IP asset configuration
+  ip:
+    enabled: true      # Enable IP discovery
+    depth_limit: 2     # IP discovery depth limit
+    priority: 8        # Priority
+    tools:
+      naabu: true         # Port scanning tool
+      reverse_dns: true   # Reverse DNS lookup
+
+  # URL asset configuration
+  url:
+    enabled: true      # Enable URL discovery
+    depth_limit: 5     # URL discovery depth limit
+    priority: 10        # Priority
+    tools:
+      jsfinder: true      # JS file discovery
+      link_extract: true  # Link extraction
+    title_extraction:     # Title extraction settings
+      enabled: true           # Enable title extraction
+      max_length: 50         # Maximum title length
+      show_in_report: true   # Display in report
+      show_in_csv: true      # Include in CSV output
+
+  # Port asset configuration
+  port:
+    enabled: true      # Enable port discovery
+    depth_limit: 1     # Port discovery depth limit
+    priority: 7        # Priority
+    tools:
+      service_identify: true # Service identification
+
+  # JS file asset configuration
+  js:
+    enabled: true      # Enable JS file discovery
+    depth_limit: 4     # JS file discovery depth limit
+    priority: 6        # Priority
+    tools:
+      jsfinder: true      # JS file discovery tool
+
+# Output configuration
+output:
+  dir: output          # Output directory
+  graph_format: json   # Graph output format
+  asset_report: json   # Asset report format
+  keep_eliminated_assets: true  # Retain excluded assets
+  formats:             # Output formats
+    json: true         # JSON format
+    csv: true          # CSV format
+    graphml: true      # GraphML format
+    html: true         # HTML format
+  auto_open: true      # Auto-open reports
+
+# External tool configuration
+external_tools:
+  paths:               # Tool path settings
+    subfinder: null    # subfinder path, e.g.: /usr/bin/subfinder
+    naabu: null        # naabu path, e.g.: D:\naabu\naabu.exe
+    ehole: null        # EHole fingerprinting tool path
+  fingerprint:       # Fingerprinting configuration
+    enabled: false    # Enable fingerprint identification
+
+# Internationalization configuration
+language:
+  default_language: en  # Default language (zh_CN or en)
+  supported_languages:     # Supported languages
+    - zh_CN
+    - en
+  locale_dir: i18n         # Localization file directory
+
+# Exclusion rules
+exclusions:
+  domains:             # Excluded domains
+  - example.com
+  - test.local
+  ips:                 # Excluded IPs
+  - 127.0.0.1
+  - 0.0.0.0
+  urls:                # Excluded URL keywords
+  - login
+  - logout
+  ports: []           # Excluded ports
+  patterns:           # Exclusion regex patterns
+  - \.(css|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot)$
+
+# HTTP request configuration
+http:
+  timeout: 10         # Timeout (seconds)
+  retries: 3          # Retry attempts
+  user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36  # User agent
+  verify_ssl: false   # Verify SSL certificates
+  proxy: null         # Proxy settings
+  follow_redirects: true  # Follow redirects
+  redirect_as_new_asset: true  # Treat redirects as new assets
+  max_redirects: 5    # Maximum redirects
