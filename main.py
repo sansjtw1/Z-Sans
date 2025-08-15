@@ -15,7 +15,6 @@ except ImportError:
     USE_COLORAMA = False
 from datetime import datetime
 
-# 设置国际化
 import os
 from core.i18n import setup_i18n, _
 setup_i18n(os.path.join(os.path.dirname(__file__), 'breeding-config.yaml'))
@@ -45,14 +44,12 @@ def configure_logging():
             for handler in logger.handlers[:]:
                 logger.removeHandler(handler)
     
-    # 设置根日志级别为DEBUG，这样所有处理器都能接收到DEBUG及以上级别的日志
     root_logger.setLevel(logging.DEBUG)
     
     if USE_COLOR_LOG:
         logger = colorlog.getLogger('zsans.main')
         logger.setLevel(logging.DEBUG)
         
-        # 控制台处理器 - 默认INFO级别
         handler = colorlog.StreamHandler()
         handler.setLevel(logging.INFO)
         handler.setFormatter(colorlog.ColoredFormatter(
@@ -66,7 +63,6 @@ def configure_logging():
             }
         ))
         
-        # 文件处理器 - 始终DEBUG级别
         file_handler = logging.FileHandler('zsans.log', encoding='utf-8')
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
@@ -74,12 +70,10 @@ def configure_logging():
         root_logger.addHandler(handler)
         root_logger.addHandler(file_handler)
     else:
-        # 控制台处理器 - 默认INFO级别
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         
-        # 文件处理器 - 始终DEBUG级别
         file_handler = logging.FileHandler('zsans.log', encoding='utf-8')
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))

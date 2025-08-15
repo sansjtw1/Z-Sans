@@ -2,6 +2,7 @@ import gettext
 import yaml
 import os
 import logging
+import gettext
 from pathlib import Path
 
 logger = logging.getLogger('zsans.i18n')
@@ -75,4 +76,5 @@ def setup_i18n(config_path):
 def _(message):
     if _translation:
         return _translation.gettext(message)
+    return message
     return message
