@@ -425,6 +425,20 @@ class PriorityBreedingQueue:
         self.queue.remove(highest)
         return highest
     
+    def _get_deepest(self):
+        if not self.queue:
+            return None
+        deepest = max(self.queue, key=lambda x: x.depth)
+        self.queue.remove(deepest)
+        return deepest
+
+    def _get_shallowest(self):
+        if not self.queue:
+            return None
+        shallowest = min(self.queue, key=lambda x: x.depth)
+        self.queue.remove(shallowest)
+        return shallowest
+
     def _get_oldest(self):
         if not self.queue:
             return None
@@ -462,7 +476,10 @@ class AssetGraph:
                 if existing_asset.state == "scanning":
                     return False
                 
-                # 如果现有资产处于初始状态或失败状态，允许重新处理
+                # 如果现有资产处于初始状态或失败状态，更新节点信息并允许重新处理
+                existing_asset.source = asset.source
+                existing_asset.depth = asset.depth
+                existing_asset.properties.update(asset.properties)
                 return True
             
             self.nodes[asset.uid] = asset

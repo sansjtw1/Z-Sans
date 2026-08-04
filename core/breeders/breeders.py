@@ -814,19 +814,26 @@ class URLBreeder(BreederBase):
         return list(links)
     
     def _normalize_url(self, url, base_url):
-        if not url or url.startswith('javascript:') or url.startswith('#'):
+        if not url or not isinstance(url, str):
             return None
-        
-        if not url.startswith('http'):
+
+        if url.startswith('javascript:') or url.startswith('#'):
+            return None
+
+        # 过滤系统路径
+        if re.search(r'[A-Za-z]:\\', url) or url.startswith('//'):
             if url.startswith('//'):
                 parsed_base = urlparse(base_url)
                 return f"{parsed_base.scheme}:{url}"
-            
+            logger.warning(_("Skipping system path: {path}").format(path=url))
+            return None
+        
+        if not url.startswith('http'):
             if url.startswith('/'):
                 parsed_base = urlparse(base_url)
                 return f"{parsed_base.scheme}://{parsed_base.netloc}{url}"
             
-            if '.' in url and not url.startswith('/') and not url.startswith('//'):
+            if '.' in url and not url.startswith('/'):
                 try:
                     if re.match(r'^[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}$', url):
                         return f"https://{url}"
