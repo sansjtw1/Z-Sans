@@ -436,7 +436,11 @@ class ToolOrchestrator:
             
             logger.info(_("Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}").format(url_count=len(urls), subdomain_count=len(subdomains), url=url))
         except Exception as e:
-            logger.error(_("Internal JSFinder execution failed: {error}").format(error=str(e)))
+            error_str = str(e)
+            if 'ProxyError' in error_str or 'proxy' in error_str.lower():
+                from core.zsans_engine import report_proxy_failure
+                report_proxy_failure()
+            logger.error(_("Internal JSFinder execution failed: {error}").format(error=error_str))
         
         return urls, subdomains
     

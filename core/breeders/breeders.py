@@ -736,8 +736,21 @@ class URLBreeder(BreederBase):
                 else:
                     logger.info(_("Unable to access asset graph, cannot set state: {url}").format(url=url))
         except Exception as e:
-            logger.info(_("URL content fetch failed: {url}, {error}").format(url=url, error=str(e)))
-            self._mark_asset_as_eliminated(url, _("Access failed: {error}").format(error=str(e)))
+            error_str = str(e)
+            # 检测代理错误，触发自动降级
+            if 'ProxyError' in error_str or 'proxy' in error_str.lower():
+                from core.zsans_engine import report_proxy_failure
+                proxy_disabled = report_proxy_failure()
+                if proxy_disabled:
+                    logger.warning(
+                        _("Proxy auto-disabled. Will retry {url} with direct connection on next cycle.").format(url=url)
+                    )
+                else:
+                    logger.warning(
+                        _("Proxy error detected for {url}. Check your proxy configuration.").format(url=url)
+                    )
+            logger.info(_("URL content fetch failed: {url}, {error}").format(url=url, error=error_str))
+            self._mark_asset_as_eliminated(url, _("Access failed: {error}").format(error=error_str))
         return None
         
     def _handle_redirect(self, original_url, redirect_url):
@@ -1001,14 +1014,19 @@ class JSBreeder(BreederBase):
     
     def _fetch_js(self, js_url):
         try:
-            response = requests.get(js_url, headers=HEADERS, timeout=self.timeout, verify=False)
+            from core.zsans_engine import http_session
+            response = http_session.get(js_url, headers=HEADERS, timeout=self.timeout, verify=False)
             if response.status_code == 200:
                 return response.text
             else:
                 self._mark_asset_as_eliminated(js_url, _("HTTP status code: {status}").format(status=response.status_code))
         except Exception as e:
-            logger.debug(_("JS content fetch failed: {url}, {error}").format(url=js_url, error=str(e)))
-            self._mark_asset_as_eliminated(js_url, _("Access failed: {error}").format(error=str(e)))
+            error_str = str(e)
+            if 'ProxyError' in error_str or 'proxy' in error_str.lower():
+                from core.zsans_engine import report_proxy_failure
+                report_proxy_failure()
+            logger.debug(_("JS content fetch failed: {url}, {error}").format(url=js_url, error=error_str))
+            self._mark_asset_as_eliminated(js_url, _("Access failed: {error}").format(error=error_str))
         return None
         
     def _mark_asset_as_eliminated(self, js_url, reason):
