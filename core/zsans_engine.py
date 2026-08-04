@@ -36,11 +36,15 @@ RETRY_BACKOFF = 1
 # 创建全局的requests会话
 http_session = requests.Session()
 
-# 配置会话的基本参数
+# 配置会话的基本参数 - 只对HTTP状态码错误重试，不对连接/代理错误重试
 retry_strategy = Retry(
     total=RETRY_COUNT,
     backoff_factor=RETRY_BACKOFF,
     status_forcelist=[429, 500, 502, 503, 504],
+    connect=0,        # 不重试连接错误（包括代理错误）
+    read=0,           # 不重试读取错误
+    redirect=0,       # 不重试重定向错误
+    raise_on_status=False,
 )
 adapter = HTTPAdapter(max_retries=retry_strategy)
 http_session.mount("http://", adapter)
@@ -54,19 +58,46 @@ config_lock = threading.RLock()
 # 全局配置对象
 current_config = None
 
+# 代理失败计数器
+_proxy_failure_count = 0
+_PROXY_FAILURE_THRESHOLD = 3  # 连续失败3次后自动禁用代理
+
 # 设置代理的函数
 
 def set_http_proxy(proxy_url):
+    global _proxy_failure_count
     with config_lock:
         if proxy_url:
             http_session.proxies = {
                 'http': proxy_url,
                 'https': proxy_url
             }
+            _proxy_failure_count = 0  # 重置失败计数
             logger.debug(f"HTTP proxy configured: {proxy_url}")
         else:
             http_session.proxies = {}
+            _proxy_failure_count = 0
             logger.debug("HTTP proxy disabled")
+
+def report_proxy_failure():
+    """报告一次代理失败，连续失败达到阈值后自动禁用代理"""
+    global _proxy_failure_count
+    with config_lock:
+        if http_session.proxies:
+            _proxy_failure_count += 1
+            if _proxy_failure_count >= _PROXY_FAILURE_THRESHOLD:
+                logger.warning(
+                    f"Proxy has failed {_proxy_failure_count} consecutive times, "
+                    f"automatically disabling proxy. All subsequent requests will go direct."
+                )
+                http_session.proxies = {}
+                _proxy_failure_count = 0
+                return True
+            else:
+                logger.debug(
+                    f"Proxy failure {_proxy_failure_count}/{_PROXY_FAILURE_THRESHOLD}"
+                )
+    return False
 
 # 初始化全局配置和HTTP会话
 
@@ -425,6 +456,20 @@ class PriorityBreedingQueue:
         self.queue.remove(highest)
         return highest
     
+    def _get_deepest(self):
+        if not self.queue:
+            return None
+        deepest = max(self.queue, key=lambda x: x.depth)
+        self.queue.remove(deepest)
+        return deepest
+
+    def _get_shallowest(self):
+        if not self.queue:
+            return None
+        shallowest = min(self.queue, key=lambda x: x.depth)
+        self.queue.remove(shallowest)
+        return shallowest
+
     def _get_oldest(self):
         if not self.queue:
             return None
@@ -462,7 +507,10 @@ class AssetGraph:
                 if existing_asset.state == "scanning":
                     return False
                 
-                # 如果现有资产处于初始状态或失败状态，允许重新处理
+                # 如果现有资产处于初始状态或失败状态，更新节点信息并允许重新处理
+                existing_asset.source = asset.source
+                existing_asset.depth = asset.depth
+                existing_asset.properties.update(asset.properties)
                 return True
             
             self.nodes[asset.uid] = asset
