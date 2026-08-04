@@ -77,4 +77,3 @@ def _(message):
     if _translation:
         return _translation.gettext(message)
     return message
-    return message
