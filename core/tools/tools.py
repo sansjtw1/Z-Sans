@@ -10,7 +10,8 @@ import tempfile
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
+from bs4 import BeautifulSoup
 from core.i18n import _
 
 logger = logging.getLogger('zsans.tools')
