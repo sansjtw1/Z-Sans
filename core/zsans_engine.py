@@ -18,6 +18,7 @@ import requests
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from xml.sax.saxutils import escape, quoteattr
 from urllib3.exceptions import InsecureRequestWarning
 
 # 禁用不安全请求警告
@@ -575,16 +576,17 @@ class AssetGraph:
                     discoveries.append(self.nodes[target_uid])
             return discoveries
     
-    def export_json(self):
+    def export_json(self, metadata=None):
         with self.lock:
-            data = {
+            data = dict(metadata or {})
+            data.update({
                 "nodes": [asset.to_dict() for asset in self.nodes.values()],
                 "edges": [{
                     "source": source,
                     "target": target,
                     "relation": relation
                 } for (source, target), relation in self.edges.items()]
-            }
+            })
             return json.dumps(data, indent=2)
     
     def export_graphml(self):
@@ -593,20 +595,27 @@ class AssetGraph:
             xml = ['<?xml version="1.0" encoding="UTF-8"?>',
                   '<graphml xmlns="http://graphml.graphdrawing.org/xmlns">',
                   '<graph id="G" edgedefault="directed">',
-                  '<!-- Nodes -->']  
-            
+                  '<!-- Nodes -->']
+
+            # XML 特殊字符转义,避免 & < > 等破坏文件结构
+            def _text(value):
+                return escape(str(value))
+
+            def _attr(value):
+                return quoteattr(str(value))
+
             for uid, asset in self.nodes.items():
-                xml.append(f'<node id="{uid}">'
-                          f'<data key="type">{asset.type}</data>'
-                          f'<data key="value">{asset.value}</data>'
+                xml.append(f'<node id={_attr(uid)}>'
+                          f'<data key="type">{_text(asset.type)}</data>'
+                          f'<data key="value">{_text(asset.value)}</data>'
                           f'</node>')
-            
+
             xml.append('<!-- Edges -->')
             for (source, target), relation in self.edges.items():
-                xml.append(f'<edge source="{source}" target="{target}">'
-                          f'<data key="relation">{relation}</data>'
+                xml.append(f'<edge source={_attr(source)} target={_attr(target)}>'
+                          f'<data key="relation">{_text(relation)}</data>'
                           f'</edge>')
-            
+
             xml.append('</graph>')
             xml.append('</graphml>')
             return '\n'.join(xml)

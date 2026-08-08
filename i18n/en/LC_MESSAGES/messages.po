@@ -1900,3 +1900,45 @@ msgstr "All depths"
 
 msgid "Hint: drag to pan, pin/scroll to zoom, builds auto-fit"
 msgstr "Hint: drag to pan, pin/scroll to zoom, builds auto-fit"
+
+msgid "List plugins in the plugins directory and exit"
+msgstr "List plugins in the plugins directory and exit"
+
+msgid "Show detailed info about a plugin and exit"
+msgstr "Show detailed info about a plugin and exit"
+
+msgid "show this help message and exit"
+msgstr "show this help message and exit"
+
+msgid "Plugins directory: {dir}"
+msgstr "Plugins directory: {dir}"
+
+msgid "Registered {count} hook handlers from {source}"
+msgstr "Registered {count} hook handlers from {source}"
+
+msgid "No on_* hook handlers found in {source}"
+msgstr "No on_* hook handlers found in {source}"
+
+msgid "Failed to load plugin {file}: {error}"
+msgstr "Failed to load plugin {file}: {error}"
+
+msgid "Plugin {plugin} disabled by configuration"
+msgstr "Plugin {plugin} disabled by configuration"
+
+msgid "Event hook {event} failed: {error}"
+msgstr "Event hook {event} failed: {error}"
+
+msgid "Plugins directory not found: {dir}"
+msgstr "Plugins directory not found: {dir}"
+
+msgid "Plugin not found: {name}"
+msgstr "Plugin not found: {name}"
+
+msgid "usage: "
+msgstr "usage: "
+
+msgid "options"
+msgstr "options"
+
+msgid "positional arguments"
+msgstr "positional arguments"

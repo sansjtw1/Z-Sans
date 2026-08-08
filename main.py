@@ -92,8 +92,9 @@ def configure_logging():
 
 logger = configure_logging()
 
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 DEFAULT_CONFIG_PATH = "breeding-config.yaml"
+PLUGINS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plugins')
 
 from core.zsans_engine import (
     Asset, DomainAsset, IPAsset, URLAsset, PortAsset, JSAsset,
@@ -121,6 +122,12 @@ class BreedingEngine:
         self._metrics_lock = threading.Lock()
         self._finalized = False
         self._executor = None
+        self._hooks = {}
+        self.plugins = {}
+        
+        plugin_cfg = self.config.get('plugins', {}) if isinstance(self.config.get('plugins', {}), dict) else {}
+        self.plugin_dir = plugin_cfg.get('dir', PLUGINS_DIR)
+        load_plugin_dir(self, self.plugin_dir, plugin_cfg.get('disabled', []) or [])
         
         self.seed_domains = set()
         self.seed_ips = set()
@@ -154,6 +161,40 @@ class BreedingEngine:
                     pass
 
     
+    def register_hook(self, event, handler):
+        self._hooks.setdefault(event, []).append(handler)
+
+    def emit_hook(self, event, **kwargs):
+        for handler in list(self._hooks.get(event, [])):
+            try:
+                handler(**kwargs)
+            except Exception as e:
+                logger.error(_("Event hook {event} failed: {error}").format(event=event, error=str(e)))
+
+    def get_export_metadata(self):
+        import hashlib
+        try:
+            cfg_hash = hashlib.sha256(
+                json.dumps(self.config, sort_keys=True, default=str, ensure_ascii=False).encode('utf-8')
+            ).hexdigest()
+        except Exception:
+            cfg_hash = None
+        return {
+            "schema_version": 2,
+            "zs_version": VERSION,
+            "stats": {
+                "nodes": len(self.asset_graph.nodes),
+                "edges": len(self.asset_graph.edges),
+            },
+            "metrics": dict(self.metrics),
+            "seeds": {
+                "domains": sorted(self.seed_domains),
+                "ips": sorted(self.seed_ips),
+                "ip_ranges": sorted(self.seed_ip_ranges),
+            },
+            "config_hash": cfg_hash,
+        }
+
     def add_seed(self, asset_type, value):
         asset = AssetFactory.create_asset(value, asset_type)
         if self.asset_graph.add_asset(asset):
@@ -209,6 +250,9 @@ class BreedingEngine:
         self.state = "running"
         self.start_time = time.time()
         logger.info(_("Breeding engine started"))
+        if hasattr(self.output_handler, 'ensure_run_dir'):
+            self.output_handler.ensure_run_dir()
+        self.emit_hook("on_scan_started", engine=self)
         return True
     
     def stop(self):
@@ -223,6 +267,8 @@ class BreedingEngine:
                 self._executor.shutdown(wait=False, cancel_futures=True)
             except Exception:
                 pass
+        
+        self.emit_hook("on_scan_stopped", engine=self, finalize=True)
         
         try:
             self.save_checkpoint()
@@ -268,7 +314,10 @@ class BreedingEngine:
     def _process_asset(self, asset):
         max_depth = self.config.get("max_depth", 3)
         if asset.depth > max_depth:
+            asset.state = "excluded"
+            asset.properties["excluded_reason"] = _("Exceeds max depth {depth}").format(depth=max_depth)
             logger.debug(_("Asset {uid} exceeds max depth {depth}, skipping").format(uid=asset.uid, depth=max_depth))
+            self.emit_hook("on_asset_excluded", asset=asset)
             return True
         
         asset.state = "scanning"
@@ -276,17 +325,22 @@ class BreedingEngine:
         if not self._check_resource_limits(asset):
             logger.warning(_("Asset {uid} exceeds resource limits, skipping").format(uid=asset.uid))
             asset.state = "excluded"
+            self.emit_hook("on_asset_excluded", asset=asset)
             return True
         
         if self._is_excluded(asset):
             logger.debug(_("Asset {uid} matches exclusion rules, skipping").format(uid=asset.uid))
             asset.state = "excluded"
+            asset.properties["excluded_reason"] = _("Matches exclusion rules")
+            self.emit_hook("on_asset_excluded", asset=asset)
             return True
         
         breeder = self.breeder_factory.get_breeder(asset.type, self.config, self)
         if not breeder:
             logger.warning(_("No suitable breeder found for asset type {type}, skipping").format(type=asset.type))
             asset.state = "excluded"
+            asset.properties["excluded_reason"] = _("No breeder for type {type}").format(type=asset.type)
+            self.emit_hook("on_asset_excluded", asset=asset)
             return True
         
         try:
@@ -302,11 +356,15 @@ class BreedingEngine:
                 asset.state = "scanned"
             else:
                 logger.debug(_("Maintaining asset {uid} elimination status").format(uid=asset.uid))
+                self.emit_hook("on_asset_eliminated", asset=asset)
             
             for new_asset in new_assets:
                 if self.asset_graph.add_asset(new_asset):
                     if self.queue.add(new_asset):
                         self.asset_graph.add_edge(asset, new_asset, "discovered")
+                        self.emit_hook("on_asset_discovered", asset=new_asset, source=asset)
+            
+            self.emit_hook("on_asset_scanned", asset=asset, new_assets=list(new_assets))
             
             cp_cfg = self.config.get('checkpoint', {})
             if cp_cfg.get('enabled', True) and (self.metrics["assets_processed"] % max(1, cp_cfg.get('interval', 50))) == 0:
@@ -324,6 +382,7 @@ class BreedingEngine:
             asset.state = "failed"
             with self._metrics_lock:
                 self.metrics["errors"] += 1
+            self.emit_hook("on_asset_failed", asset=asset, error=str(e))
             return True
     
     def _concurrent_breed(self):
@@ -372,6 +431,7 @@ class BreedingEngine:
         asset_type_config = self.config.get("asset_types", {}).get(asset.type, {})
         depth_limit = asset_type_config.get("depth_limit", self.config.get("max_depth", 3))
         if asset.depth > depth_limit:
+            asset.properties["excluded_reason"] = _("Exceeds depth limit {limit}").format(limit=depth_limit)
             return False
         
         stats = self.asset_graph.stats()
@@ -395,7 +455,10 @@ class BreedingEngine:
         else:
             return True
         
-        return current < limit
+        if current >= limit:
+            asset.properties["excluded_reason"] = _("Exceeds {type} limit {limit}").format(type=asset.type, limit=limit)
+            return False
+        return True
     
     def _is_excluded(self, asset):
         exclusions = self.config.get("exclusions", {})
@@ -528,6 +591,7 @@ class BreedingEngine:
             
             if self.state == "completed":
                 logger.info(_("Breeding engine completed all tasks, generating output..."))
+                self.emit_hook("on_scan_completed", engine=self)
             return True
         
         except KeyboardInterrupt:
@@ -600,6 +664,155 @@ def create_default_config(config_path=DEFAULT_CONFIG_PATH):
     except Exception as e:
         logger.error(_("Failed to create default config file: {error}").format(error=str(e)))
         return False
+
+
+def _import_plugin(path_or_module):
+    """Import a plugin module from a file path or a dotted module name."""
+    import importlib
+    import importlib.util
+    if path_or_module.endswith('.py'):
+        module_name = "zsans_plugin_" + os.path.splitext(os.path.basename(path_or_module))[0]
+        file_spec = importlib.util.spec_from_file_location(module_name, path_or_module)
+        module = importlib.util.module_from_spec(file_spec)
+        file_spec.loader.exec_module(module)
+        return module
+    return importlib.import_module(path_or_module)
+
+
+def _plugin_meta(module, fallback_name):
+    """Read plugin manifest: __plugin__ dict, else PLUGIN_NAME/_VERSION/etc."""
+    meta = getattr(module, '__plugin__', None)
+    if isinstance(meta, dict):
+        return {
+            "name": str(meta.get('name') or fallback_name),
+            "version": str(meta.get('version') or '0.0.0'),
+            "description": str(meta.get('description') or ''),
+            "author": str(meta.get('author') or ''),
+        }
+    return {
+        "name": str(getattr(module, 'PLUGIN_NAME', fallback_name)),
+        "version": str(getattr(module, 'PLUGIN_VERSION', '0.0.0')),
+        "description": str(getattr(module, 'PLUGIN_DESCRIPTION', '')),
+        "author": str(getattr(module, 'PLUGIN_AUTHOR', '')),
+    }
+
+
+def _register_hook_handlers(engine, module, source):
+    """Register every top-level on_* callable from module as a hook handler.
+
+    Returns the list of event names subscribed by the module's handlers.
+    """
+    events = []
+    for name in sorted(dir(module)):
+        if name.startswith('on_'):
+            candidate = getattr(module, name)
+            if callable(candidate):
+                engine.register_hook(name, candidate)
+                events.append(name)
+    if events:
+        logger.info(_("Registered {count} hook handlers from {source}").format(count=len(events), source=source))
+    else:
+        logger.warning(_("No on_* hook handlers found in {source}").format(source=source))
+    return events
+
+
+def load_plugin_file(engine, file_path):
+    """Load a single plugin .py file and register its on_* handlers.
+
+    Returns a plugin info dict (name/version/description/author/handlers/...).
+    """
+    fallback_name = os.path.splitext(os.path.basename(file_path))[0]
+    info = {
+        "name": fallback_name,
+        "version": "0.0.0",
+        "description": "",
+        "author": "",
+        "handlers": 0,
+        "events": [],
+        "path": file_path,
+        "status": "loaded",
+        "error": None,
+    }
+    try:
+        module = _import_plugin(file_path)
+        info.update(_plugin_meta(module, fallback_name))
+        events = _register_hook_handlers(engine, module, file_path)
+        info["handlers"] = len(events)
+        info["events"] = sorted(events)
+        return info
+    except Exception as e:
+        logger.error(_("Failed to load plugin {file}: {error}").format(file=file_path, error=str(e)))
+        info.update(status="failed", error=str(e))
+        return info
+
+
+def load_plugin_dir(engine, plugins_dir, disabled=None):
+    """Auto-load every plugin .py under plugins_dir (except __init__.py).
+
+    A plugin can be skipped by adding its module name (without .py) to the
+    config `plugins.disabled` list. Results are recorded in engine.plugins,
+    keyed by plugin name.
+    """
+    loaded = []
+    if not os.path.isdir(plugins_dir):
+        logger.warning(_("Plugins directory not found: {dir}").format(dir=plugins_dir))
+        return loaded
+    disabled = set(disabled or [])
+    for name in sorted(os.listdir(plugins_dir)):
+        if not name.endswith('.py') or name == '__init__.py':
+            continue
+        plugin_name = os.path.splitext(name)[0]
+        if plugin_name in disabled:
+            engine.plugins[plugin_name] = {
+                "name": plugin_name,
+                "version": "-",
+                "description": "",
+                "author": "",
+                "handlers": 0,
+                "events": [],
+                "path": os.path.join(plugins_dir, name),
+                "status": "disabled",
+                "error": None,
+            }
+            logger.info(_("Plugin {plugin} disabled by configuration").format(plugin=plugin_name))
+            continue
+        info = load_plugin_file(engine, os.path.join(plugins_dir, name))
+        engine.plugins[info["name"]] = info
+        if info["handlers"] and info["status"] == "loaded":
+            loaded.append(info["name"])
+    return loaded
+
+
+def print_plugin_info(info):
+    """Print full details of a single plugin info dict."""
+    print()
+    for key in ("name", "version", "author", "description", "handlers", "events", "path", "status", "error"):
+        if key == "events":
+            value = ','.join(info.get(key) or []) or '-'
+        else:
+            value = info.get(key) or '-'
+        print("{}: {}".format(key.upper().ljust(12), value))
+    print()
+
+
+def print_plugin_table(engine):
+    """Print a summary of all plugins known to the engine."""
+    print()
+    print(_("Plugins directory: {dir}").format(dir=engine.plugin_dir))
+    print()
+    print("{}  {}  {}  {}  {}".format("NAME".ljust(20), "VERSION".ljust(10), "HANDLERS".ljust(8), "STATUS".ljust(10), "EVENTS"))
+    print("-" * 72)
+    for name in sorted(engine.plugins):
+        info = engine.plugins[name]
+        events = ','.join(e.replace('on_', '') for e in info.get('events', [])) or '-'
+        print("{}  {}  {}  {}  {}".format(
+            info["name"][:20].ljust(20),
+            info.get("version", '-')[:10].ljust(10),
+            str(info.get("handlers", 0)).ljust(8),
+            info.get("status", '?'),
+            events,
+        ))
+    print()
 
 
 def run_watch(config, domain_seeds, url_seeds):
@@ -716,6 +929,8 @@ def main():
     pre_parser.add_argument("-c", "--config", default=DEFAULT_CONFIG_PATH)
     pre_args, _ignored = pre_parser.parse_known_args()
     setup_i18n(pre_args.config)
+    # 让 argparse 内置文案(如 -h 的说明)也走项目的 gettext 目录
+    argparse._ = _
 
     parser = argparse.ArgumentParser(description=_("Z-Sans Asset Breeding Engine v{VERSION} Help Information").format(VERSION=VERSION))
     parser.add_argument("-c", "--config", help=_("Configuration file path"), default=DEFAULT_CONFIG_PATH)
@@ -729,6 +944,8 @@ def main():
     parser.add_argument("--depth", help=_("Set maximum scan depth"), type=int)
     parser.add_argument("--resume", help=_("Resume from last checkpoint"), action="store_true")
     parser.add_argument("--watch", help=_("Run in watch mode, rescan periodically and report changes"), action="store_true")
+    parser.add_argument("--list-plugins", help=_("List plugins in the plugins directory and exit"), action="store_true")
+    parser.add_argument("--plugin-info", metavar="NAME", help=_("Show detailed info about a plugin and exit"))
   
     args = parser.parse_args()
     
@@ -761,6 +978,17 @@ def main():
         logger.info(_("Maximum scan depth set: {depth}").format(depth=args.depth))
     
     engine = BreedingEngine(config)
+    
+    if args.list_plugins:
+        print_plugin_table(engine)
+        return 0
+    
+    if args.plugin_info:
+        if args.plugin_info not in engine.plugins:
+            logger.error(_("Plugin not found: {name}").format(name=args.plugin_info))
+            return 1
+        print_plugin_info(engine.plugins[args.plugin_info])
+        return 0
     
     resumed = False
     if args.resume:

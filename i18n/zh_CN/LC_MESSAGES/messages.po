@@ -1874,3 +1874,45 @@ msgstr "全部深度"
 
 msgid "Hint: drag to pan, pin/scroll to zoom, builds auto-fit"
 msgstr "提示: 拖动平移, 双指/滚轮缩放, 双击自动适配"
+
+msgid "List plugins in the plugins directory and exit"
+msgstr "列出 plugins 目录中的插件并退出"
+
+msgid "Show detailed info about a plugin and exit"
+msgstr "显示某个插件的详细信息并退出"
+
+msgid "show this help message and exit"
+msgstr "显示此帮助信息并退出"
+
+msgid "Plugins directory: {dir}"
+msgstr "插件目录: {dir}"
+
+msgid "Registered {count} hook handlers from {source}"
+msgstr "已从 {source} 注册 {count} 个钩子处理器"
+
+msgid "No on_* hook handlers found in {source}"
+msgstr "在 {source} 中未找到 on_* 钩子处理器"
+
+msgid "Failed to load plugin {file}: {error}"
+msgstr "加载插件 {file} 失败: {error}"
+
+msgid "Plugin {plugin} disabled by configuration"
+msgstr "插件 {plugin} 已被配置禁用"
+
+msgid "Event hook {event} failed: {error}"
+msgstr "事件钩子 {event} 执行失败: {error}"
+
+msgid "Plugins directory not found: {dir}"
+msgstr "插件目录不存在: {dir}"
+
+msgid "Plugin not found: {name}"
+msgstr "插件不存在: {name}"
+
+msgid "usage: "
+msgstr "用法: "
+
+msgid "options"
+msgstr "选项"
+
+msgid "positional arguments"
+msgstr "位置参数"

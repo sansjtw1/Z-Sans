@@ -29,6 +29,7 @@ Z-Sans 是一个强大的网络安全工具，专注于​​自动化资产发�
 - **轻量级工具**: 更加轻量，专注资产拓扑发现
 - **自动化资产繁殖**: 基于资产发现，自动发现关联资产
 - **检查点和恢复**：将进度保存到检查点，使用--resume恢复中断的扫描
+- **插件系统**：事件驱动插件框架，支持自定义报告、外部情报、Webhook 通知等扩展（详见[插件开发文档](plugins/README_CN.md)）
 
 ## 🛠️ 项目结构
 
@@ -43,12 +44,25 @@ Z-Sans/
 │   └── zsans_engine.py # 核心引擎
 ├── i18n/               # 国际化资源
 ├── output/             # 输出目录
+├── plugins/            # 插件目录（事件驱动扩展）
 ├── templates/          # 模板文件
 ├── breeding-config.yaml # 配置文件
 ├── main.py             # 入口文件
 ├── README.md           # 本自述文件
 └── requirements.txt    # 依赖列表
 ```
+
+## 🧩 插件系统
+
+Z-Sans 内置事件驱动的插件框架：把任意 `.py` 文件放进 `plugins/` 目录即可自动加载，并在扫描生命周期中向它派发事件。你可以用它实现自定义报告、外部威胁情报（如 Shodan）、漏洞扫描、Webhook 通知、审计日志等功能。
+
+- **零配置加载**：`plugins/` 目录下的 `.py` 文件自动注册，无需修改主程序
+- **8 个事件钩子**：`on_scan_started` / `on_scan_completed` / `on_scan_stopped` / `on_asset_scanned` / `on_asset_discovered` / `on_asset_excluded` / `on_asset_eliminated` / `on_asset_failed`
+- **插件产物统一归档**：插件生成的文件与主输出一起写入 `output/<时间戳>/` 子目录
+- **管理命令**：`--list-plugins` 查看已加载插件，`--plugin-info <名称>` 查看详情
+- **配置开关**：`breeding-config.yaml` 中 `plugins.disabled` 可禁用个别插件
+
+完整插件开发指南见 **[插件开发文档](plugins/README_CN.md)**。
 
 ## 💡 安装指南
 

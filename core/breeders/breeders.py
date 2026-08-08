@@ -880,34 +880,48 @@ class URLBreeder(BreederBase):
         if not url or not isinstance(url, str):
             return None
 
+        url = url.strip()
         if url.startswith('javascript:') or url.startswith('#'):
             return None
 
         # 过滤系统路径
-        if re.search(r'[A-Za-z]:\\', url) or url.startswith('//'):
-            if url.startswith('//'):
-                parsed_base = urlparse(base_url)
-                return f"{parsed_base.scheme}:{url}"
+        if re.search(r'[A-Za-z]:\\', url):
             logger.warning(_("Skipping system path: {path}").format(path=url))
             return None
-        
-        if not url.startswith('http'):
-            if url.startswith('/'):
-                parsed_base = urlparse(base_url)
-                return f"{parsed_base.scheme}://{parsed_base.netloc}{url}"
-            
-            if '.' in url and not url.startswith('/'):
-                try:
-                    if re.match(r'^[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}$', url):
-                        last_label = url.rsplit('.', 1)[-1].lower()
-                        if last_label not in ('php', 'asp', 'aspx', 'jsp', 'htm', 'html', 'css', 'js', 'json', 'txt', 'png', 'jpg', 'gif', 'ico', 'svg', 'webp', 'xml', 'pdf', 'zip'):
-                            return f"https://{url}"
-                except Exception:
-                    pass
-            
-            return requests.compat.urljoin(base_url, url)
-        
-        return url
+
+        if url.startswith('//'):
+            parsed_base = urlparse(base_url)
+            url = f"{parsed_base.scheme}:{url}"
+
+        if url.startswith('http'):
+            normalized = url
+        elif url.startswith('/'):
+            parsed_base = urlparse(base_url)
+            normalized = f"{parsed_base.scheme}://{parsed_base.netloc}{url}"
+        elif '.' in url:
+            if re.match(r'^[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}$', url):
+                last_label = url.rsplit('.', 1)[-1].lower()
+                if last_label not in ('php', 'asp', 'aspx', 'jsp', 'htm', 'html', 'css', 'js', 'json', 'txt', 'png', 'jpg', 'gif', 'ico', 'svg', 'webp', 'xml', 'pdf', 'zip'):
+                    normalized = f"https://{url}"
+                else:
+                    normalized = requests.compat.urljoin(base_url, url)
+            else:
+                normalized = requests.compat.urljoin(base_url, url)
+        else:
+            normalized = requests.compat.urljoin(base_url, url)
+
+        if not normalized:
+            return None
+
+        # 过滤 JS 源码字符串拼接/模板衍生的畸形 URL（如 "...js/' + u + '"）
+        if re.search(r'[\s\'"\\{}\[\]]', normalized):
+            logger.debug(_("Skipping malformed URL (JS concat/template): {url}").format(url=normalized))
+            return None
+
+        if not normalized.lower().startswith(('http://', 'https://')):
+            return None
+
+        return normalized
 
 
 class JSBreeder(BreederBase):

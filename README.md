@@ -8,7 +8,7 @@
         <br />
         <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg"/></a>
         <a href="https://www.python.org/downloads/release/python-390/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9+-blue.svg"/></a>
-        <a href="https://github.com/sansjtw1/Z-Sans/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.0.2-blue.svg"/></a>
+        <a href="https://github.com/sansjtw1/Z-Sans/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.0.3-blue.svg"/></a>
         <br>
         <a href="README.md">English</a> | <a href="README_CN.md">中文</a> | <a href="CHANGELOG.md">Changelog</a>
     </p>
@@ -28,6 +28,7 @@ Z-Sans is a cybersecurity tool built around an innovative **Asset Breeding Engin
 - **Flexible Output**: JSON, CSV, GraphML, and localized multi-tab HTML reports
 - **Interactive Topology Map**: Canvas-based asset graph with pan/zoom in the HTML report
 - **Tool Integration**: Subfinder, naabu, EHole, plus built-in lightweight resolvers
+- **Plugin System**: Event-driven plugin framework for custom reports, external intel, Webhook notifications, and more (see the [Plugin Development Guide](plugins/README.md))
 - **Internationalization**: Built-in Chinese (zh_CN) and English (en) support
 - **Modular Design**: Core engine decoupled from tool implementations for easy extension
 
@@ -44,12 +45,25 @@ Z-Sans/
 │   └── zsans_engine.py     # Core breeding engine, asset graph, priority queue
 ├── i18n/                   # Locale resources (en / zh_CN)
 ├── images/                 # Documentation images
+├── plugins/                # Plugin directory (event-driven extensions)
 ├── templates/              # Config templates
 ├── breeding-config.yaml    # Main configuration
 ├── main.py                 # Entry point / CLI
-├── CHANGELOG.md            # v0.0.1 → v0.0.2 release notes
+├── CHANGELOG.md            # v0.0.1 → v0.0.2 → v0.0.3 release notes
 └── requirements.txt        # Python dependencies
 ```
+
+## 🧩 Plugin System
+
+Z-Sans ships with an event-driven plugin framework: drop any `.py` file into the `plugins/` directory and it is auto-loaded, receiving scan-lifecycle events as they fire. Use it for custom reports, external threat intelligence (e.g. Shodan), vulnerability scanning, Webhook notifications, audit logging, and more.
+
+- **Zero-config loading**: `.py` files under `plugins/` auto-register — no main-program changes needed
+- **8 event hooks**: `on_scan_started` / `on_scan_completed` / `on_scan_stopped` / `on_asset_scanned` / `on_asset_discovered` / `on_asset_excluded` / `on_asset_eliminated` / `on_asset_failed`
+- **Unified output**: plugin artifacts land in the same `output/<timestamp>/` subdirectory as the main output
+- **Management commands**: `--list-plugins` to list loaded plugins, `--plugin-info <name>` for details
+- **Config switch**: disable individual plugins via `plugins.disabled` in `breeding-config.yaml`
+
+See the **[Plugin Development Guide](plugins/README.md)** for the full authoring guide.
 
 ## 💡 Installation
 

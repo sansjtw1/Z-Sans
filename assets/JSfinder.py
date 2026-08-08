@@ -110,7 +110,7 @@ def find_by_url(url, js = False):
 			return None
 		#print(html_raw)
 		html = BeautifulSoup(html_raw, "html.parser")
-		html_scripts = html.findAll("script")
+		html_scripts = html.find_all("script")
 		script_array = {}
 		script_temp = ""
 		for html_script in html_scripts:
@@ -169,7 +169,7 @@ def find_by_url_deep(url):
 		print("Fail to access " + url)
 		return None
 	html = BeautifulSoup(html_raw, "html.parser")
-	html_as = html.findAll("a")
+	html_as = html.find_all("a")
 	links = []
 	for html_a in html_as:
 		src = html_a.get("href")

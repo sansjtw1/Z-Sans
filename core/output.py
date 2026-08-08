@@ -7,6 +7,7 @@ import logging
 import os
 import time
 from datetime import datetime
+from xml.sax.saxutils import escape, quoteattr
 from core.i18n import _, get_current_language
 
 logger = logging.getLogger('zsans.output')
@@ -23,14 +24,37 @@ def _format_duration(seconds):
     return f"{s}s"
 
 
+def _format_discovery_time(asset, fallback=None):
+    if fallback is None:
+        fallback = time.time()
+    ts = asset.properties.get('discovery_time', fallback)
+    if not isinstance(ts, (int, float)):
+        ts = fallback
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(ts))
+
+
 class OutputHandler:
     def __init__(self, engine, config=None):
         self.engine = engine
         self.config = config or {}
         self.output_dir = self.config.get('dir', self.config.get('output_dir', 'output'))
+        self.run_dir = None
         
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
+    
+    def ensure_run_dir(self):
+        """确保当前运行的时间戳子目录存在，并返回其绝对路径。
+        
+        插件与主输出共用该目录，保证单次扫描产物完整归入一个时间戳子目录。
+        """
+        if self.run_dir:
+            return self.run_dir
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        run_subdir = os.path.join(self.output_dir, timestamp)
+        os.makedirs(run_subdir, exist_ok=True)
+        self.run_dir = run_subdir
+        return self.run_dir
     
     def generate_output(self, formats=None):
         if formats is None:
@@ -44,9 +68,9 @@ class OutputHandler:
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         prefix = self.config.get('output_prefix', 'zsans')
         
-        # 每次导出放到独立的时间戳子目录，避免多次扫描的文件混在一起
-        run_subdir = os.path.join(self.output_dir, timestamp)
-        os.makedirs(run_subdir, exist_ok=True)
+        # 复用引擎启动时预创建的时间戳子目录，避免多次导出各建目录导致产物分散
+        run_subdir = self.ensure_run_dir()
+        timestamp = os.path.basename(run_subdir)
         base_filename = os.path.join(timestamp, f"{prefix}_{timestamp}")
         
         results = {}
@@ -75,8 +99,11 @@ class OutputHandler:
     def _export_json(self, base_filename):
         filename = os.path.join(self.output_dir, f"{base_filename}.json")
         
+        metadata = self.engine.get_export_metadata()
+        metadata["generated_at"] = datetime.now().isoformat(timespec="seconds")
+        
         with open(filename, 'w', encoding='utf-8') as f:
-            f.write(self.engine.asset_graph.export_json())
+            f.write(self.engine.asset_graph.export_json(metadata=metadata))
         
         logger.info(_("Exported JSON asset graph: {filename}").format(filename=filename))
         return filename
@@ -135,7 +162,7 @@ class OutputHandler:
                     asset.type,
                     asset.value,
                     asset.depth,
-                    time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(asset.properties.get('discovery_time', time.time()))),
+                    _format_discovery_time(asset),
                     asset.state,
                     title_or_note,
                     fingerprints,
@@ -162,14 +189,14 @@ class OutputHandler:
     
     def _export_graphml(self, base_filename):
         filename = os.path.join(self.output_dir, f"{base_filename}.graphml")
-        
+
         with open(filename, 'w', encoding='utf-8') as f:
             f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
             f.write('<graphml xmlns="http://graphml.graphdrawing.org/xmlns"\n')
             f.write('         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n')
             f.write('         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns\n')
             f.write('         http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">\n')
-            
+
             f.write('  <key id="type" for="node" attr.name="type" attr.type="string"/>\n')
             f.write('  <key id="value" for="node" attr.name="value" attr.type="string"/>\n')
             f.write('  <key id="depth" for="node" attr.name="depth" attr.type="int"/>\n')
@@ -179,44 +206,54 @@ class OutputHandler:
             f.write('  <key id="fingerprints" for="node" attr.name="fingerprints" attr.type="string"/>\n')
             f.write('  <key id="cms" for="node" attr.name="cms" attr.type="string"/>\n')
             f.write('  <key id="server" for="node" attr.name="server" attr.type="string"/>\n')
-            
+
             f.write('  <key id="relation" for="edge" attr.name="relation" attr.type="string"/>\n')
-            
+
             f.write('  <graph id="G" edgedefault="directed">\n')
-            
-            for uid, asset in self.engine.asset_graph.nodes.items():
-                f.write(f'    <node id="{uid}">\n')
-                f.write(f'      <data key="type">{asset.type}</data>\n')
-                f.write(f'      <data key="value">{asset.value}</data>\n')
+
+            def _xml_text(value):
+                return escape(str(value))
+
+            def _xml_attr(value):
+                return quoteattr(str(value))
+
+            with self.engine.asset_graph.lock:
+                nodes_snapshot = list(self.engine.asset_graph.nodes.items())
+                edges_snapshot = list(self.engine.asset_graph.edges.items())
+
+            for uid, asset in nodes_snapshot:
+                f.write(f'    <node id={_xml_attr(uid)}>\n')
+                f.write(f'      <data key="type">{_xml_text(asset.type)}</data>\n')
+                f.write(f'      <data key="value">{_xml_text(asset.value)}</data>\n')
                 f.write(f'      <data key="depth">{asset.depth}</data>\n')
-                discovery_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(asset.properties.get('discovery_time', time.time())))
+                discovery_time = _format_discovery_time(asset)
                 f.write(f'      <data key="discovery_time">{discovery_time}</data>\n')
-                f.write(f'      <data key="state">{asset.state}</data>\n')
-                
+                f.write(f'      <data key="state">{_xml_text(asset.state)}</data>\n')
+
                 if "title" in asset.properties:
-                    f.write(f'      <data key="title">{asset.properties["title"]}</data>\n')
-                
+                    f.write(f'      <data key="title">{_xml_text(asset.properties["title"])}</data>\n')
+
                 if asset.type == "url":
                     if "fingerprints" in asset.properties and asset.properties["fingerprints"]:
-                        fingerprints = ",".join(asset.properties["fingerprints"])
-                        f.write(f'      <data key="fingerprints">{fingerprints}</data>\n')
+                        fingerprints = ",".join([str(fp) for fp in asset.properties["fingerprints"]])
+                        f.write(f'      <data key="fingerprints">{_xml_text(fingerprints)}</data>\n')
                     if "cms" in asset.properties and asset.properties["cms"]:
-                        f.write(f'      <data key="cms">{asset.properties["cms"]}</data>\n')
+                        f.write(f'      <data key="cms">{_xml_text(asset.properties["cms"])}</data>\n')
                     if "server" in asset.properties and asset.properties["server"]:
-                        f.write(f'      <data key="server">{asset.properties["server"]}</data>\n')
-                
+                        f.write(f'      <data key="server">{_xml_text(asset.properties["server"])}</data>\n')
+
                 f.write('    </node>\n')
-            
+
             edge_id = 0
-            for (source_id, target_id), relation_type in self.engine.asset_graph.edges.items():
-                f.write(f'    <edge id="e{edge_id}" source="{source_id}" target="{target_id}">\n')
-                f.write(f'      <data key="relation">{relation_type}</data>\n')
+            for (source_id, target_id), relation_type in edges_snapshot:
+                f.write(f'    <edge id="e{edge_id}" source={_xml_attr(source_id)} target={_xml_attr(target_id)}>\n')
+                f.write(f'      <data key="relation">{_xml_text(relation_type)}</data>\n')
                 f.write('    </edge>\n')
                 edge_id += 1
-            
+
             f.write('  </graph>\n')
             f.write('</graphml>\n')
-        
+
         logger.info(_("Exported GraphML asset graph: {filename}").format(filename=filename))
         return filename
     
@@ -291,7 +328,7 @@ class OutputHandler:
                        for uid, a in nodes_snapshot]
         graph_edges = [{'source': s, 'target': t} for (s, t) in edges_snapshot]
         graph_data = json.dumps({'nodes': graph_nodes, 'edges': graph_edges},
-                                ensure_ascii=False).replace('<', '\\u003c')
+                                ensure_ascii=False).replace('<', '\\u003c').replace('\u2028', '\\u2028').replace('\u2029', '\\u2029')
 
         def _type_options(assets):
             types = sorted({a.type for a in assets})
@@ -831,11 +868,11 @@ class OutputHandler:
                 <div class="seed-list">
                     <div class="seed-col">
                         <div class="seed-title">''' + T('Domains') + '''</div>
-                        <div class="seed-items">''' + ('<code>'+', '.join(seed_domains)+'</code>' if seed_domains else T('None')) + '''</div>
+                        <div class="seed-items">''' + ('<code>'+escape(', '.join(seed_domains))+'</code>' if seed_domains else T('None')) + '''</div>
                     </div>
                     <div class="seed-col">
                         <div class="seed-title">''' + T('IP Addresses') + '''</div>
-                        <div class="seed-items">''' + ('<code>'+', '.join(seed_ips)+'</code>' if seed_ips else T('None')) + '''</div>
+                        <div class="seed-items">''' + ('<code>'+escape(', '.join(seed_ips))+'</code>' if seed_ips else T('None')) + '''</div>
                     </div>
                 </div>
             </div>
@@ -852,7 +889,7 @@ class OutputHandler:
             for host in top_hosts_data:
                 f.write(f'''                            <tr>
                                 <td><span class="type-badge type-{host['type']}">{host['type']}</span></td>
-                                <td><span class="val-monospace">{host['value']}</span></td>
+                                <td><span class="val-monospace">{escape(str(host['value']))}</span></td>
                                 <td>{host['degree']}</td>
                             </tr>
 ''')
@@ -875,7 +912,7 @@ class OutputHandler:
                 pct = (count / max_count * 100) if max_count > 0 else 0
                 color = type_colors.get(atype, '#6b7280')
                 f.write(f'''                        <div class="bar-item">
-                            <div class="bar-label">{atype}</div>
+                            <div class="bar-label">{escape(str(atype))}</div>
                             <div class="bar-track">
                                 <div class="bar-fill" style="width:{pct}%;background:{color};">{count}</div>
                             </div>
@@ -890,7 +927,7 @@ class OutputHandler:
                 color = type_colors.get(atype, '#6b7280')
                 f.write(f'''                        <div class="legend-item">
                             <div class="legend-dot" style="background:{color};"></div>
-                            <span>{atype}: {count}</span>
+                            <span>{escape(str(atype))}: {count}</span>
                         </div>
 ''')
             f.write('''                    </div>
@@ -953,7 +990,6 @@ class OutputHandler:
                         <tbody>
 ''')
             for asset in active_assets:
-                discovery_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(asset.properties.get('discovery_time', time.time())))
                 title_or_note = self._get_asset_note(asset)
                 fingerprints, cms, server = self._get_asset_fingerprint_info(asset)
                 type_class = f"type-{asset.type}" if asset.type in type_colors else "type-domain"
@@ -967,7 +1003,7 @@ class OutputHandler:
                                 <td><span class="type-badge {type_class}">{asset.type}</span></td>
                                 <td><span class="val-monospace">{val_escaped}</span></td>
                                 <td>{asset.depth}</td>
-                                <td>{discovery_time}</td>
+                                <td>{_format_discovery_time(asset)}</td>
                                 <td><span class="state-badge {state_class}">{asset.state}</span></td>
                                 <td>{title_escaped}</td>
                                 <td>{fp_escaped}</td>
@@ -1026,7 +1062,7 @@ class OutputHandler:
 ''')
             if keep_eliminated:
                 for asset in eliminated_assets:
-                    discovery_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(asset.properties.get('discovery_time', time.time())))
+                    discovery_time = _format_discovery_time(asset)
                     reason = self._get_eliminated_reason(asset)
                     fingerprints, cms, server = self._get_asset_fingerprint_info(asset)
                     type_class = f"type-{asset.type}"
@@ -1071,7 +1107,7 @@ class OutputHandler:
                         <tbody>
 ''')
             for key, value in sorted(metrics.items()):
-                f.write(f'''                            <tr><td>{key.replace('_', ' ')}</td><td>{value}</td></tr>
+                f.write(f'''                            <tr><td>{escape(str(key)).replace('_', ' ')}</td><td>{escape(str(value))}</td></tr>
 ''')
             f.write('''                        </tbody>
                     </table>
@@ -1088,7 +1124,7 @@ class OutputHandler:
                         <tbody>
 ''')
             for service, count in port_dist.items():
-                f.write(f'''                            <tr><td>{service}</td><td>{count}</td></tr>
+                f.write(f'''                            <tr><td>{escape(str(service))}</td><td>{count}</td></tr>
 ''')
             if not port_dist:
                 f.write('''                            <tr><td colspan="2"><div class="empty-state"><div class="empty-icon">&#128269;</div>''' + T('No data') + '''</div></td></tr>
@@ -1108,7 +1144,7 @@ class OutputHandler:
                         <tbody>
 ''')
             for reason, count in eliminated_reasons.items():
-                f.write(f'''                            <tr><td><span class="val-monospace">{reason}</span></td><td>{count}</td></tr>
+                f.write(f'''                            <tr><td><span class="val-monospace">{escape(str(reason))}</span></td><td>{count}</td></tr>
 ''')
             if not eliminated_reasons:
                 f.write('''                            <tr><td colspan="2"><div class="empty-state"><div class="empty-icon">&#128269;</div>''' + T('No data') + '''</div></td></tr>
