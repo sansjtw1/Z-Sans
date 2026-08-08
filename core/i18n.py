@@ -8,10 +8,11 @@ from pathlib import Path
 logger = logging.getLogger('zsans.i18n')
 
 _translation = None
+_current_language = 'en'
 
 
 def setup_i18n(config_path):
-    global _translation
+    global _translation, _current_language
     # 默认配置
     default_config = {
         'language': {
@@ -51,6 +52,7 @@ def setup_i18n(config_path):
             return
 
     # 初始化gettext
+    _current_language = default_language
     try:
         _translation = gettext.translation(
             'messages',
@@ -63,6 +65,7 @@ def setup_i18n(config_path):
     except Exception as e:
         logger.error(f"Failed to set up i18n: {e}")
         # Fallback to English if initialization fails
+        _current_language = 'en'
         _translation = gettext.translation(
             'messages',
             localedir=str(Path(__file__).parent.parent / 'i18n'),
@@ -77,3 +80,7 @@ def _(message):
     if _translation:
         return _translation.gettext(message)
     return message
+
+
+def get_current_language():
+    return _current_language

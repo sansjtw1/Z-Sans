@@ -10,12 +10,12 @@ msgstr ""
 "POT-Creation-Date: 2025-08-14 12:07+0800\n"
 "PO-Revision-Date: 2025-08-14 10:24+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: zh_Hans_CN\n"
 "Language-Team: zh_Hans_CN <LL@li.org>\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: zh_Hans_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.17.0\n"
 
 #: main.py:119
@@ -53,7 +53,8 @@ msgid "Current seed domain list: {domains}"
 msgstr "当前种子域名列表: {domains}"
 
 #: main.py:173
-msgid "Seed domain list is empty, this may cause domain relevance judgment errors"
+msgid ""
+"Seed domain list is empty, this may cause domain relevance judgment errors"
 msgstr "种子域名列表为空，可能导致域名相关性判断错误"
 
 #: main.py:180
@@ -466,6 +467,11 @@ msgstr "子域名相关性检查: {subdomain}, 相关: {related}"
 msgid "Skipping non-seed-related subdomain: {subdomain}"
 msgstr "跳过非种子相关子域名: {subdomain}"
 
+#: core/breeders/breeders.py:239
+#, python-brace-format
+msgid "Skipping wildcard subdomain: {subdomain}"
+msgstr "跳过通配符子域名: {subdomain}"
+
 #: core/breeders/breeders.py:160 core/breeders/breeders.py:541
 #, python-brace-format
 msgid "Adding seed-related subdomain: {subdomain}"
@@ -666,7 +672,8 @@ msgstr "添加非种子相关URL(限制已禁用): {url}"
 
 #: core/breeders/breeders.py:515 core/breeders/breeders.py:923
 #, python-brace-format
-msgid "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+msgid ""
+"JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
 msgstr "JSFinder从 {url} 中提取到 {related} 个与种子域名相关的URL，总共 {total} 个URL"
 
 #: core/breeders/breeders.py:517
@@ -721,8 +728,7 @@ msgstr "无法访问资产图，无法更新状态: {url}"
 #: core/breeders/breeders.py:583
 #, python-brace-format
 msgid ""
-"URL asset content fetch failed, marked as eliminated: {url}, state: "
-"{state}"
+"URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
 msgstr "URL资产内容获取失败，标记为淘汰: {url}, 状态: {state}"
 
 #: core/breeders/breeders.py:602
@@ -858,7 +864,8 @@ msgstr "HTTP状态码: {status}"
 
 #: core/breeders/breeders.py:736
 #, python-brace-format
-msgid "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+msgid ""
+"URL asset marked as eliminated: {url}, status: {status}, state: {state}"
 msgstr "URL资产标记为淘汰: {url}, 状态: {status}, 状态: {state}"
 
 #: core/breeders/breeders.py:738 core/breeders/breeders.py:775
@@ -1008,7 +1015,8 @@ msgstr "域名 {domain} 与种子域名相关，添加URL资产: {url}"
 
 #: core/breeders/breeders.py:919
 #, python-brace-format
-msgid "Domain {domain} not seed-related but added due to no restriction: {url}"
+msgid ""
+"Domain {domain} not seed-related but added due to no restriction: {url}"
 msgstr "域名 {domain} 与种子域名不相关，但因不限制域名范围而添加: {url}"
 
 #: core/breeders/breeders.py:925
@@ -1050,7 +1058,8 @@ msgstr "JSFinder从 {url} 中提取到 {related} 个与种子域名相关的子�
 
 #: core/breeders/breeders.py:968
 #, python-brace-format
-msgid "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+msgid ""
+"JSFinder extracted {count} subdomains from {url}, {related} seed-related"
 msgstr "JSFinder从 {url} 中提取到 {count} 个子域名，其中 {related} 个与种子域名相关"
 
 #: core/breeders/breeders.py:975 core/breeders/breeders.py:1079
@@ -1286,10 +1295,10 @@ msgstr "执行JSFinder命令: {cmd}"
 #: core/tools/tools.py:243
 #, python-brace-format
 msgid ""
-"JSFinder full output:\n"
+"JSFinder output preview:\n"
 "{output}"
 msgstr ""
-"JSFinder完整输出:\n"
+"JSFinder输出预览:\n"
 "{output}"
 
 #: core/tools/tools.py:245
@@ -1399,8 +1408,8 @@ msgstr "过滤后: {url_count} 个URL, {subdomain_count} 个子域名"
 #: core/tools/tools.py:363
 #, python-brace-format
 msgid ""
-"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from"
-" {url}"
+"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from "
+"{url}"
 msgstr "JSFinder从 {url} 中提取到 {url_count} 个URL和 {subdomain_count} 个子域名"
 
 #: core/tools/tools.py:365
@@ -1608,3 +1617,260 @@ msgstr "任务 {func} 完成，耗时: {duration:.2f} 秒"
 msgid "Tool manager shutdown"
 msgstr "工具管理器已关闭"
 
+#. Report UI strings (core/output.py)
+msgid "Z-Sans Asset Breeding Engine Report"
+msgstr "Z-Sans 资产繁殖引擎报告"
+
+#. Report UI strings (core/output.py)
+msgid "Z-Sans Asset Breeding Engine"
+msgstr "Z-Sans 资产繁殖引擎"
+
+#. Report UI strings (core/output.py)
+msgid "Scan Report &mdash; Generated:"
+msgstr "扫描报告 &mdash; 生成时间:"
+
+#. Report UI strings (core/output.py)
+msgid "Overview"
+msgstr "概览"
+
+#. Report UI strings (core/output.py)
+msgid "Active Assets"
+msgstr "活跃资产"
+
+#. Report UI strings (core/output.py)
+msgid "Eliminated"
+msgstr "已剔除"
+
+#. Report UI strings (core/output.py)
+msgid "Metrics"
+msgstr "指标"
+
+#. Report UI strings (core/output.py)
+msgid "Total Assets"
+msgstr "资产总数"
+
+#. Report UI strings (core/output.py)
+msgid "Relations"
+msgstr "关系总数"
+
+#. Report UI strings (core/output.py)
+msgid "Processed"
+msgstr "已处理"
+
+#. Report UI strings (core/output.py)
+msgid "New Found"
+msgstr "新发现"
+
+#. Report UI strings (core/output.py)
+msgid "Max Depth"
+msgstr "最大深度"
+
+#. Report UI strings (core/output.py)
+msgid "Asset Type Distribution"
+msgstr "资产类型分布"
+
+#. Report UI strings (core/output.py)
+msgid "Search assets..."
+msgstr "搜索资产..."
+
+#. Report UI strings (core/output.py)
+#, python-brace-format
+msgid "Showing {count} assets"
+msgstr "共 {count} 个资产"
+
+#. Report UI strings (core/output.py)
+msgid "Title / Note"
+msgstr "标题 / 备注"
+
+#. Report UI strings (core/output.py)
+msgid "No active assets found"
+msgstr "未发现活跃资产"
+
+#. Report UI strings (core/output.py)
+msgid "Eliminated Assets"
+msgstr "已剔除资产"
+
+#. Report UI strings (core/output.py)
+msgid "Search eliminated assets..."
+msgstr "搜索已剔除资产..."
+
+#. Report UI strings (core/output.py)
+msgid ""
+"Eliminated assets are those that are not alive or responsive, including "
+"inaccessible ports, unreachable URLs, etc."
+msgstr "已剔除资产是不无响应或无法访问的资产，包括不可访问的端口、无法访问的URL等。"
+
+#. Report UI strings (core/output.py)
+msgid "Reason"
+msgstr "原因"
+
+#. Report UI strings (core/output.py)
+msgid "No eliminated assets found"
+msgstr "未发现已剔除资产"
+
+#. Report UI strings (core/output.py)
+msgid ""
+"Eliminated assets display is disabled in configuration. Set "
+"<code>keep_eliminated_assets: true</code> to enable."
+msgstr "配置中已禁用已剔除资产的显示。请设置 <code>keep_eliminated_assets: true</code> 以启用。"
+
+#. Report UI strings (core/output.py)
+msgid "Execution Metrics"
+msgstr "执行指标"
+
+#. Report UI strings (core/output.py)
+msgid "Metric"
+msgstr "指标名称"
+
+#. Report UI strings (core/output.py)
+msgid "(filtered)"
+msgstr "(已过滤)"
+
+#. Report UI strings (core/output.py)
+msgid "Z-Sans Asset Breeding Engine &mdash; Report generated at"
+msgstr "Z-Sans 资产繁殖引擎 &mdash; 报告生成于"
+
+#. Report enrichment strings (core/output.py)
+msgid "Topology"
+msgstr "拓扑"
+
+#. Report enrichment strings (core/output.py)
+msgid "Asset Topology"
+msgstr "资产拓扑"
+
+#. Report enrichment strings (core/output.py)
+msgid "Duration"
+msgstr "扫描耗时"
+
+#. Report enrichment strings (core/output.py)
+msgid "Seed Assets"
+msgstr "种子资产"
+
+#. Report enrichment strings (core/output.py)
+msgid "Domains"
+msgstr "域名"
+
+#. Report enrichment strings (core/output.py)
+msgid "IP Addresses"
+msgstr "IP 地址"
+
+#. Report enrichment strings (core/output.py)
+msgid "None"
+msgstr "无"
+
+#. Report enrichment strings (core/output.py)
+msgid "Top Hosts"
+msgstr "TOP 主机"
+
+#. Report enrichment strings (core/output.py)
+msgid "Connections"
+msgstr "连接数"
+
+#. Report enrichment strings (core/output.py)
+msgid "No data"
+msgstr "暂无数据"
+
+#. Report enrichment strings (core/output.py)
+msgid "Port Distribution"
+msgstr "端口分布"
+
+#. Report enrichment strings (core/output.py)
+msgid "Elimination Reasons"
+msgstr "剔除原因"
+
+#. Report enrichment strings (core/output.py)
+msgid "Service"
+msgstr "服务"
+
+#. Report enrichment strings (core/output.py)
+msgid "Count"
+msgstr "数量"
+
+#. Report enrichment strings (core/output.py)
+#, python-brace-format
+msgid "Node count: {count}"
+msgstr "节点数: {count}"
+
+#. Report enrichment strings (core/output.py)
+#, python-brace-format
+msgid "Edge count: {count}"
+msgstr "边数: {count}"
+
+msgid "Checkpoint saved: {path}"
+msgstr "断点已保存: {path}"
+
+msgid "Failed to save checkpoint {path}: {error}"
+msgstr "保存断点失败 {path}: {error}"
+
+msgid "Checkpoint file not found: {path}"
+msgstr "断点文件不存在: {path}"
+
+msgid "Failed to load checkpoint {path}: {error}"
+msgstr "加载断点失败 {path}: {error}"
+
+msgid "Checkpoint loaded: {path}, {nodes} nodes, {queue} queued"
+msgstr "断点已加载: {path}, {nodes} 个节点, {queue} 个待处理"
+
+msgid "Resuming scan from checkpoint, {nodes} assets, {queued} queued"
+msgstr "从断点继续扫描, {nodes} 个资产, {queued} 个待处理"
+
+msgid "Watch mode started, interval: {interval}s"
+msgstr "监控模式已启动, 间隔: {interval} 秒"
+
+msgid "Watch cycle starting..."
+msgstr "监控轮询开始..."
+
+msgid "Baseline established: {count} assets"
+msgstr "基线已建立: {count} 个资产"
+
+msgid "Changes detected: +{added} added, -{removed} removed"
+msgstr "检测到变更: +{added} 新增, -{removed} 移除"
+
+msgid "Changes saved: {path}"
+msgstr "变更已保存: {path}"
+
+msgid "Failed to save changes file: {error}"
+msgstr "保存变更文件失败: {error}"
+
+msgid "Webhook notified, status: {status}"
+msgstr "Webhook 已通知, 状态: {status}"
+
+msgid "Webhook notification failed: {error}"
+msgstr "Webhook 通知失败: {error}"
+
+msgid "No changes detected"
+msgstr "未检测到变更"
+
+msgid "Sleeping {seconds}s until next cycle"
+msgstr "等待 {seconds} 秒后进行下一轮扫描"
+
+msgid "Stop signal received, exiting watch mode"
+msgstr "已收到停止信号, 退出监控模式"
+
+msgid ""
+"Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
+msgstr "代理已自动禁用. 下个周期将使用直连重试 {url}."
+
+msgid "Proxy error detected for {url}. Check your proxy configuration."
+msgstr "检测到 {url} 代理错误. 请检查您的代理配置."
+
+msgid "Resume from last checkpoint"
+msgstr "从上次断点继续扫描"
+
+msgid "Run in watch mode, rescan periodically and report changes"
+msgstr "以监控模式运行, 定期重扫并报告资产变更"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "All types"
+msgstr "全部分类"
+
+msgid "All states"
+msgstr "全部状态"
+
+msgid "All depths"
+msgstr "全部深度"
+
+msgid "Hint: drag to pan, pin/scroll to zoom, builds auto-fit"
+msgstr "提示: 拖动平移, 双指/滚轮缩放, 双击自动适配"

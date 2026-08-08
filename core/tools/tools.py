@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -15,6 +16,12 @@ from bs4 import BeautifulSoup
 from core.i18n import _
 
 logger = logging.getLogger('zsans.tools')
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PY_EXE = sys.executable or 'python'
+
+def _script_path(name):
+    return os.path.join(REPO_ROOT, 'assets', name)
 
 class ToolOrchestrator:
     def __init__(self, config=None, engine=None):
@@ -71,9 +78,9 @@ class ToolOrchestrator:
                 if os.name == 'nt' and subfinder_path.endswith('.exe'):
                     cmd_str = f'"{subfinder_path}" -d {domain} -o "{temp_path}" -silent'
                     logger.info(_("Using shell execution: {cmd}").format(cmd=cmd_str))
-                    subprocess.run(cmd_str, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                    subprocess.run(cmd_str, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, timeout=120)
                 else:
-                    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
             except subprocess.CalledProcessError as e:
                 logger.error(_("Failed to use {path}: {error}").format(path=subfinder_path, error=e.stderr.decode() if e.stderr else str(e)))
                 if subfinder_path != 'subfinder':
@@ -81,7 +88,7 @@ class ToolOrchestrator:
                     cmd = ['subfinder', '-d', domain, '-o', temp_path, '-silent']
                     logger.info(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
                     try:
-                        subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
                     except subprocess.CalledProcessError:
                         logger.warning(_("System PATH subfinder failed, using internal method instead"))
                         return self._run_internal_dns_resolver(domain)
@@ -114,15 +121,15 @@ class ToolOrchestrator:
                 logger.info(_("DNSx resolution disabled"))
                 return subdomains
             
-            if not os.path.exists('assets/dnsxs.py'):
+            if not os.path.exists(_script_path('dnsxs.py')):
                 logger.error(_("Internal DNS resolver dnsxs.py does not exist"))
                 return []
                 
             with tempfile.NamedTemporaryFile(delete=False, mode='w+t') as temp_file:
                 temp_path = temp_file.name
             
-            cmd = ['python', 'assets/dnsxs.py', domain, '-t', 'A', '-q']
-            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            cmd = [PY_EXE, _script_path('dnsxs.py'), domain, '-t', 'A', '-q']
+            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
             
             try:
                 output = process.stdout.decode('utf-8').strip()
@@ -132,7 +139,7 @@ class ToolOrchestrator:
             if output:
                 subdomains.append(domain)
                 
-                if os.path.exists('assets/free-subfinder.py'):
+                if os.path.exists(_script_path('free-subfinder.py')):
                     free_subdomains = self.run_free_subfinder(domain)
                     if free_subdomains:
                         subdomains.extend(free_subdomains)
@@ -157,7 +164,7 @@ class ToolOrchestrator:
             
             cmd = [naabu_path, '-host', ip, '-json', '-o', temp_path, '-silent']
             logger.info(_("Executing naabu command: {cmd}").format(cmd=' '.join(cmd)))
-            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=240)
             
             with open(temp_path, 'r') as f:
                 for line in f:
@@ -183,15 +190,15 @@ class ToolOrchestrator:
         logger.info(_("Using internal port scanner for {ip}").format(ip=ip))
         open_ports = {}
         try:
-            if not os.path.exists('assets/port.py'):
+            if not os.path.exists(_script_path('port.py')):
                 logger.error(_("Internal port scanner port.py does not exist"))
                 return {}
                 
             with tempfile.NamedTemporaryFile(delete=False, mode='w+t') as temp_file:
                 temp_path = temp_file.name
             
-            cmd = ['python', 'assets/port.py', ip, '-p', '1-1024,8000-8100', '-q']
-            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            cmd = [PY_EXE, _script_path('port.py'), ip, '-p', '1-1024,8000-8100', '-q']
+            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
             
             output = process.stdout.decode().strip()
             if output:
@@ -221,7 +228,7 @@ class ToolOrchestrator:
             url = f"https://{url}"
             logger.info(_("Normalized URL: {url}").format(url=url))
             
-        if not os.path.exists('assets/JSfinder.py'):
+        if not os.path.exists(_script_path('JSfinder.py')):
             logger.warning(_("JSfinder.py not found, using internal method instead"))
             return self._internal_jsfinder(url)
             
@@ -235,13 +242,21 @@ class ToolOrchestrator:
             with tempfile.NamedTemporaryFile(delete=False, mode='w+t') as subdomain_file:
                 subdomain_path = subdomain_file.name
             
-            cmd = ['python', 'assets/JSfinder.py', '-u', url, '-ou', url_path, '-os', subdomain_path]
+            cmd = [PY_EXE, _script_path('JSfinder.py'), '-u', url, '-ou', url_path, '-os', subdomain_path]
             logger.debug(_("Executing JSFinder command: {cmd}").format(cmd=' '.join(cmd)))
-            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120, text=True, encoding='utf-8')
+            js_timeout = self.config.get('external_tools', {}).get('jsfinder_timeout', 30) or 30
+            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=js_timeout, text=True, encoding='utf-8')
             if process.stdout:
-                logger.debug(_("JSFinder full output:\n{output}").format(output=process.stdout))
+                # 仅记录前若干行，避免把整个JSFinder输出倾倒进日志
+                stdout_lines = process.stdout.rstrip('\n').split('\n')
+                if len(stdout_lines) > 20:
+                    preview = '\n'.join(stdout_lines[:20]) + '\n... (truncated, {n} lines total)'.format(n=len(stdout_lines))
+                else:
+                    preview = process.stdout
+                logger.debug(_("JSFinder output preview:\n{output}").format(output=preview))
             if process.stderr:
-                logger.warning(_("JSFinder error output:\n{error}").format(error=process.stderr))
+                if process.stderr.strip():
+                    logger.warning(_("JSFinder error output:\n{error}").format(error=process.stderr[:2000]))
             
             logger.debug(_("JSFinder execution completed, exit code: {code}").format(code=process.returncode))
             
@@ -384,7 +399,8 @@ class ToolOrchestrator:
         
         try:
             from core.zsans_engine import http_session
-            response = http_session.get(url)
+            timeout = self.config.get('http', {}).get('timeout', 15)
+            response = http_session.get(url, timeout=timeout)
             if response.status_code != 200:
                 logger.warning(_("Failed to get URL content, status code: {code}").format(code=response.status_code))
                 return [], []
@@ -445,7 +461,7 @@ class ToolOrchestrator:
         return urls, subdomains
     
     def run_free_subfinder(self, domain):
-        if not os.path.exists('assets/free-subfinder.py'):
+        if not os.path.exists(_script_path('free-subfinder.py')):
             logger.warning(_("free-subfinder.py not found, using internal method instead"))
             return []
         
@@ -455,8 +471,8 @@ class ToolOrchestrator:
                 subdomains.append(domain)
                 logger.info(_("Adding original domain to subdomains list: {domain}").format(domain=domain))
             
-            cmd = ['python', 'assets/free-subfinder.py', domain, '-q']
-            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            cmd = [PY_EXE, _script_path('free-subfinder.py'), domain, '-q']
+            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
             
             output = process.stdout.decode('utf-8', errors='ignore')
             for line in output.split('\n'):
@@ -531,9 +547,9 @@ class ToolOrchestrator:
                     logger.debug(_("Final URL: {url}").format(url=final_url))
                     cmd_str = f'"{ehole_path}" finger -u "{final_url}"'
                     logger.debug(_("Using shell string execution: {cmd}").format(cmd=cmd_str))
-                    process = subprocess.run(cmd_str, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                    process = subprocess.run(cmd_str, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, timeout=60)
                 else:
-                    process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    process = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
                 
                 output = process.stdout.decode('utf-8', errors='ignore')
                 logger.debug(_("EHole raw output: {output}").format(output=output))

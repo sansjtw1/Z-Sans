@@ -28,6 +28,7 @@ Z-Sans 是一个强大的网络安全工具，专注于​​自动化资产发�
 - **模块化设计**：核心功能与工具实现分离，易于扩展
 - **轻量级工具**: 更加轻量，专注资产拓扑发现
 - **自动化资产繁殖**: 基于资产发现，自动发现关联资产
+- **检查点和恢复**：将进度保存到检查点，使用--resume恢复中断的扫描
 
 ## 🛠️ 项目结构
 
@@ -95,6 +96,15 @@ python main.py -d example.com -v
 
 # 指定输出目录
 python main.py -d example.com -o your-output-dir
+
+# 继续之前中断的扫描
+python main.py -d example.com-resume
+
+# 持续更改监控(增量 + 网络挂接警报)
+python main.py -d example.com --watch
+
+# 设置最大发现深度
+python main.py -d example.com --depth4
 ```
 
 ### 命令行参数
@@ -108,6 +118,8 @@ python main.py -d example.com -o your-output-dir
 --init           创建默认配置文件
 --version        显示版本信息
 --depth          设置最大扫描深度
+--resume        从上一个检查点继续
+--watch         定期重新扫描+更改报告+Webhook推送
 ```
 
 ## 💻 配置说明
@@ -160,11 +172,12 @@ resource_limits:
 
 ## 🎯 输出示例
 
-运行后，结果将保存在指定的输出目录中，包含以下文件：
-- JSON格式的资产数据
-- CSV格式的资产和关系数据
-- GraphML格式的资产关系图
-- HTML格式的报告
+每次扫描都会在 output/ 目录下创建一个带时间戳的子目录，其中包含：
+
+- *.json — 完整的资产图（格式：json / graphml）
+- *_assets.csv / *_relations.csv — 资产与关系数据（便于在 Excel 中使用）
+- *_graphml — GraphML 格式的关系图
+- *_report.html — 交互式报告，包含概览、拓扑、活跃资产、已排除资产及指标等标签页（支持筛选、搜索以及拓扑图的拖拽与缩放）
 
 ![HTML-output](images/output1.png)
 

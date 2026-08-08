@@ -10,12 +10,12 @@ msgstr ""
 "POT-Creation-Date: 2025-08-14 10:23+0800\n"
 "PO-Revision-Date: 2025-08-14 10:24+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: en\n"
 "Language-Team: en <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.17.0\n"
 
 #: main.py:123
@@ -53,8 +53,10 @@ msgid "Current seed domain list: {domains}"
 msgstr "Current seed domain list: {domains}"
 
 #: main.py:177
-msgid "Seed domain list is empty, this may cause domain relevance judgment errors"
-msgstr "Seed domain list is empty, this may cause domain relevance judgment errors"
+msgid ""
+"Seed domain list is empty, this may cause domain relevance judgment errors"
+msgstr ""
+"Seed domain list is empty, this may cause domain relevance judgment errors"
 
 #: main.py:184
 #, python-brace-format
@@ -375,7 +377,9 @@ msgstr "Unreachable IP"
 msgid ""
 "Adding eliminated asset to HTML report: {type} - {value} - {state} - "
 "{reason}"
-msgstr "Adding eliminated asset to HTML report: {type} - {value} - {state} - {reason}"
+msgstr ""
+"Adding eliminated asset to HTML report: {type} - {value} - {state} - "
+"{reason}"
 
 #: core/output.py:483
 #, python-brace-format
@@ -400,7 +404,9 @@ msgstr "Failed to process relative path: {path}, error: {error}"
 msgid ""
 "Engine instance does not exist, defaulting to False to avoid adding "
 "unrelated domains"
-msgstr "Engine instance does not exist, defaulting to False to avoid adding unrelated domains"
+msgstr ""
+"Engine instance does not exist, defaulting to False to avoid adding "
+"unrelated domains"
 
 #: core/breeders/breeders.py:71
 msgid "Seed domains list attribute not found in engine, defaulting to False"
@@ -465,6 +471,11 @@ msgstr "Subdomain relevance check: {subdomain}, related: {related}"
 #, python-brace-format
 msgid "Skipping non-seed-related subdomain: {subdomain}"
 msgstr "Skipping non-seed-related subdomain: {subdomain}"
+
+#: core/breeders/breeders.py:239
+#, python-brace-format
+msgid "Skipping wildcard subdomain: {subdomain}"
+msgstr "Skipping wildcard subdomain: {subdomain}"
 
 #: core/breeders/breeders.py:159 core/breeders/breeders.py:540
 #, python-brace-format
@@ -666,8 +677,10 @@ msgstr "Adding non-seed-related URL (restriction disabled): {url}"
 
 #: core/breeders/breeders.py:514 core/breeders/breeders.py:922
 #, python-brace-format
-msgid "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
-msgstr "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+msgid ""
+"JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+msgstr ""
+"JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
 
 #: core/breeders/breeders.py:516
 #, python-brace-format
@@ -721,9 +734,9 @@ msgstr "Unable to access asset graph, cannot update state: {url}"
 #: core/breeders/breeders.py:582
 #, python-brace-format
 msgid ""
-"URL asset content fetch failed, marked as eliminated: {url}, state: "
-"{state}"
-msgstr "URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
+"URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
+msgstr ""
+"URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
 
 #: core/breeders/breeders.py:601
 #, python-brace-format
@@ -750,7 +763,9 @@ msgstr "Link has no domain part, possibly relative: {link}"
 msgid ""
 "Domain scope restriction disabled, adding all links: {link}, domain: "
 "{domain}"
-msgstr "Domain scope restriction disabled, adding all links: {link}, domain: {domain}"
+msgstr ""
+"Domain scope restriction disabled, adding all links: {link}, domain: "
+"{domain}"
 
 #: core/breeders/breeders.py:621
 #, python-brace-format
@@ -858,8 +873,10 @@ msgstr "HTTP status code: {status}"
 
 #: core/breeders/breeders.py:735
 #, python-brace-format
-msgid "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
-msgstr "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+msgid ""
+"URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+msgstr ""
+"URL asset marked as eliminated: {url}, status: {status}, state: {state}"
 
 #: core/breeders/breeders.py:737 core/breeders/breeders.py:774
 #, python-brace-format
@@ -984,7 +1001,9 @@ msgstr "Current seed domains: {domains}"
 msgid ""
 "Seed domains list attribute not found in engine, all domains will be "
 "considered unrelated"
-msgstr "Seed domains list attribute not found in engine, all domains will be considered unrelated"
+msgstr ""
+"Seed domains list attribute not found in engine, all domains will be "
+"considered unrelated"
 
 #: core/breeders/breeders.py:866
 #, python-brace-format
@@ -1008,8 +1027,10 @@ msgstr "Domain {domain} is seed-related, adding URL asset: {url}"
 
 #: core/breeders/breeders.py:918
 #, python-brace-format
-msgid "Domain {domain} not seed-related but added due to no restriction: {url}"
-msgstr "Domain {domain} not seed-related but added due to no restriction: {url}"
+msgid ""
+"Domain {domain} not seed-related but added due to no restriction: {url}"
+msgstr ""
+"Domain {domain} not seed-related but added due to no restriction: {url}"
 
 #: core/breeders/breeders.py:924
 #, python-brace-format
@@ -1039,19 +1060,24 @@ msgstr "Subdomain {subdomain} is seed-related, adding as domain asset"
 #: core/breeders/breeders.py:958
 #, python-brace-format
 msgid "Subdomain {subdomain} not seed-related but added due to no restriction"
-msgstr "Subdomain {subdomain} not seed-related but added due to no restriction"
+msgstr ""
+"Subdomain {subdomain} not seed-related but added due to no restriction"
 
 #: core/breeders/breeders.py:965
 #, python-brace-format
 msgid ""
 "JSFinder extracted {related} seed-related subdomains from {url}, total: "
 "{total}"
-msgstr "JSFinder extracted {related} seed-related subdomains from {url}, total: {total}"
+msgstr ""
+"JSFinder extracted {related} seed-related subdomains from {url}, total: "
+"{total}"
 
 #: core/breeders/breeders.py:967
 #, python-brace-format
-msgid "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
-msgstr "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+msgid ""
+"JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+msgstr ""
+"JSFinder extracted {count} subdomains from {url}, {related} seed-related"
 
 #: core/breeders/breeders.py:974 core/breeders/breeders.py:1078
 #, python-brace-format
@@ -1286,10 +1312,10 @@ msgstr "Executing JSFinder command: {cmd}"
 #: core/tools/tools.py:243
 #, python-brace-format
 msgid ""
-"JSFinder full output:\n"
+"JSFinder output preview:\n"
 "{output}"
 msgstr ""
-"JSFinder full output:\n"
+"JSFinder output preview:\n"
 "{output}"
 
 #: core/tools/tools.py:245
@@ -1399,9 +1425,11 @@ msgstr "After filtering: {url_count} URLs, {subdomain_count} subdomains"
 #: core/tools/tools.py:363
 #, python-brace-format
 msgid ""
-"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from"
-" {url}"
-msgstr "JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from "
+"{url}"
+msgstr ""
+"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from "
+"{url}"
 
 #: core/tools/tools.py:365
 #, python-brace-format
@@ -1431,7 +1459,9 @@ msgstr "Failed to get URL content, status code: {code}"
 msgid ""
 "Internal JSFinder extracted {url_count} URLs and {subdomain_count} "
 "subdomains from {url}"
-msgstr "Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+msgstr ""
+"Internal JSFinder extracted {url_count} URLs and {subdomain_count} "
+"subdomains from {url}"
 
 #: core/tools/tools.py:439
 #, python-brace-format
@@ -1607,3 +1637,266 @@ msgstr "Task {func} completed, duration: {duration:.2f} seconds"
 #: core/tools/tools.py:686
 msgid "Tool manager shutdown"
 msgstr "Tool manager shutdown"
+
+#. Report UI strings (core/output.py)
+msgid "Z-Sans Asset Breeding Engine Report"
+msgstr "Z-Sans Asset Breeding Engine Report"
+
+#. Report UI strings (core/output.py)
+msgid "Z-Sans Asset Breeding Engine"
+msgstr "Z-Sans Asset Breeding Engine"
+
+#. Report UI strings (core/output.py)
+msgid "Scan Report &mdash; Generated:"
+msgstr "Scan Report &mdash; Generated:"
+
+#. Report UI strings (core/output.py)
+msgid "Overview"
+msgstr "Overview"
+
+#. Report UI strings (core/output.py)
+msgid "Active Assets"
+msgstr "Active Assets"
+
+#. Report UI strings (core/output.py)
+msgid "Eliminated"
+msgstr "Eliminated"
+
+#. Report UI strings (core/output.py)
+msgid "Metrics"
+msgstr "Metrics"
+
+#. Report UI strings (core/output.py)
+msgid "Total Assets"
+msgstr "Total Assets"
+
+#. Report UI strings (core/output.py)
+msgid "Relations"
+msgstr "Relations"
+
+#. Report UI strings (core/output.py)
+msgid "Processed"
+msgstr "Processed"
+
+#. Report UI strings (core/output.py)
+msgid "New Found"
+msgstr "New Found"
+
+#. Report UI strings (core/output.py)
+msgid "Max Depth"
+msgstr "Max Depth"
+
+#. Report UI strings (core/output.py)
+msgid "Asset Type Distribution"
+msgstr "Asset Type Distribution"
+
+#. Report UI strings (core/output.py)
+msgid "Search assets..."
+msgstr "Search assets..."
+
+#. Report UI strings (core/output.py)
+#, python-brace-format
+msgid "Showing {count} assets"
+msgstr "Showing {count} assets"
+
+#. Report UI strings (core/output.py)
+msgid "Title / Note"
+msgstr "Title / Note"
+
+#. Report UI strings (core/output.py)
+msgid "No active assets found"
+msgstr "No active assets found"
+
+#. Report UI strings (core/output.py)
+msgid "Eliminated Assets"
+msgstr "Eliminated Assets"
+
+#. Report UI strings (core/output.py)
+msgid "Search eliminated assets..."
+msgstr "Search eliminated assets..."
+
+#. Report UI strings (core/output.py)
+msgid ""
+"Eliminated assets are those that are not alive or responsive, including "
+"inaccessible ports, unreachable URLs, etc."
+msgstr ""
+"Eliminated assets are those that are not alive or responsive, including "
+"inaccessible ports, unreachable URLs, etc."
+
+#. Report UI strings (core/output.py)
+msgid "Reason"
+msgstr "Reason"
+
+#. Report UI strings (core/output.py)
+msgid "No eliminated assets found"
+msgstr "No eliminated assets found"
+
+#. Report UI strings (core/output.py)
+msgid ""
+"Eliminated assets display is disabled in configuration. Set "
+"<code>keep_eliminated_assets: true</code> to enable."
+msgstr ""
+"Eliminated assets display is disabled in configuration. Set "
+"<code>keep_eliminated_assets: true</code> to enable."
+
+#. Report UI strings (core/output.py)
+msgid "Execution Metrics"
+msgstr "Execution Metrics"
+
+#. Report UI strings (core/output.py)
+msgid "Metric"
+msgstr "Metric"
+
+#. Report UI strings (core/output.py)
+msgid "(filtered)"
+msgstr "(filtered)"
+
+#. Report UI strings (core/output.py)
+msgid "Z-Sans Asset Breeding Engine &mdash; Report generated at"
+msgstr "Z-Sans Asset Breeding Engine &mdash; Report generated at"
+
+#. Report enrichment strings (core/output.py)
+msgid "Topology"
+msgstr "Topology"
+
+#. Report enrichment strings (core/output.py)
+msgid "Asset Topology"
+msgstr "Asset Topology"
+
+#. Report enrichment strings (core/output.py)
+msgid "Duration"
+msgstr "Duration"
+
+#. Report enrichment strings (core/output.py)
+msgid "Seed Assets"
+msgstr "Seed Assets"
+
+#. Report enrichment strings (core/output.py)
+msgid "Domains"
+msgstr "Domains"
+
+#. Report enrichment strings (core/output.py)
+msgid "IP Addresses"
+msgstr "IP Addresses"
+
+#. Report enrichment strings (core/output.py)
+msgid "None"
+msgstr "None"
+
+#. Report enrichment strings (core/output.py)
+msgid "Top Hosts"
+msgstr "Top Hosts"
+
+#. Report enrichment strings (core/output.py)
+msgid "Connections"
+msgstr "Connections"
+
+#. Report enrichment strings (core/output.py)
+msgid "No data"
+msgstr "No data"
+
+#. Report enrichment strings (core/output.py)
+msgid "Port Distribution"
+msgstr "Port Distribution"
+
+#. Report enrichment strings (core/output.py)
+msgid "Elimination Reasons"
+msgstr "Elimination Reasons"
+
+#. Report enrichment strings (core/output.py)
+msgid "Service"
+msgstr "Service"
+
+#. Report enrichment strings (core/output.py)
+msgid "Count"
+msgstr "Count"
+
+#. Report enrichment strings (core/output.py)
+#, python-brace-format
+msgid "Node count: {count}"
+msgstr "Node count: {count}"
+
+#. Report enrichment strings (core/output.py)
+#, python-brace-format
+msgid "Edge count: {count}"
+msgstr "Edge count: {count}"
+
+msgid "Checkpoint saved: {path}"
+msgstr "Checkpoint saved: {path}"
+
+msgid "Failed to save checkpoint {path}: {error}"
+msgstr "Failed to save checkpoint {path}: {error}"
+
+msgid "Checkpoint file not found: {path}"
+msgstr "Checkpoint file not found: {path}"
+
+msgid "Failed to load checkpoint {path}: {error}"
+msgstr "Failed to load checkpoint {path}: {error}"
+
+msgid "Checkpoint loaded: {path}, {nodes} nodes, {queue} queued"
+msgstr "Checkpoint loaded: {path}, {nodes} nodes, {queue} queued"
+
+msgid "Resuming scan from checkpoint, {nodes} assets, {queued} queued"
+msgstr "Resuming scan from checkpoint, {nodes} assets, {queued} queued"
+
+msgid "Watch mode started, interval: {interval}s"
+msgstr "Watch mode started, interval: {interval}s"
+
+msgid "Watch cycle starting..."
+msgstr "Watch cycle starting..."
+
+msgid "Baseline established: {count} assets"
+msgstr "Baseline established: {count} assets"
+
+msgid "Changes detected: +{added} added, -{removed} removed"
+msgstr "Changes detected: +{added} added, -{removed} removed"
+
+msgid "Changes saved: {path}"
+msgstr "Changes saved: {path}"
+
+msgid "Failed to save changes file: {error}"
+msgstr "Failed to save changes file: {error}"
+
+msgid "Webhook notified, status: {status}"
+msgstr "Webhook notified, status: {status}"
+
+msgid "Webhook notification failed: {error}"
+msgstr "Webhook notification failed: {error}"
+
+msgid "No changes detected"
+msgstr "No changes detected"
+
+msgid "Sleeping {seconds}s until next cycle"
+msgstr "Sleeping {seconds}s until next cycle"
+
+msgid "Stop signal received, exiting watch mode"
+msgstr "Stop signal received, exiting watch mode"
+
+msgid ""
+"Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
+msgstr ""
+"Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
+
+msgid "Proxy error detected for {url}. Check your proxy configuration."
+msgstr "Proxy error detected for {url}. Check your proxy configuration."
+
+msgid "Resume from last checkpoint"
+msgstr "Resume from last checkpoint"
+
+msgid "Run in watch mode, rescan periodically and report changes"
+msgstr "Run in watch mode, rescan periodically and report changes"
+
+msgid "Unknown"
+msgstr "Unknown"
+
+msgid "All types"
+msgstr "All types"
+
+msgid "All states"
+msgstr "All states"
+
+msgid "All depths"
+msgstr "All depths"
+
+msgid "Hint: drag to pan, pin/scroll to zoom, builds auto-fit"
+msgstr "Hint: drag to pan, pin/scroll to zoom, builds auto-fit"

@@ -42,7 +42,7 @@ asset_types:
   # IP asset configuration
   ip:
     enabled: true      # Enable IP discovery
-    depth_limit: 2     # IP discovery depth limit
+    depth_limit: 4     # IP discovery depth limit
     priority: 8        # Priority
     tools:
       naabu: true         # Port scanning tool
@@ -65,7 +65,7 @@ asset_types:
   # Port asset configuration
   port:
     enabled: true      # Enable port discovery
-    depth_limit: 1     # Port discovery depth limit
+    depth_limit: 5     # Port discovery depth limit
     priority: 7        # Priority
     tools:
       service_identify: true # Service identification

@@ -113,6 +113,8 @@ def init_http_config(config):
         # 更新代理设置
         proxy_url = config.get('http', {}).get('proxy')
         set_http_proxy(proxy_url)
+        # 更新SSL校验设置
+        http_session.verify = config.get('http', {}).get('verify_ssl', False)
 
 # 获取当前HTTP配置
 
@@ -213,7 +215,7 @@ DEFAULT_CONFIG = {
         # 端口资产配置
         "port": {
             "enabled": True,      # 启用端口发现
-            "depth_limit": 1,     # 端口发现深度限制
+            "depth_limit": 5,     # 端口发现深度限制
             "priority": 7,        # 优先级
             "tools": {
                 "service_identify": True # 服务识别
@@ -288,10 +290,24 @@ DEFAULT_CONFIG = {
         ]
     },
 
+    # 断点续扫配置
+    "checkpoint": {
+        "enabled": True,     # 是否启用断点续扫
+        "interval": 50,      # 每处理多少资产保存一次断点
+        "file": None         # 断点文件路径，None 时使用 <output_dir>/checkpoint.json
+    },
+
+    # 变更监控配置
+    "monitoring": {
+        "enabled": False,        # 是否启用 --watch 变更监控
+        "interval": 3600,        # 监控轮询间隔(秒)
+        "webhook_url": None      # 变更告警 Webhook 地址，POST JSON 通知
+    },
+
     # HTTP请求配置
     "http": {
-        "timeout": 10,         # 超时时间(秒)
-        "retries": 3,          # 重试次数
+        "timeout": 10,       # 超时时间(秒)
+        "retries": 3,        # 重试次数
         "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",  # 用户代理
         "verify_ssl": False,   # 是否验证SSL证书
         "proxy": None,         # 代理设置
@@ -363,6 +379,8 @@ class URLAsset(Asset):
                 cleaned_url = cleaned_url.replace('`', '').replace('"', '')
             # 去除前后空格
             cleaned_url = cleaned_url.strip()
+            # 去除末尾反斜杠（JS源码/正则抽取的转义残留，如 xxx.html\\\）
+            cleaned_url = cleaned_url.rstrip('\\')
         
         super().__init__(cleaned_url, ASSET_TYPE_URL, source, depth)
         self.properties["url"] = cleaned_url
@@ -417,11 +435,20 @@ class PriorityBreedingQueue:
         self.queue = []
         self.lock = threading.Lock()
         self.config = config or {}
+        # uid -> 是否已在队列中等待处理（防止同一资产被重复入队）
+        self._queued = {}
         
     def add(self, asset):
-        """添加资产到队列"""
+        """添加资产到队列。已存在(仍在队列中/已处理)返回 False，避免重复入队。"""
         with self.lock:
+            uid = asset.uid
+            if uid in self._queued:
+                return False
+            if asset.state in ("scanned", "eliminated", "excluded"):
+                return False
             self.queue.append(asset)
+            self._queued[uid] = True
+            return True
             
     def get_next(self, strategy="priority_based"):
         """根据策略获取下一个资产"""
@@ -430,13 +457,16 @@ class PriorityBreedingQueue:
                 return None
             
             if strategy == "depth_first":
-                return self._get_deepest()
+                asset = self._get_deepest()
             elif strategy == "breadth_first":
-                return self._get_shallowest()
+                asset = self._get_shallowest()
             elif strategy == "priority_based":
-                return self._get_highest_priority()
+                asset = self._get_highest_priority()
             else:
-                return self._get_oldest()
+                asset = self._get_oldest()
+            if asset is not None:
+                self._queued.pop(asset.uid, None)
+            return asset
                 
     def _get_highest_priority(self):
         if not self.queue:

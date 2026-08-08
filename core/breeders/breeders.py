@@ -26,7 +26,7 @@ HEADERS = {
 class BreederBase:
     def __init__(self, config=None, engine=None):
         self.config = config or {}
-        self.timeout = self.config.get('timeout', 15)
+        self.timeout = self.config.get('http', {}).get('timeout', self.config.get('timeout', 15))
         self.engine = engine
     
     def execute(self, asset, tool_manager):
@@ -56,7 +56,20 @@ class BreederBase:
                 return None
                 
         if not url.startswith('http://') and not url.startswith('https://'):
-            return f"https://{url}"
+            if '.' in url:
+                try:
+                    if re.match(r'^[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}$', url):
+                        last_label = url.rsplit('.', 1)[-1].lower()
+                        if last_label not in ('php', 'asp', 'aspx', 'jsp', 'htm', 'html', 'css', 'js', 'json', 'txt', 'png', 'jpg', 'gif', 'ico', 'svg', 'webp', 'xml', 'pdf', 'zip'):
+                            return f"https://{url}"
+                except Exception:
+                    pass
+            if base_url:
+                try:
+                    return urljoin(base_url, url)
+                except Exception:
+                    return None
+            return None
             
         return url
         
@@ -189,9 +202,11 @@ class DomainBreeder(BreederBase):
         return new_assets
             
     def _discover_subdomains(self, domain, tool_manager):
-        subdomains = set()
-        
         subfinder_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('subfinder', True)
+        return self._collect_subdomains(domain, tool_manager, subfinder_enabled)
+    
+    def _collect_subdomains(self, domain, tool_manager, subfinder_enabled):
+        subdomains = set()
         free_subfinder_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('free_subfinder', True)
         
         if subfinder_enabled and tool_manager and hasattr(tool_manager, 'run_subfinder'):
@@ -227,13 +242,33 @@ class DomainBreeder(BreederBase):
         except Exception as e:
             logger.error(_("Subdomain discovery failed: {error}").format(error=str(e)))
         
-        return list(subdomains)
+        return self._filter_subdomains(subdomains, domain)
+    
+    def _filter_subdomains(self, subdomains, domain):
+        """过滤通配符(`*.`)以及格式非法的子域名，避免派生 `https://*.domain` 等无效资产"""
+        filtered = set()
+        for sub in subdomains:
+            if not sub or not isinstance(sub, str):
+                continue
+            sub = sub.strip().lower()
+            if sub.startswith('*'):
+                logger.warning(_("Skipping wildcard subdomain: {subdomain}").format(subdomain=sub))
+                continue
+            if sub == domain:
+                filtered.add(sub)
+                continue
+            if not re.match(r'^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$', sub):
+                logger.warning(_("Skipping invalid subdomain: {subdomain}").format(subdomain=sub))
+                continue
+            filtered.add(sub)
+        return list(filtered)
     
     def _query_crtsh(self, domain):
         subdomains = set()
         try:
             url = f"https://crt.sh/?q=%25.{domain}&output=json"
-            response = requests.get(url, headers=HEADERS, timeout=self.timeout)
+            from core.zsans_engine import http_session
+            response = http_session.get(url, timeout=self.timeout)
             
             if response.status_code == 200:
                 data = response.json()
@@ -252,7 +287,7 @@ class DomainBreeder(BreederBase):
         ip_addresses = set()
         try:
             info = socket.getaddrinfo(domain, None)
-            for _, _, _, _, sockaddr in info:
+            for _family, _socktype, _proto, _canonname, sockaddr in info:
                 ip = sockaddr[0]
                 if self._is_valid_ip(ip):
                     ip_addresses.add(ip)
@@ -341,9 +376,14 @@ class IPBreeder(BreederBase):
         
         naabu_enabled = self.config.get('asset_types', {}).get('ip', {}).get('tools', {}).get('naabu', True)
         
+        used_external_scan = False
         if naabu_enabled and tool_manager and hasattr(tool_manager, 'run_naabu'):
             tool_ports = tool_manager.run_naabu(ip)
             open_ports.update(tool_ports)
+            used_external_scan = bool(tool_ports)
+        
+        if used_external_scan:
+            return open_ports
         
         common_ports = [21, 22, 23, 25, 53, 80, 110, 111, 135, 139, 143, 443, 445, 993, 995, 1723, 3306, 3389, 5900, 8080, 8443]
         
@@ -417,7 +457,7 @@ class IPBreeder(BreederBase):
         domains = set()
         try:
             logger.info(_("Starting reverse DNS for IP: {ip}").format(ip=ip))
-            hostname, _, _ = socket.gethostbyaddr(ip)
+            hostname, _aliases, _addresses = socket.gethostbyaddr(ip)
             if hostname:
                 hostname = hostname.lower()
                 logger.info(_("Reverse DNS successful: IP {ip} resolved to {hostname}").format(ip=ip, hostname=hostname))
@@ -449,9 +489,9 @@ class URLBreeder(BreederBase):
         self.redirect_targets = []
         
         asset_type_config = self.config.get('asset_types', {}).get('url', {})
-        tools = asset_type_config.get('tools', [])
+        tools = asset_type_config.get('tools', {}) or {}
         
-        if 'jsfinder' in tools and tool_manager and hasattr(tool_manager, 'run_jsfinder'):
+        if tools.get('jsfinder', False) and tool_manager and hasattr(tool_manager, 'run_jsfinder'):
             logger.info(_("Using JSFinder tool for URL: {url}").format(url=url))
             jsfinder_urls, jsfinder_subdomains = tool_manager.run_jsfinder(url)
             
@@ -588,35 +628,36 @@ class URLBreeder(BreederBase):
             new_asset = JSAsset(js_url, source=asset.uid, depth=asset.depth+1)
             new_assets.append(new_asset)
         
-        links = self._extract_links(html_content, url)
-        for link in links:
-            restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
-            
-            link_domain = urlparse(link).netloc
-            
-            if restrict_to_seed_domains and link_domain:
-                is_related = self._is_related_to_seed_domain(link_domain)
-                logger.info(_("URL link domain relevance: {domain}, related: {related}").format(domain=link_domain, related=is_related))
-                if not is_related:
-                    logger.warning(_("Skipping non-seed-related link: {link}, domain: {domain}").format(link=link, domain=link_domain))
-                    continue
-                else:
-                    logger.info(_("Adding seed-related link: {link}, domain: {domain}").format(link=link, domain=link_domain))
-            else:
-                if not link_domain:
-                    logger.info(_("Link has no domain part, possibly relative: {link}").format(link=link))
-                else:
-                    logger.info(_("Domain scope restriction disabled, adding all links: {link}, domain: {domain}").format(link=link, domain=link_domain))
+        if tools.get('link_extract', True):
+            links = self._extract_links(html_content, url)
+            for link in links:
+                restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
                 
-            if domain == link_domain or not link_domain:
-                new_asset = URLAsset(link, source=asset.uid, depth=asset.depth+1)
-                new_assets.append(new_asset)
-            else:
-                if not restrict_to_seed_domains or self._is_related_to_seed_domain(link_domain):
-                    new_asset = DomainAsset(link_domain, source=asset.uid, depth=asset.depth+1)
+                link_domain = urlparse(link).netloc
+                
+                if restrict_to_seed_domains and link_domain:
+                    is_related = self._is_related_to_seed_domain(link_domain)
+                    logger.info(_("URL link domain relevance: {domain}, related: {related}").format(domain=link_domain, related=is_related))
+                    if not is_related:
+                        logger.warning(_("Skipping non-seed-related link: {link}, domain: {domain}").format(link=link, domain=link_domain))
+                        continue
+                    else:
+                        logger.info(_("Adding seed-related link: {link}, domain: {domain}").format(link=link, domain=link_domain))
+                else:
+                    if not link_domain:
+                        logger.info(_("Link has no domain part, possibly relative: {link}").format(link=link))
+                    else:
+                        logger.info(_("Domain scope restriction disabled, adding all links: {link}, domain: {domain}").format(link=link, domain=link_domain))
+                    
+                if domain == link_domain or not link_domain:
+                    new_asset = URLAsset(link, source=asset.uid, depth=asset.depth+1)
                     new_assets.append(new_asset)
                 else:
-                    logger.debug(_("Skipping non-seed-related domain asset: {domain}").format(domain=link_domain))
+                    if not restrict_to_seed_domains or self._is_related_to_seed_domain(link_domain):
+                        new_asset = DomainAsset(link_domain, source=asset.uid, depth=asset.depth+1)
+                        new_assets.append(new_asset)
+                    else:
+                        logger.debug(_("Skipping non-seed-related domain asset: {domain}").format(domain=link_domain))
         
         return new_assets
         
@@ -639,10 +680,18 @@ class URLBreeder(BreederBase):
             logger.info(_("Sending HTTP request: {url}").format(url=url))
             from core.zsans_engine import http_session
             response = http_session.get(
-                url, 
-                allow_redirects=follow_redirects
+                url,
+                allow_redirects=follow_redirects,
+                timeout=self.timeout
             )
             logger.debug(_("HTTP request completed: {url}, status: {status}").format(url=url, status=response.status_code))
+            
+            # 编码兜底：避免 charset 缺失或声明错误时乱码/空标题
+            try:
+                if not response.encoding or response.encoding.lower() in ('iso-8859-1', 'latin-1', 'ascii'):
+                    response.encoding = response.apparent_encoding or 'utf-8'
+            except Exception:
+                pass
             
             if redirect_as_new_asset and response.history:
                 for r in response.history:
@@ -697,7 +746,8 @@ class URLBreeder(BreederBase):
                     if not title_already_extracted:
                         try:
                             soup = BeautifulSoup(response.text, 'html.parser')
-                            title = soup.title.string.strip() if soup.title else _("No title")
+                            title_tag = soup.title
+                            title = title_tag.get_text(strip=True) if title_tag else _("No title")
                             
                             parsed_url = urlparse(url)
                             domain = parsed_url.netloc
@@ -849,7 +899,9 @@ class URLBreeder(BreederBase):
             if '.' in url and not url.startswith('/'):
                 try:
                     if re.match(r'^[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}$', url):
-                        return f"https://{url}"
+                        last_label = url.rsplit('.', 1)[-1].lower()
+                        if last_label not in ('php', 'asp', 'aspx', 'jsp', 'htm', 'html', 'css', 'js', 'json', 'txt', 'png', 'jpg', 'gif', 'ico', 'svg', 'webp', 'xml', 'pdf', 'zip'):
+                            return f"https://{url}"
                 except Exception:
                     pass
             
@@ -876,9 +928,9 @@ class JSBreeder(BreederBase):
         new_assets = []
         
         asset_type_config = self.config.get('asset_types', {}).get('js', {})
-        tools = asset_type_config.get('tools', [])
+        tools = asset_type_config.get('tools', {}) or {}
         
-        if 'jsfinder' in tools and tool_manager and hasattr(tool_manager, 'run_jsfinder'):
+        if tools.get('jsfinder', False) and tool_manager and hasattr(tool_manager, 'run_jsfinder'):
             logger.info(_("Using JSFinder tool for JS: {url}").format(url=js_url))
             jsfinder_urls, jsfinder_subdomains = tool_manager.run_jsfinder(js_url)
             

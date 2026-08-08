@@ -1,135 +1,135 @@
-# 繁殖策略: priority_based(优先级), depth_first(深度优先), breadth_first(广度优先), time_based(时间顺序)
-strategy: priority_based  # 基于优先级的策略
+# 资产挖掘遍历策略：priority_based（优先级优先）、depth_first（深度优先）、breadth_first（广度优先）、time_based（时间顺序）
+strategy: priority_based  # 采用基于优先级的遍历策略
 
-# 资产范围配置
+# 资产扫描范围配置
 asset_scope:
-  restrict_to_seed_domains: true    # 限制在种子域名范围内
-  restrict_to_seed_ip_ranges: true  # 限制在种子IP范围内
-  include_subdomains: true          # 包含子域名
-  include_ip_ranges: true           # 包含IP范围
+  restrict_to_seed_domains: true    # 仅扫描种子域名范围内资产
+  restrict_to_seed_ip_ranges: false  # 不限制仅扫描种子IP段
+  include_subdomains: true          # 扫描包含所有子域名
+  include_ip_ranges: true           # 同步扫描关联IP段
 
-# 并发配置
+# 并发任务配置
 concurrency:
-  max_tasks: 20        # 最大并发任务数
-  tools:               # 各工具并发数
-    subfinder: 2       # 子域名发现工具并发数
+  max_tasks: 20        # 全局最大并发任务数
+  tools:               # 各工具独立并发限制
+    subfinder: 2       # 子域名探测工具并发数
     naabu: 2          # 端口扫描工具并发数
-    jsfinder: 2       # JS文件发现工具并发数
+    jsfinder: 2       # JS文件抓取工具并发数
 
-max_depth: 4          # 最大发现深度
+max_depth: 4          # 资产最大挖掘层级深度
 
-# 资产数量限制
+# 各类资产数量上限限制
 resource_limits:
-  max_domains: 2000    # 最大域名数量
-  max_ips: 2000       # 最大IP数量
-  max_urls: 5000      # 最大URL数量
-  max_ports: 5000     # 最大端口数量
-  max_js: 2000        # 最大JS文件数量
+  max_domains: 2000    # 最大收集域名数量
+  max_ips: 2000       # 最大收集IP数量
+  max_urls: 5000      # 最大收集URL链接数量
+  max_ports: 5000     # 最大识别端口总量
+  max_js: 2000        # 最大抓取JS文件数量
 
-# 资产类型配置
+# 各类资产扫描开关配置
 asset_types:
   # 域名资产配置
   domain:
-    enabled: true      # 启用域名发现
-    depth_limit: 3     # 域名发现深度限制
-    priority: 10       # 优先级(越高越优先)
-    tools:             # 使用的工具
-      subfinder: true      # subfinder工具
-      free_subfinder: false # 免费版subfinder
-      crtsh: true         # 证书透明度查询
-      dnsx: true          # DNS解析工具
+    enabled: true      # 域名探测
+    depth_limit: 3     # 域名挖掘最大深度
+    priority: 10       # 任务优先级（数值越高，优先执行）
+    tools:             # 启用的探测工具列表
+      subfinder: true      # 启用subfinder子域名扫描
+      free_subfinder: false # 不使用免费版subfinder
+      crtsh: true         # 启用证书透明度日志crt.sh查询
+      dnsx: true          # 启用dnsx做DNS解析验证
 
   # IP资产配置
   ip:
-    enabled: true      # 启用IP发现
-    depth_limit: 2     # IP发现深度限制
-    priority: 8        # 优先级
+    enabled: true      # IP资产探测
+    depth_limit: 4     # IP挖掘最大深度
+    priority: 8        # 任务优先级
     tools:
-      naabu: true         # 端口扫描工具
-      reverse_dns: true   # 反向DNS解析
+      naabu: true         # 启用naabu端口扫描
+      reverse_dns: true   # IP反向DNS解析
 
-  # URL资产配置
+  # URL链接资产配置
   url:
-    enabled: true      # 启用URL发现
-    depth_limit: 5     # URL发现深度限制
-    priority: 10        # 优先级
+    enabled: true      # URL链接抓取
+    depth_limit: 5     # URL挖掘最大深度
+    priority: 10        # 任务优先级
     tools:
-      jsfinder: true      # JS文件发现
-      link_extract: true  # 链接提取
-    title_extraction:     # 标题提取配置
-      enabled: true           # 启用标题提取
-      max_length: 50         # 最大标题长度
-      show_in_report: true   # 在报告中显示
-      show_in_csv: true      # 在CSV中显示
+      jsfinder: true      # 启用JS文件提取
+      link_extract: true  # 页面超链接提取
+    title_extraction:     # 网页标题抓取配置
+      enabled: true           # 网页标题获取
+      max_length: 50         # 标题最大截取长度
+      show_in_report: true   # 报告中展示标题
+      show_in_csv: true      # CSV导出文件包含标题字段
 
   # 端口资产配置
   port:
-    enabled: true      # 启用端口发现
-    depth_limit: 1     # 端口发现深度限制
-    priority: 7        # 优先级
+    enabled: true      # 端口识别
+    depth_limit: 5     # 端口探测最大深度
+    priority: 7        # 任务优先级
     tools:
-      service_identify: true # 服务识别
+      service_identify: true # 端口对应服务识别
 
   # JS文件资产配置
   js:
-    enabled: true      # 启用JS文件发现
-    depth_limit: 4     # JS文件发现深度限制
-    priority: 6        # 优先级
+    enabled: true      # JS文件探测
+    depth_limit: 4     # JS文件挖掘最大深度
+    priority: 6        # 任务优先级
     tools:
-      jsfinder: true      # JS文件发现工具
+      jsfinder: true      # JS文件探测工具
 
-# 输出配置
+# 输出文件配置
 output:
-  dir: output          # 输出目录
-  graph_format: json   # 图形输出格式
-  asset_report: json   # 资产报告格式
-  keep_eliminated_assets: true  # 是否保留被排除的资产
-  formats:             # 输出格式
-    json: true         # JSON格式
-    csv: true          # CSV格式
-    graphml: true      # GraphML格式
-    html: true         # HTML格式
-  auto_open: true      # 自动打开报告
+  dir: output          # 输出文件夹名称
+  graph_format: json   # 资产关系图存储格式
+  asset_report: json   # 资产清单报告格式
+  keep_eliminated_assets: true  # 保留已过滤剔除的资产数据
+  formats:             # 启用的导出文件格式
+    json: true         # JSON格式导出
+    csv: true          # CSV表格导出
+    graphml: true      # GraphML拓扑图文件导出
+    html: true         # 交互式HTML报告
+  auto_open: true      # 扫描完成自动打开HTML报告
 
-# 外部工具配置
+# 第三方外部工具配置
 external_tools:
-  paths:               # 工具路径配置
-    subfinder: null    # subfinder工具路径，如：/usr/bin/subfinder
-    naabu: null        # naabu工具路径，如：D:\naabu\naabu.exe
-    ehole: null        # EHole指纹识别工具路径
-  fingerprint:       # 指纹识别配置
-    enabled: false    # 是否启用指纹识别功能
+  paths:               # 工具自定义路径配置，不填则自动读取环境变量
+    subfinder: null    # subfinder程序路径，示例：/usr/bin/subfinder
+    naabu: null        # naabu程序路径，示例：D:\naabu\naabu.exe
+    ehole: null        # EHole站点指纹识别工具路径
+  fingerprint:       # 站点指纹识别配置
+    enabled: false    # 站点指纹识别功能
 
-# 国际化配置
+# 国际化多语言配置
 language:
-  default_language: en  # 默认语言 (zh_CN 或 en)
+  default_language: en  # 默认语言，可选 zh_CN / en
   supported_languages:     # 支持的语言列表
     - zh_CN
     - en
-  locale_dir: i18n         # 语言文件目录
+  locale_dir: i18n         # 语言翻译文件存放目录
 
-# 排除规则
+# 资产排除过滤规则
 exclusions:
-  domains:             # 排除的域名
+  domains:             # 需过滤的域名列表
   - example.com
   - test.local
-  ips:                 # 排除的IP
+  ips:                 # 需过滤的IP地址列表
   - 127.0.0.1
   - 0.0.0.0
-  urls:                # 排除的URL关键词
+  urls:                # 包含指定关键词则过滤URL
   - login
   - logout
-  ports: []           # 排除的端口
-  patterns:           # 排除的正则表达式模式
+  ports: []           # 需过滤的端口列表
+  patterns:           # 正则匹配过滤规则
   - \.(css|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot)$
 
-# HTTP请求配置
+# HTTP网络请求全局配置
 http:
-  timeout: 10         # 超时时间(秒)
-  retries: 3          # 重试次数
-  user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36  # 用户代理
-  verify_ssl: false   # 是否验证SSL证书
-  proxy: null         # 代理设置
-  follow_redirects: true  # 是否跟随重定向
-  redirect_as_new_asset: true  # 将重定向视为新资产
-  max_redirects: 5    # 最大重定向次数
+  timeout: 10         # 请求超时时间，单位：秒
+  retries: 3          # 请求失败重试次数
+  user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36  # 请求UA标识
+  verify_ssl: false   # SSL证书校验（兼容自签名证书站点）
+  proxy: null         # 代理地址配置，不填则不使用代理
+  follow_redirects: true  # 自动跟随页面重定向跳转
+  redirect_as_new_asset: true  # 将重定向目标地址作为新资产收录
+  max_redirects: 5    # 单条链接最大跟随重定向次数

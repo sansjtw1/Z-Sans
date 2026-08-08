@@ -1,12 +1,19 @@
 # coding: utf-8
 
 import argparse
+import copy
+import json
 import logging
+
+_stop_signaled = False
 import os
 import signal
 import sys
+import threading
 import time
 import yaml
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor, as_completed
 try:
     import colorama
     colorama.init()
@@ -17,7 +24,6 @@ from datetime import datetime
 
 import os
 from core.i18n import setup_i18n, _
-setup_i18n(os.path.join(os.path.dirname(__file__), 'breeding-config.yaml'))
 
 LOG_CONFIGURED = False
 
@@ -86,7 +92,7 @@ def configure_logging():
 
 logger = configure_logging()
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 DEFAULT_CONFIG_PATH = "breeding-config.yaml"
 
 from core.zsans_engine import (
@@ -112,6 +118,9 @@ class BreedingEngine:
             "depth_reached": 0,
             "errors": 0
         }
+        self._metrics_lock = threading.Lock()
+        self._finalized = False
+        self._executor = None
         
         self.seed_domains = set()
         self.seed_ips = set()
@@ -133,9 +142,16 @@ class BreedingEngine:
         signal.signal(signal.SIGTERM, self._handle_signal)
     
     def _handle_signal(self, signum, frame):
+        global _stop_signaled
         if signum in (signal.SIGINT, signal.SIGTERM):
+            _stop_signaled = True
+            self.state = "stopped"
             logger.info(_("Received stop signal, shutting down gracefully..."))
-            self.stop()
+            if self._executor is not None:
+                try:
+                    self._executor.shutdown(wait=False, cancel_futures=True)
+                except Exception:
+                    pass
 
     
     def add_seed(self, asset_type, value):
@@ -196,17 +212,26 @@ class BreedingEngine:
         return True
     
     def stop(self):
-        if self.state == "stopped":
+        if self._finalized:
             return
+        self._finalized = True
+        global _stop_signaled
+        _stop_signaled = True
+        self.state = "stopped"
+        if self._executor is not None:
+            try:
+                self._executor.shutdown(wait=False, cancel_futures=True)
+            except Exception:
+                pass
         
         try:
+            self.save_checkpoint()
             logger.info(_("Saving scan results before stopping engine..."))
             output_files = self.output_handler.generate_output()
             logger.info(_("Scan results saved: {files}").format(files=output_files))
         except Exception as e:
             logger.error(_("Error saving scan results: {error}").format(error=str(e)))
         
-        self.state = "stopped"
         if hasattr(self, 'tool_orchestrator'):
             self.tool_orchestrator.shutdown()
         logger.info(_("Breeding engine stopped"))
@@ -238,6 +263,9 @@ class BreedingEngine:
         if not asset:
             return False
         
+        return self._process_asset(asset)
+    
+    def _process_asset(self, asset):
         max_depth = self.config.get("max_depth", 3)
         if asset.depth > max_depth:
             logger.debug(_("Asset {uid} exceeds max depth {depth}, skipping").format(uid=asset.uid, depth=max_depth))
@@ -265,9 +293,10 @@ class BreedingEngine:
             logger.debug(_("Start processing asset: {uid}").format(uid=asset.uid))
             new_assets = breeder.execute(asset, self.tool_orchestrator)
             
-            self.metrics["assets_processed"] += 1
-            self.metrics["new_assets_found"] += len(new_assets)
-            self.metrics["depth_reached"] = max(self.metrics["depth_reached"], asset.depth)
+            with self._metrics_lock:
+                self.metrics["assets_processed"] += 1
+                self.metrics["new_assets_found"] += len(new_assets)
+                self.metrics["depth_reached"] = max(self.metrics["depth_reached"], asset.depth)
             
             if asset.state != "eliminated":
                 asset.state = "scanned"
@@ -276,17 +305,68 @@ class BreedingEngine:
             
             for new_asset in new_assets:
                 if self.asset_graph.add_asset(new_asset):
-                    self.queue.add(new_asset)
-                    self.asset_graph.add_edge(asset, new_asset, "discovered")
+                    if self.queue.add(new_asset):
+                        self.asset_graph.add_edge(asset, new_asset, "discovered")
+            
+            cp_cfg = self.config.get('checkpoint', {})
+            if cp_cfg.get('enabled', True) and (self.metrics["assets_processed"] % max(1, cp_cfg.get('interval', 50))) == 0:
+                self.save_checkpoint()
             
             logger.info(_("Asset {uid} processed, found {count} new assets").format(uid=asset.uid, count=len(new_assets)))
             return True
         
         except Exception as e:
             logger.error(_("Error processing asset {uid}: {error}").format(uid=asset.uid, error=str(e)))
+            import traceback
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Full traceback while processing asset %s:\n%s",
+                             asset.uid, traceback.format_exc())
             asset.state = "failed"
-            self.metrics["errors"] += 1
+            with self._metrics_lock:
+                self.metrics["errors"] += 1
             return True
+    
+    def _concurrent_breed(self):
+        workers = max(1, self.config.get("concurrency", {}).get("max_tasks", 1))
+        strategy = self.config.get("strategy", "priority_based")
+        in_flight = 0
+        futures = set()
+        
+        executor = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="zsans")
+        self._executor = executor
+        try:
+            while self.state == "running" and not _stop_signaled:
+                while self.state == "running" and not _stop_signaled and in_flight < workers and not self.queue.is_empty():
+                    asset = self.queue.get_next(strategy)
+                    if not asset:
+                        break
+                    in_flight += 1
+                    futures.add(executor.submit(self._process_asset, asset))
+                
+                if in_flight == 0:
+                    break
+                
+                try:
+                    for future in as_completed(futures, timeout=1.0):
+                        futures.discard(future)
+                        in_flight -= 1
+                        break
+                except (concurrent.futures.TimeoutError, TimeoutError):
+                    pass
+                
+                if _stop_signaled or self.state != "running":
+                    break
+            
+            if self.state == "running" and not _stop_signaled and in_flight > 0:
+                for future in as_completed(futures):
+                    futures.discard(future)
+                    in_flight -= 1
+        finally:
+            self._executor = None
+            executor.shutdown(wait=False, cancel_futures=True)
+        
+        if self.state == "running" and not _stop_signaled:
+            self.state = "completed"
     
     def _check_resource_limits(self, asset):
         asset_type_config = self.config.get("asset_types", {}).get(asset.type, {})
@@ -346,19 +426,108 @@ class BreedingEngine:
         
         return False
     
+    # ---------- Checkpoint / resume ----------
+    def _checkpoint_path(self):
+        cfg = self.config.get('checkpoint', {})
+        if cfg.get('file'):
+            return cfg['file']
+        outdir = self.config.get('output', {}).get('dir', 'output')
+        return os.path.join(outdir, 'checkpoint.json')
+    
+    @staticmethod
+    def _rebuild_asset(data):
+        atype = data.get('type')
+        value = data.get('value')
+        source = data.get('source', 'manual')
+        depth = data.get('depth', 0)
+        props = data.get('properties', {})
+        
+        if atype == ASSET_TYPE_PORT:
+            ip = props.get('ip') or (value.rsplit(':', 1)[0] if ':' in value else value)
+            asset = PortAsset(ip, props.get('port'), props.get('service'), source, depth)
+        elif atype == ASSET_TYPE_DOMAIN:
+            asset = DomainAsset(value, source, depth)
+        elif atype == ASSET_TYPE_IP:
+            asset = IPAsset(value, source, depth)
+        elif atype == ASSET_TYPE_URL:
+            asset = URLAsset(value, source, depth)
+        elif atype == ASSET_TYPE_JS:
+            asset = JSAsset(value, source, depth)
+        else:
+            asset = Asset(value, atype, source, depth)
+        asset.state = data.get('state', 'new')
+        asset.properties = dict(props)
+        return asset
+    
+    def save_checkpoint(self, path=None):
+        if not self.config.get('checkpoint', {}).get('enabled', True):
+            return None
+        path = path or self._checkpoint_path()
+        try:
+            os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+            with self.asset_graph.lock, self.queue.lock:
+                data = {
+                    'version': 1,
+                    'saved_at': time.time(),
+                    'seed_domains': sorted(self.seed_domains),
+                    'seed_ips': sorted(self.seed_ips),
+                    'seed_ip_ranges': sorted(self.seed_ip_ranges),
+                    'metrics': dict(self.metrics),
+                    'nodes': [a.to_dict() for a in self.asset_graph.nodes.values()],
+                    'edges': [[s, t, r] for (s, t), r in self.asset_graph.edges.items()],
+                    'queue': [a.to_dict() for a in self.queue.queue],
+                }
+            tmp = path + '.tmp'
+            with open(tmp, 'w', encoding='utf-8') as fq:
+                json.dump(data, fq, ensure_ascii=False, indent=2)
+                fq.flush()
+                os.fsync(fq.fileno())
+            os.replace(tmp, path)
+            logger.debug(_("Checkpoint saved: {path}").format(path=path))
+            return path
+        except Exception as e:
+            logger.error(_("Failed to save checkpoint {path}: {error}").format(path=path, error=str(e)))
+            return None
+    
+    def load_checkpoint(self, path=None):
+        path = path or self._checkpoint_path()
+        if not os.path.exists(path):
+            logger.warning(_("Checkpoint file not found: {path}").format(path=path))
+            return False
+        try:
+            with open(path, 'r', encoding='utf-8') as fq:
+                data = json.load(fq)
+            self.seed_domains = set(data.get('seed_domains', []))
+            self.seed_ips = set(data.get('seed_ips', []))
+            self.seed_ip_ranges = set(data.get('seed_ip_ranges', []))
+            self.metrics.update(data.get('metrics', {}))
+            self.queue.queue = []
+            self.queue._queued = {}
+            for nd in data.get('nodes', []):
+                self.asset_graph.add_asset(self._rebuild_asset(nd))
+            with self.asset_graph.lock:
+                for s, t, r in data.get('edges', []):
+                    self.asset_graph.edges[(s, t)] = r
+            for nd in data.get('queue', []):
+                asset = self._rebuild_asset(nd)
+                if asset.state in ('new', 'failed', 'scanning'):
+                    self.queue.add(asset)
+            logger.info(_("Checkpoint loaded: {path}, {nodes} nodes, {queue} queued").format(
+                path=path, nodes=len(self.asset_graph.nodes), queue=self.queue.size()))
+            return True
+        except Exception as e:
+            logger.error(_("Failed to load checkpoint {path}: {error}").format(path=path, error=str(e)))
+            return False
+    
     def run(self):
         if not self.start():
             return False
         
         try:
-            while self.state == "running":
-                if not self.auto_breeding_cycle():
-                    break
+            self._concurrent_breed()
             
             if self.state == "completed":
                 logger.info(_("Breeding engine completed all tasks, generating output..."))
-                output_files = self.output_handler.generate_output()
-                logger.info(_("Output generated: {files}").format(files=output_files))
             return True
         
         except KeyboardInterrupt:
@@ -372,8 +541,7 @@ class BreedingEngine:
             return False
         
         finally:
-            if self.state != "stopped":
-                self.stop()
+            self.stop()
 
 
 def load_config(config_path):
@@ -387,7 +555,7 @@ def load_config(config_path):
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
         
-        merged_config = DEFAULT_CONFIG.copy()
+        merged_config = copy.deepcopy(DEFAULT_CONFIG)
         # 确保external_tools配置被正确合并
         if 'external_tools' in config:
             if 'external_tools' not in merged_config:
@@ -434,6 +602,88 @@ def create_default_config(config_path=DEFAULT_CONFIG_PATH):
         return False
 
 
+def run_watch(config, domain_seeds, url_seeds):
+    mon = config.get('monitoring', {})
+    interval = int(mon.get('interval', 3600))
+    webhook_url = mon.get('webhook_url')
+    outdir = config.get('output', {}).get('dir', 'output')
+    
+    prev_uids = None
+    first = True
+    global _stop_signaled
+    _stop_signaled = False
+    logger.info(_("Watch mode started, interval: {interval}s").format(interval=interval))
+    
+    while True:
+        if _stop_signaled:
+            logger.info(_("Stop signal received, exiting watch mode"))
+            return 0
+        cycle_start = time.time()
+        logger.info(_("Watch cycle starting..."))
+        engine = BreedingEngine(config)
+        for domain in domain_seeds:
+            engine.add_seed(ASSET_TYPE_DOMAIN, domain)
+        for url in url_seeds:
+            engine.add_seed(ASSET_TYPE_URL, url)
+        engine.run()
+        
+        cur_uids = set(engine.asset_graph.nodes.keys())
+        
+        if prev_uids is None:
+            prev_uids = cur_uids
+            logger.info(_("Baseline established: {count} assets").format(count=len(cur_uids)))
+            if first:
+                first = False
+            if interval <= 0:
+                return 0
+            time.sleep(interval)
+            continue
+        
+        added = sorted(cur_uids - prev_uids)
+        removed = sorted(prev_uids - cur_uids)
+        prev_uids = cur_uids
+        
+        changes = {
+            'timestamp': datetime.now().isoformat(),
+            'added': [uid for uid in added],
+            'removed': [uid for uid in removed],
+        }
+        
+        if added or removed:
+            logger.info(_("Changes detected: +{added} added, -{removed} removed").format(
+                added=len(added), removed=len(removed)))
+            try:
+                os.makedirs(outdir, exist_ok=True)
+                change_file = os.path.join(outdir, f"changes_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+                with open(change_file, 'w', encoding='utf-8') as fc:
+                    json.dump(changes, fc, ensure_ascii=False, indent=2)
+                logger.info(_("Changes saved: {path}").format(path=change_file))
+            except Exception as e:
+                logger.error(_("Failed to save changes file: {error}").format(error=str(e)))
+            
+            if webhook_url:
+                try:
+                    import requests
+                    resp = requests.post(webhook_url, json=changes, timeout=10)
+                    logger.info(_("Webhook notified, status: {status}").format(status=resp.status_code))
+                except Exception as e:
+                    logger.error(_("Webhook notification failed: {error}").format(error=str(e)))
+        else:
+            logger.info(_("No changes detected"))
+        
+        cycle_duration = time.time() - cycle_start
+        sleep_for = max(0, interval - cycle_duration)
+        logger.info(_("Sleeping {seconds}s until next cycle").format(seconds=int(sleep_for)))
+        try:
+            time.sleep(sleep_for)
+        except KeyboardInterrupt:
+            logger.info(_("Stop signal received, exiting watch mode"))
+            return 0
+        if _stop_signaled:
+            logger.info(_("Stop signal received, exiting watch mode"))
+            return 0
+
+
 def main():
     banner = r"""
 
@@ -462,6 +712,11 @@ def main():
     print(banner)
     time.sleep(1.5)  
 
+    pre_parser = argparse.ArgumentParser(add_help=False)
+    pre_parser.add_argument("-c", "--config", default=DEFAULT_CONFIG_PATH)
+    pre_args, _ignored = pre_parser.parse_known_args()
+    setup_i18n(pre_args.config)
+
     parser = argparse.ArgumentParser(description=_("Z-Sans Asset Breeding Engine v{VERSION} Help Information").format(VERSION=VERSION))
     parser.add_argument("-c", "--config", help=_("Configuration file path"), default=DEFAULT_CONFIG_PATH)
     parser.add_argument("-d", "--domain", help=_("Add domain seed"), action="append")
@@ -472,7 +727,9 @@ def main():
     parser.add_argument("--init", help=_("Create default configuration file"), action="store_true")
     parser.add_argument("--version", help=_("Show version information"), action="store_true")
     parser.add_argument("--depth", help=_("Set maximum scan depth"), type=int)
- 
+    parser.add_argument("--resume", help=_("Resume from last checkpoint"), action="store_true")
+    parser.add_argument("--watch", help=_("Run in watch mode, rescan periodically and report changes"), action="store_true")
+  
     args = parser.parse_args()
     
     if args.version:
@@ -494,7 +751,10 @@ def main():
     config = load_config(args.config)
     
     if args.output:
-        config["output"]["dir"] = args.output
+        if isinstance(config.get('output'), dict):
+            config['output']['dir'] = args.output
+        else:
+            config['output'] = {'dir': args.output}
         
     if args.depth is not None:
         config["max_depth"] = args.depth
@@ -502,23 +762,34 @@ def main():
     
     engine = BreedingEngine(config)
     
-    has_seeds = False
+    resumed = False
+    if args.resume:
+        resumed = engine.load_checkpoint()
     
-    if args.domain:
-        for domain in args.domain:
+    has_seeds = False
+    domain_seeds = args.domain or []
+    url_seeds = args.url or []
+    
+    if domain_seeds:
+        for domain in domain_seeds:
             if engine.add_seed(ASSET_TYPE_DOMAIN, domain):
                 has_seeds = True
     
-    
-    
-    if args.url:
-        for url in args.url:
+    if url_seeds:
+        for url in url_seeds:
             if engine.add_seed(ASSET_TYPE_URL, url):
                 has_seeds = True
     
-    if not has_seeds:
+    if not has_seeds and not (resumed and engine.asset_graph.nodes):
         logger.error(_("No seed assets provided, unable to start breeding engine"))
         return 1
+    
+    if resumed:
+        logger.info(_("Resuming scan from checkpoint, {nodes} assets, {queued} queued").format(
+            nodes=len(engine.asset_graph.nodes), queued=engine.queue.size()))
+    
+    if args.watch:
+        return run_watch(config, domain_seeds, url_seeds)
     
     success = engine.run()
     

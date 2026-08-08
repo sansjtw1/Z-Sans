@@ -8,189 +8,175 @@
         <br />
         <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg"/></a>
         <a href="https://www.python.org/downloads/release/python-390/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9+-blue.svg"/></a>
-        <a href="https://github.com/sansjtw1/Z-Sans/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/sansjtw1/Z-Sans"/></a>
+        <a href="https://github.com/sansjtw1/Z-Sans/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.0.2-blue.svg"/></a>
         <br>
-        <a href="README.md">README</a> | <a href="README_CN.md">中文文档</a>
+        <a href="README.md">English</a> | <a href="README_CN.md">中文</a> | <a href="CHANGELOG.md">Changelog</a>
     </p>
 </p>
 
 ## 🚀 Project Overview
 
-Z-Sans is a powerful cybersecurity tool featuring an innovative **Asset Breeding Engine** that automates attack surface discovery and mapping. Starting with minimal seed assets (domains or URLs), Z-Sans systematically discovers and expands digital assets including domains, IPs, URLs, ports, and JavaScript resources while generating comprehensive asset reports.
+Z-Sans is a cybersecurity tool built around an innovative **Asset Breeding Engine** that automates attack-surface discovery and mapping. Starting from a small set of seed assets (domains or URLs), Z-Sans systematically discovers and expands digital assets — domains, IP addresses, URLs, ports, and JavaScript resources — applying configurable breeding strategies to grow an asset graph, and then produces detailed reports (JSON, CSV, GraphML, HTML).
 
 ## ✨ Key Features
 
-- **Multi-Asset Support**: Domains, IPs, URLs, ports, and JS files
-- **Configurable Breeding Strategies**: Priority-based scanning with depth customization
-- **Tool Integration**: Supports subfinder, naabu, subfinder and other security tools
-- **Flexible Output Formats**: JSON, CSV, GraphML and HTML reports
-- **Internationalization**: Built-in Chinese and English support
-- **Detailed Logging**: Multi-level logging for debugging
-- **Modular Architecture**: Core engine decoupled from tool implementations
-- **Lightweight Design**: Optimized for efficient resource usage
-- **Asset Breeding Engine**: Automatically generates new assets from discovered relationships
+- **Multi-Asset Discovery**: Domains, IPs, URLs, ports, JS files, and their relationships
+- **Concurrent Breeding**: Multithreaded asset queue processing for faster scans
+- **Configurable Strategies**: `priority_based`, `depth_first`, `breadth_first`, `time_based`
+- **Checkpoint & Resume**: Save progress to a checkpoint, resume interrupted scans with `--resume`
+- **Change Monitoring**: `--watch` mode rescans on a schedule and reports asset changes via Webhook
+- **Flexible Output**: JSON, CSV, GraphML, and localized multi-tab HTML reports
+- **Interactive Topology Map**: Canvas-based asset graph with pan/zoom in the HTML report
+- **Tool Integration**: Subfinder, naabu, EHole, plus built-in lightweight resolvers
+- **Internationalization**: Built-in Chinese (zh_CN) and English (en) support
+- **Modular Design**: Core engine decoupled from tool implementations for easy extension
 
 ## 🛠️ Project Structure
 
 ```
 Z-Sans/
-├── assets/             # External tool scripts
-├── core/               # Core engine
-│   ├── breeders/       # Breeding algorithms
-│   ├── tools/          # Tool integrations
-│   ├── i18n.py         # Internationalization
-│   ├── output.py       # Output handlers
-│   └── zsans_engine.py # Breeding engine core
-├── i18n/               # Language resources
-├── output/             # Results directory
-├── templates/          # Report templates
-├── breeding-config.yaml # Configuration
-├── main.py             # Entry point
-├── README.md           # This documentation (English)
-├── README_CN.md        # Chinese documentation
-└── requirements.txt    # Dependencies
+├── assets/                 # External tool scripts (port scanner, DNS resolver, JSFinder, etc.)
+├── core/
+│   ├── breeders/           # Asset breeding algorithms per asset type
+│   ├── tools/              # Tool integrations and orchestrator
+│   ├── i18n.py             # Internationalization
+│   ├── output.py           # Report / format exporters
+│   └── zsans_engine.py     # Core breeding engine, asset graph, priority queue
+├── i18n/                   # Locale resources (en / zh_CN)
+├── images/                 # Documentation images
+├── templates/              # Config templates
+├── breeding-config.yaml    # Main configuration
+├── main.py                 # Entry point / CLI
+├── CHANGELOG.md            # v0.0.1 → v0.0.2 release notes
+└── requirements.txt        # Python dependencies
 ```
 
-## 💡 Installation Guide
+## 💡 Installation
 
 ### Requirements
+
 - Python 3.9+
-- Supported OS: Windows, Linux, macOS
+- OS: Windows / Linux / macOS
 
-### Installation Steps
+### Steps
 
-1. Clone repository:
 ```bash
 git clone https://github.com/sansjtw1/Z-Sans.git
 cd Z-Sans
-```
-
-2. Install dependencies:
-```bash
 pip install -r requirements.txt
 ```
 
-3. Configure external tools (Optional):
-Edit `breeding-config.yaml` to set paths for subfinder, naabu, etc.
+Optional: point subfinder / naabu / ehole paths under `external_tools.paths` in `breeding-config.yaml`.
 
 ## 📋 Usage
 
-> Note: Large enterprises with extensive assets may require longer breeding cycles
-
-### Basic Commands
 ```bash
-# Run with domain seed
+# Scan from a domain seed
 python main.py -d example.com
 
-# Start from URL seed
+# Scan from URL seeds
 python main.py -u https://example.com
 
-# Custom configuration
-python main.py -c your-config.yaml -d example.com
+# Custom config and output dir
+python main.py -c your-config.yaml -d example.com -o results
 
-# Verbose output
+# Verbose logging
 python main.py -d example.com -v
 
-# Custom output directory
-python main.py -d example.com -o custom-output
+# Resume a previous interrupted scan
+python main.py -d example.com --resume
+
+# Continuous change monitoring (delta + webhook alerts)
+python main.py -d example.com --watch
+
+# Set max discovery depth
+python main.py -d example.com --depth 4
 ```
 
-### Command Line Arguments
+### Command Line Options
+
 ```
--c, --config     Config file path (default: breeding-config.yaml)
--d, --domain     Add domain seeds (multiple supported)
--u, --url        Add URL seeds (multiple supported)
--o, --output     Output directory (default: output)
--v, --verbose    Verbose output mode
---init           Create default configuration
---version        Show version info
---depth          Set maximum breeding depth
+-c, --config    Config file path (default: breeding-config.yaml)
+-d, --domain    Add domain seed (repeatable)
+-u, --url       Add URL seed (repeatable)
+-o, --output    Output directory (default: output)
+-v, --verbose   Verbose output
+--init          Create a default config file
+--version       Show version
+--depth         Max discovery depth
+--resume        Continue from the last checkpoint
+--watch         Periodic rescan + change reporting + webhook push
 ```
 
 ## 💻 Configuration
 
-Configuration file `breeding-config.yaml` includes:
+Main sections of `breeding-config.yaml`:
 
-### Breeding Strategy
-```yaml
-strategy: priority_based  # Priority-based asset breeding
-```
+- `strategy` — breeding strategy: `priority_based` / `depth_first` / `breadth_first` / `time_based`
+- `asset_scope` — restrict results to seed domains / IP ranges, include subdomains
+- `concurrency.max_tasks` — number of parallel asset-processing workers
+- `max_depth` — global breeding depth
+- `asset_types` — per-type enable switches, depth limits, priorities, and tool toggles
+- `resource_limits` — maximum counts per asset type
+- `checkpoint` — enable/disable resume, save interval, checkpoint file path
+- `monitoring` — `--watch` interval and Webhook URL for change alerts
+- `output` — output dir, format toggles, keep eliminated assets, auto-open report
+- `external_tools.paths` — paths to subfinder / naabu / ehole
+- `language.default_language` — `en` or `zh_CN`
+- `exclusions` — domains / IPs / URL keywords / regex patterns to skip
+- `http` — timeout, retries, user-agent, SSL verification, proxy, redirects behavior
 
-### Language Configuration
-```yaml
-language:
-  default_language: en    # Default language (en or zh_CN)
-  supported_languages:   # Supported languages
-    - en
-    - zh_CN
-  locale_dir: i18n        # Localization directory
-```
+### Example: Checkpoint & Monitoring
 
-### Asset Scope
 ```yaml
-asset_scope:
-  restrict_to_seed_domains: true    # Limit to seed domains
-  restrict_to_seed_ip_ranges: false # Don't limit to seed IPs
-  include_subdomains: true          # Include subdomains
-  include_ip_ranges: true           # Include IP ranges
-```
-
-### Concurrency Control
-```yaml
+max_depth: 4
 concurrency:
-  max_tasks: 20        # Max concurrent processes
-  tools:               # Tool-specific concurrency
-    subfinder: 2       # Subdomain discovery
-    naabu: 2           # Port scanning
-    jsfinder: 2        # JS file discovery
+  max_tasks: 20
+
+output:
+  dir: output
+  formats:
+    json: true
+    csv: true
+    graphml: true
+    html: true
+
+checkpoint:
+  enabled: true        # save progress periodically
+  interval: 50         # every N assets processed
+  file: null           # default: <output_dir>/<timestamp>/checkpoint.json
+
+monitoring:
+  enabled: false
+  interval: 3600       # re-scan every hour
+  webhook_url: null    # POST JSON change notifications when set
 ```
 
-### Resource Limits
-```yaml
-resource_limits:
-  max_domains: 2000    # Maximum domains
-  max_ips: 2000        # Maximum IPs
-  max_urls: 5000       # Maximum URLs
-  max_ports: 5000      # Maximum ports
-  max_js: 2000         # Maximum JS files
-```
+## 🎯 Output
 
-## 🎯 Output Samples
+Each scan writes to a timestamped subdirectory under `output/`, containing:
 
-Results include multiple formats in the output directory:
-- JSON asset data
-- CSV assets/relationships
-- GraphML relationship diagrams
-- HTML reports
-
-![Output Sample](images/output1.png)
+- `*.json` — full asset graph (format: `json` / `graphml`)
+- `*_assets.csv` / `*_relations.csv` — assets and relations (for Excel-friendly)
+- `*_graphml` — GraphML relationship graph
+- `*_report.html` — interactive report with Overview, Topology, Active Assets, Eliminated, and Metrics tabs (filters, search and topology drag/zoom)
 
 ## 📃 Disclaimer
 
-**Important:**
-1. **Authorized Use Only**  
-   Only operate on explicitly authorized targets
-2. **Legal Compliance**  
-   Users must comply with all applicable laws
-3. **Ethical Operation**  
-   Follow responsible disclosure practices
-4. **No Liability**  
-   Developers assume no liability for damages
+> **Important:** Use Z-Sans only on systems you are explicitly authorized to test.
+> Operators must comply with all applicable laws and regulations; the developers assume
+> no liability for misuse or any direct/indirect damage caused by the tool.
 
-## 🎈 Contributing
+## 🤝 Contributing
 
-We welcome contributions! Please follow these steps:
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a pull request
+We welcome contributions. Please fork, branch, commit, and open a pull request. Spanish or Chinese improvements are appreciated.
 
 ## 📃 License
 
-Licensed under MIT - See LICENSE for details.
+MIT — see [LICENSE](LICENSE).
 
 ## 📞 Contact
-Email: sansjtw@163.com  
+
+Email: sansjtw@163.com
 GitHub: https://github.com/sansjtw1
 Telegram: https://t.me/sansjtw
