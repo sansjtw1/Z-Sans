@@ -56,6 +56,7 @@ class ToolOrchestrator:
             return self._run_internal_dns_resolver(domain)
         
         subdomains = []
+        temp_path = None
         try:
             with tempfile.NamedTemporaryFile(delete=False, mode='w+t') as temp_file:
                 temp_path = temp_file.name
@@ -100,14 +101,18 @@ class ToolOrchestrator:
                     subdomain = line.strip()
                     if subdomain:
                         subdomains.append(subdomain)
-            
-            os.unlink(temp_path)
         except subprocess.CalledProcessError as e:
             logger.error(_("Subfinder execution failed: {error}").format(error=e.stderr.decode() if e.stderr else str(e)))
             return self._run_internal_dns_resolver(domain)
         except Exception as e:
             logger.error(_("Subfinder call exception: {error}").format(error=str(e)))
             return self._run_internal_dns_resolver(domain)
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                try:
+                    os.unlink(temp_path)
+                except OSError:
+                    pass
         
         return subdomains
         
@@ -154,8 +159,14 @@ class ToolOrchestrator:
     def run_naabu(self, ip):
         naabu_path = self.tool_paths.get('naabu')
         if not naabu_path or not self._check_tool_exists('naabu'):
-            logger.warning(_("Naabu tool not found or invalid path, using internal method instead"))
-            return self._run_internal_port_scanner(ip)
+            # 与 subfinder 行为保持一致：配置路径缺失时尝试系统 PATH 中的 naabu
+            from shutil import which
+            if which('naabu'):
+                naabu_path = 'naabu'
+                logger.info(_("Using naabu from system PATH"))
+            else:
+                logger.warning(_("Naabu tool not found or invalid path, using internal method instead"))
+                return self._run_internal_port_scanner(ip)
         
         open_ports = {}
         try:
@@ -197,7 +208,13 @@ class ToolOrchestrator:
             with tempfile.NamedTemporaryFile(delete=False, mode='w+t') as temp_file:
                 temp_path = temp_file.name
             
-            cmd = [PY_EXE, _script_path('port.py'), ip, '-p', '1-1024,8000-8100', '-q']
+            # 端口范围可配置；默认覆盖常见 Web / 数据库 / 缓存 / 远程管理端口
+            port_range = (
+                self.config.get('asset_types', {}).get('ip', {})
+                .get('tools', {}).get('port_range',
+                                      '1-1024,3306,3389,5432,5900,6379,7001,8000-8500,8888,9000-9100,9200,27017,11211')
+            )
+            cmd = [PY_EXE, _script_path('port.py'), ip, '-p', port_range, '-q']
             process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
             
             output = process.stdout.decode().strip()
@@ -292,31 +309,9 @@ class ToolOrchestrator:
             except Exception as e:
                 logger.error(_("Failed to delete JSFinder temporary files: {error}").format(error=str(e)))
             
-            if process.stdout:
-                output_lines = process.stdout.splitlines()
-                url_section = False
-                subdomain_section = False
-                
-                for line in output_lines:
-                    if "Find" in line and "URL:" in line:
-                        url_section = True
-                        subdomain_section = False
-                        continue
-                    elif "Find" in line and "Subdomain:" in line:
-                        url_section = False
-                        subdomain_section = True
-                        continue
-                    
-                    if url_section and line.strip() and not line.startswith("Find"):
-                        found_url = line.strip()
-                        if found_url not in urls:
-                            urls.append(found_url)
-                            logger.debug(_("Extracted URL from command output: {url}").format(url=found_url))
-                    elif subdomain_section and line.strip() and not line.startswith("Find"):
-                        subdomain = line.strip()
-                        if subdomain not in subdomains:
-                            subdomains.append(subdomain)
-                            logger.debug(_("Extracted subdomain from command output: {subdomain}").format(subdomain=subdomain))
+            # 注:JSFinder 的真实结果已从 -ou / -os 输出文件可靠读取（见上方），
+            # 不再解析 stdout —— stdout 中的 "Output N urls" / "Path:..." 等辅助行
+            # 会被误判为子域名/URL，产生大量垃圾资产。
             
             if self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True):
                 seed_domains = []

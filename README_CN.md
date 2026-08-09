@@ -10,7 +10,7 @@
     <a href="https://www.python.org/downloads/release/python-390/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9+-blue.svg"/></a>
     <a href="https://github.com/sansjtw1/Z-Sans/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/sansjtw1/Z-Sans"/></a>
     <br>
-    <a href="README.md">README</a> | <a href="README_CN.md">中文文档</a>
+    <a href="README.md">README</a> | <a href="README_CN.md">中文文档</a> | <a href="CHANGELOG.md">更新日志</a>
   </p>
 
 ## 🚀 项目简介

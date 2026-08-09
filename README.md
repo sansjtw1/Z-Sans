@@ -8,7 +8,7 @@
         <br />
         <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg"/></a>
         <a href="https://www.python.org/downloads/release/python-390/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9+-blue.svg"/></a>
-        <a href="https://github.com/sansjtw1/Z-Sans/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.0.3-blue.svg"/></a>
+        <a href="https://github.com/sansjtw1/Z-Sans/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.0.4-blue.svg"/></a>
         <br>
         <a href="README.md">English</a> | <a href="README_CN.md">中文</a> | <a href="CHANGELOG.md">Changelog</a>
     </p>
@@ -49,7 +49,7 @@ Z-Sans/
 ├── templates/              # Config templates
 ├── breeding-config.yaml    # Main configuration
 ├── main.py                 # Entry point / CLI
-├── CHANGELOG.md            # v0.0.1 → v0.0.2 → v0.0.3 release notes
+├── CHANGELOG.md            # v0.0.1 → v0.0.2 → v0.0.3 → v0.0.4 release notes
 └── requirements.txt        # Python dependencies
 ```
 

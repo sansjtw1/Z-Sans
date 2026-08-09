@@ -322,14 +322,35 @@ DEFAULT_CONFIG = {
 class Asset:
     """资产基类，表示一个可被发现和关联的实体"""
     def __init__(self, value, asset_type, source="manual", depth=0):
-        self.value = value.lower() if isinstance(value, str) else value
+        self.value = self._normalize_value(value, asset_type)
         self.type = asset_type
         self.source = source
         self.depth = depth
         self.state = "new"  # new, scanning, scanned, excluded, eliminated
         self.properties = {}
         self.uid = self._generate_uid()
-        
+
+    @staticmethod
+    def _normalize_value(value, asset_type):
+        """统一资产值的大小写。
+
+        - URL 资产只小写 scheme + host 部分，保留 path 大小写（路径区分大小写，
+          http://HOST/API/File 与 http://host/api/file 是不同的资源）；
+        - 其余类型整体小写。
+        """
+        if not isinstance(value, str):
+            return value
+        if asset_type == ASSET_TYPE_URL:
+            try:
+                from urllib.parse import urlsplit, urlunsplit
+                parts = urlsplit(value.strip())
+                scheme = parts.scheme.lower()
+                netloc = parts.netloc.lower()
+                return urlunsplit((scheme, netloc, parts.path, parts.query, parts.fragment))
+            except Exception:
+                return value.lower()
+        return value.lower()
+    
     def _generate_uid(self):
         """生成资产唯一标识符"""
         return f"{self.type}:{self.value}"

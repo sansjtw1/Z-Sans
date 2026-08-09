@@ -1942,3 +1942,191 @@ msgstr "options"
 
 msgid "positional arguments"
 msgstr "positional arguments"
+
+#, python-brace-format
+msgid "API path extraction failed: {error}"
+msgstr "API path extraction failed: {error}"
+
+
+#, python-brace-format
+msgid "API path regex failed: {error}"
+msgstr "API path regex failed: {error}"
+
+
+#, python-brace-format
+msgid "Captured endpoint hints for {url}: {hints}"
+msgstr "Captured endpoint hints for {url}: {hints}"
+
+
+msgid "DNS brute-force disabled"
+msgstr "DNS brute-force disabled"
+
+
+#, python-brace-format
+msgid "DNS brute-force failed: {error}"
+msgstr "DNS brute-force failed: {error}"
+
+
+#, python-brace-format
+msgid "DNS brute-force found {count} subdomains"
+msgstr "DNS brute-force found {count} subdomains"
+
+
+#, python-brace-format
+msgid "Discovery fetch failed for {candidate}: {error}"
+msgstr "Discovery fetch failed for {candidate}: {error}"
+
+
+#, python-brace-format
+msgid "Domain scope restriction disabled, adding all links: {link}, domain: {domain}"
+msgstr "Domain scope restriction disabled, adding all links: {link}, domain: {domain}"
+
+
+#, python-brace-format
+msgid "Domain {domain} not seed-related but added due to no restriction: {url}"
+msgstr "Domain {domain} not seed-related but added due to no restriction: {url}"
+
+
+#, python-brace-format
+msgid "Endpoint header capture failed for {url}: {error}"
+msgstr "Endpoint header capture failed for {url}: {error}"
+
+
+#, python-brace-format
+msgid "Endpoint hint materialization failed: {error}"
+msgstr "Endpoint hint materialization failed: {error}"
+
+
+#, python-brace-format
+msgid "Endpoint hint materialized as asset: {target}"
+msgstr "Endpoint hint materialized as asset: {target}"
+
+
+msgid "Engine instance does not exist, defaulting to False to avoid adding unrelated domains"
+msgstr "Engine instance does not exist, defaulting to False to avoid adding unrelated domains"
+
+
+#, python-brace-format
+msgid "Exceeds depth limit {limit}"
+msgstr "Exceeds depth limit {limit}"
+
+
+#, python-brace-format
+msgid "Exceeds max depth {depth}"
+msgstr "Exceeds max depth {depth}"
+
+
+#, python-brace-format
+msgid "Exceeds {type} limit {limit}"
+msgstr "Exceeds {type} limit {limit}"
+
+
+#, python-brace-format
+msgid "Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+msgstr "Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+
+
+#, python-brace-format
+msgid "Invalid port asset value: {value}, error: {error}"
+msgstr "Invalid port asset value: {value}, error: {error}"
+
+
+#, python-brace-format
+msgid "JS path extraction failed: {error}"
+msgstr "JS path extraction failed: {error}"
+
+
+#, python-brace-format
+msgid "JSFinder error output:
+{error}"
+msgstr "JSFinder error output:
+{error}"
+
+
+#, python-brace-format
+msgid "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+msgstr "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+
+
+#, python-brace-format
+msgid "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+msgstr "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+
+
+#, python-brace-format
+msgid "JSFinder extracted {related} seed-related subdomains from {url}, total: {total}"
+msgstr "JSFinder extracted {related} seed-related subdomains from {url}, total: {total}"
+
+
+#, python-brace-format
+msgid "JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+msgstr "JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+
+
+#, python-brace-format
+msgid "JSFinder output preview:
+{output}"
+msgstr "JSFinder output preview:
+{output}"
+
+
+msgid "Matches exclusion rules"
+msgstr "Matches exclusion rules"
+
+
+#, python-brace-format
+msgid "No breeder for type {type}"
+msgstr "No breeder for type {type}"
+
+
+#, python-brace-format
+msgid "Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
+msgstr "Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
+
+
+#, python-brace-format
+msgid "Running built-in DNS brute-force for subdomains: {domain}"
+msgstr "Running built-in DNS brute-force for subdomains: {domain}"
+
+
+msgid "Seed domain list is empty, this may cause domain relevance judgment errors"
+msgstr "Seed domain list is empty, this may cause domain relevance judgment errors"
+
+
+msgid "Seed domains list attribute not found in engine, all domains will be considered unrelated"
+msgstr "Seed domains list attribute not found in engine, all domains will be considered unrelated"
+
+
+#, python-brace-format
+msgid "Skipping malformed URL (JS concat/template): {url}"
+msgstr "Skipping malformed URL (JS concat/template): {url}"
+
+
+#, python-brace-format
+msgid "Skipping non-seed-related API path: {url}"
+msgstr "Skipping non-seed-related API path: {url}"
+
+
+#, python-brace-format
+msgid "Skipping non-seed-related discovery link: {link}"
+msgstr "Skipping non-seed-related discovery link: {link}"
+
+
+#, python-brace-format
+msgid "URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
+msgstr "URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
+
+
+#, python-brace-format
+msgid "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+msgstr "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+
+
+msgid "Using naabu from system PATH"
+msgstr "Using naabu from system PATH"
+
+
+#, python-brace-format
+msgid "robots/sitemap discovery failed: {error}"
+msgstr "robots/sitemap discovery failed: {error}"
+

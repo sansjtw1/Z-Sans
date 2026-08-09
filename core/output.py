@@ -263,6 +263,14 @@ class OutputHandler:
         stats = self.engine.asset_graph.stats()
         metrics = self.engine.metrics
         gen_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        zs_version = "0.0.2"
+        if hasattr(self.engine, 'get_export_metadata'):
+            try:
+                _meta = self.engine.get_export_metadata()
+                if _meta and _meta.get('zs_version'):
+                    zs_version = _meta['zs_version']
+            except Exception:
+                pass
         
         keep_eliminated = self.config.get('keep_eliminated_assets', False)
 
@@ -817,7 +825,7 @@ class OutputHandler:
                 <div class="subtitle">''' + T('Scan Report &mdash; Generated:') + ''' ''' + gen_time + '''</div>
             </div>
             <div>
-                <span class="badge">v0.0.2</span>
+                <span class="badge">v''' + zs_version + '''</span>
             </div>
         </div>
     </div>

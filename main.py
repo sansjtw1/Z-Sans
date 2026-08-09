@@ -92,7 +92,7 @@ def configure_logging():
 
 logger = configure_logging()
 
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 DEFAULT_CONFIG_PATH = "breeding-config.yaml"
 PLUGINS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plugins')
 
@@ -214,8 +214,11 @@ class BreedingEngine:
                     if not normalized_value.startswith(('http://', 'https://')):
                         normalized_value = f'https://{normalized_value}'
                     parsed_url = urlparse(normalized_value)
-                    domain = parsed_url.netloc
+                    # 用 hostname 而非 netloc：netloc 含端口(如 example.com:8443)，
+                    # 会把带端口的字符串塞进 seed_domains，导致相关性判断全错。
+                    domain = parsed_url.hostname
                     if domain:
+                        domain = domain.lower()
                         self.seed_domains.add(domain)
                         parts = domain.split('.')
                         if len(parts) >= 2:
@@ -359,10 +362,14 @@ class BreedingEngine:
                 self.emit_hook("on_asset_eliminated", asset=asset)
             
             for new_asset in new_assets:
+                # 资产首次进入图谱或虽已存在但可重新处理时，记录"发现"边并派发事件。
+                # 注意：边与事件不应依赖 queue.add 的返回值——同一资产被重复发现时
+                # 仍会走 add_asset=True / queue.add=False，此时边和事件同样要记录，
+                # 否则拓扑缺边、on_asset_discovered 丢失、统计虚高。
                 if self.asset_graph.add_asset(new_asset):
-                    if self.queue.add(new_asset):
-                        self.asset_graph.add_edge(asset, new_asset, "discovered")
-                        self.emit_hook("on_asset_discovered", asset=new_asset, source=asset)
+                    self.asset_graph.add_edge(asset, new_asset, "discovered")
+                    self.emit_hook("on_asset_discovered", asset=new_asset, source=asset)
+                    self.queue.add(new_asset)
             
             self.emit_hook("on_asset_scanned", asset=asset, new_assets=list(new_assets))
             
@@ -406,9 +413,16 @@ class BreedingEngine:
                     break
                 
                 try:
+                    # 消费所有已完成的 future（而非只取 1 个），避免大量任务
+                    # 同时完成时因每次 break 被迫逐个轮询而拖慢吞吐。
+                    completed_any = False
                     for future in as_completed(futures, timeout=1.0):
                         futures.discard(future)
                         in_flight -= 1
+                        completed_any = True
+                        if _stop_signaled or self.state != "running":
+                            break
+                    if not completed_any and not futures:
                         break
                 except (concurrent.futures.TimeoutError, TimeoutError):
                     pass
@@ -680,8 +694,10 @@ def _import_plugin(path_or_module):
 
 
 def _plugin_meta(module, fallback_name):
-    """Read plugin manifest: __plugin__ dict, else PLUGIN_NAME/_VERSION/etc."""
+    """Read plugin manifest: __plugin__ or __manifest__ dict, else PLUGIN_NAME/_VERSION/etc."""
     meta = getattr(module, '__plugin__', None)
+    if meta is None:
+        meta = getattr(module, '__manifest__', None)
     if isinstance(meta, dict):
         return {
             "name": str(meta.get('name') or fallback_name),

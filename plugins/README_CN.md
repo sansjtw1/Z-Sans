@@ -221,7 +221,7 @@ def _notify_scan(engine):
 
 ### 6.3 聚合报告
 
-参考内置 `plugins/scan_digest.py`:`on_asset_discovered` 里汇总,`on_scan_completed` 里一次性写 Markdown / 导出到 `run_dir`。在事件间持久数据用**模块级全局**:
+在 `on_asset_discovered` 里汇总数据,`on_scan_completed` 里一次性把 Markdown / 报告导出到 `run_dir`。在事件间持久数据用**模块级全局**:
 
 ```python
 _seen = []
@@ -273,7 +273,7 @@ def on_asset_scanned(asset, new_assets):
 plugins:
   dir: plugins              # 插件目录(默认 plugins/)
   disabled:                 # 禁用名单,值为插件名(不带 .py)
-    - scan_digest
+    - my_plugin
 ```
 
 插件状态:`loaded` / `disabled` / `failed`(import 异常时显示原因)。
@@ -289,4 +289,4 @@ plugins:
 
 ---
 
-> 有任何问题,直接用现有三个内置插件(`event_log.py` / `webhook_notify.py` / `scan_digest.py`)做修改学习即可。
+> 从 `plugins/` 目录放一个简单的插件(如只打印事件的 `hello.py`)开始修改学习即可。

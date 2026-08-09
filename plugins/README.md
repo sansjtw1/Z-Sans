@@ -221,7 +221,7 @@ def _notify_scan(engine):
 
 ### 6.3 Aggregated Report
 
-Model it on the built-in `plugins/scan_digest.py`: aggregate in `on_asset_discovered`, then write Markdown / export to `run_dir` once in `on_scan_completed`. Use **module-level globals** to persist state between events:
+Aggregate data in `on_asset_discovered`, then write Markdown / export to `run_dir` once in `on_scan_completed`. Use **module-level globals** to persist state between events:
 
 ```python
 _seen = []
@@ -273,7 +273,7 @@ Any other plugin that registers `on_port_reported` will receive it; custom event
 plugins:
   dir: plugins              # plugin directory (default: plugins/)
   disabled:                 # disable list, values are plugin names (without .py)
-    - scan_digest
+    - my_plugin
 ```
 
 Plugin status: `loaded` / `disabled` / `failed` (the reason is shown when import fails).
@@ -289,4 +289,4 @@ Plugin status: `loaded` / `disabled` / `failed` (the reason is shown when import
 
 ---
 
-> Questions? The three built-in plugins (`event_log.py` / `webhook_notify.py` / `scan_digest.py`) are the best starting point for study and modification.
+> Start by dropping a simple plugin into `plugins/` (e.g. a `hello.py` that just prints events) and modify from there.

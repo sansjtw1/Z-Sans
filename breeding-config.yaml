@@ -24,7 +24,7 @@ resource_limits:
   max_ips: 2000       # Maximum IP count
   max_urls: 5000      # Maximum URL count
   max_ports: 5000     # Maximum port count
-  max_js: 2000        # Maximum JS file count
+  max_js: 5000        # Maximum JS file count
 
 # Asset type configuration
 asset_types:
@@ -37,6 +37,7 @@ asset_types:
       subfinder: true      # subfinder tool
       free_subfinder: false # Free version of subfinder
       crtsh: true         # Certificate Transparency query
+      dns_brute: true     # Built-in DNS brute-force subdomain enumeration
       dnsx: true          # DNS resolution tool
 
   # IP asset configuration

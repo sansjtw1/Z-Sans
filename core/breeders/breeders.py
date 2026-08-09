@@ -241,8 +241,70 @@ class DomainBreeder(BreederBase):
             
         except Exception as e:
             logger.error(_("Subdomain discovery failed: {error}").format(error=str(e)))
+
+        # 内置 DNS 暴力枚举：纯本地、无需外部工具，用常见子域词表探测 A 记录
+        try:
+            dns_brute_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('dns_brute', True)
+            if dns_brute_enabled:
+                logger.info(_("Running built-in DNS brute-force for subdomains: {domain}").format(domain=domain))
+                brute_subdomains = self._dns_brute_subdomains(domain)
+                if brute_subdomains:
+                    logger.info(_("DNS brute-force found {count} subdomains").format(count=len(brute_subdomains)))
+                    subdomains.update(brute_subdomains)
+            else:
+                logger.info(_("DNS brute-force disabled"))
+        except Exception as e:
+            logger.error(_("DNS brute-force failed: {error}").format(error=str(e)))
         
         return self._filter_subdomains(subdomains, domain)
+
+    # 常见子域名字典（内置，免外部依赖）
+    _BRUTE_SUBDOMAINS = [
+        'www', 'mail', 'smtp', 'pop', 'pop3', 'imap', 'webmail', 'mx',
+        'ftp', 'sftp', 'ssh', 'vpn', 'remote', 'portal', 'login', 'auth',
+        'api', 'api2', 'apis', 'rest', 'gateway', 'mobile', 'm', 'app',
+        'apps', 'admin', 'administrator', 'manage', 'manager', 'console',
+        'dev', 'development', 'test', 'testing', 'staging', 'stage', 'qa',
+        'beta', 'demo', 'preview', 'sandbox', 'uat', 'prod', 'production',
+        'intranet', 'internal', 'office', 'crm', 'erp', 'oa', 'hrm', 'hr',
+        'wiki', 'docs', 'documentation', 'help', 'support', 'status', 'health',
+        'blog', 'news', 'forum', 'bbs', 'community', 'chat', 'im', 'media',
+        'img', 'image', 'images', 'static', 'assets', 'cdn', 'download',
+        'uploads', 'files', 'file', 'data', 'db', 'database', 'mysql', 'redis',
+        'git', 'gitlab', 'github', 'svn', 'jenkins', 'ci', 'cd', 'build',
+        'monitor', 'monitoring', 'grafana', 'zabbix', 'prometheus', 'metrics',
+        'log', 'logs', 'logging', 'kibana', 'elastic', 'es', 'elk',
+        'docker', 'k8s', 'kubernetes', 'registry', 'proxy', 'lb', 'nlb',
+        'dns', 'ns1', 'ns2', 'ns3', 'mail1', 'mail2', 'mx1', 'mx2',
+        'shop', 'store', 'pay', 'payment', 'order', 'cart', 'mobi', 'wap',
+        'game', 'games', 'video', 'live', 'tv', 'radio', 'music', 'newsletter',
+        'security', 'sso', 'oauth', 'saml', 'keycloak', 'cas', 'ldap', 'radius',
+        'tracking', 'analytics', 'stats', 'report', 'reports', 'export',
+    ]
+
+    def _dns_brute_subdomains(self, domain, max_workers=10, timeout=2.0):
+        """用内置词表暴力枚举子域名 A 记录，无需外部工具。
+
+        返回解析成功的子域列表；网络异常时静默降级，不影响主流程。
+        """
+        import concurrent.futures as cf
+        found = []
+
+        def _probe(sub):
+            full = f"{sub}.{domain}"
+            try:
+                socket.getaddrinfo(full, None, socket.AF_INET)
+                return full
+            except (socket.gaierror, socket.error):
+                return None
+
+        with cf.ThreadPoolExecutor(max_workers=max_workers) as pool:
+            futures = [pool.submit(_probe, sub) for sub in self._BRUTE_SUBDOMAINS]
+            for future in cf.as_completed(futures):
+                result = future.result()
+                if result:
+                    found.append(result)
+        return found
     
     def _filter_subdomains(self, subdomains, domain):
         """过滤通配符(`*.`)以及格式非法的子域名，避免派生 `https://*.domain` 等无效资产"""
@@ -416,12 +478,13 @@ class IPBreeder(BreederBase):
         
     def _mark_port_as_eliminated(self, ip, port, reason):
         if self.engine and hasattr(self.engine, 'asset_graph'):
-            asset_uid = f"port:{ip}:{port}"
-            if asset_uid in self.engine.asset_graph.nodes:
-                asset = self.engine.asset_graph.nodes[asset_uid]
-                asset.state = "eliminated"
-                asset.properties['eliminated_reason'] = reason
-                logger.debug(_("Asset marked as eliminated: {ip}:{port}, reason: {reason}").format(ip=ip, port=port, reason=reason))
+            with self.engine.asset_graph.lock:
+                asset_uid = f"port:{ip}:{port}"
+                if asset_uid in self.engine.asset_graph.nodes:
+                    asset = self.engine.asset_graph.nodes[asset_uid]
+                    asset.state = "eliminated"
+                    asset.properties['eliminated_reason'] = reason
+                    logger.debug(_("Asset marked as eliminated: {ip}:{port}, reason: {reason}").format(ip=ip, port=port, reason=reason))
     
     def _identify_service(self, ip, port):
         service_map = {
@@ -598,6 +661,30 @@ class URLBreeder(BreederBase):
                         new_assets.append(new_asset)
                     else:
                         logger.debug(_("Skipping non-seed-related redirect domain: {domain}").format(domain=redirect_domain))
+
+        # 方案C闭环：将响应头捕获的端点提示物化为 URL 资产
+        try:
+            if self.engine and hasattr(self.engine, 'asset_graph'):
+                asset_uid = f"url:{url}"
+                with self.engine.asset_graph.lock:
+                    nodes = self.engine.asset_graph.nodes
+                    if asset_uid in nodes:
+                        hints = nodes[asset_uid].properties.get('http_endpoint_hints', {})
+                        for hint_url in hints.values():
+                            if not hint_url:
+                                continue
+                            hint_url = hint_url.strip()
+                            if not hint_url.startswith(('http://', 'https://')) and not hint_url.startswith('/'):
+                                continue
+                            normalized_hint = self._normalize_url(hint_url, url)
+                            if not normalized_hint:
+                                continue
+                            new_asset = URLAsset(normalized_hint, source=asset.uid, depth=asset.depth+1)
+                            new_asset.properties['source_tool'] = 'http_endpoint_hint'
+                            new_assets.append(new_asset)
+                            logger.debug(_("Endpoint hint materialized as asset: {target}").format(target=normalized_hint))
+        except Exception as e:
+            logger.debug(_("Endpoint hint materialization failed: {error}").format(error=str(e)))
         
         if not html_content:
             asset.state = "eliminated"
@@ -658,8 +745,70 @@ class URLBreeder(BreederBase):
                         new_assets.append(new_asset)
                     else:
                         logger.debug(_("Skipping non-seed-related domain asset: {domain}").format(domain=link_domain))
+
+        # robots.txt / sitemap.xml：隐藏路径与站点地图是子路径/新URL的高发来源
+        if tools.get('link_extract', True):
+            discovery_links = self._fetch_robots_sitemap(url)
+            for dl in discovery_links:
+                restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+                dl_domain = urlparse(dl).netloc
+                if restrict_to_seed_domains and dl_domain and not self._is_related_to_seed_domain(dl_domain):
+                    logger.debug(_("Skipping non-seed-related discovery link: {link}").format(link=dl))
+                    continue
+                new_asset = URLAsset(dl, source=asset.uid, depth=asset.depth+1)
+                new_asset.properties['source_tool'] = 'robots_sitemap'
+                new_assets.append(new_asset)
         
         return new_assets
+
+    def _fetch_robots_sitemap(self, url):
+        """抓取同源的 robots.txt 与 sitemap.xml，解析出其中的 URL 路径。
+
+        仅在链接提取开启时调用；失败静默降级，不影响主流程。
+        """
+        found = []
+        try:
+            from urllib.parse import urlparse
+            from core.zsans_engine import http_session
+            parsed = urlparse(url)
+            origin = f"{parsed.scheme}://{parsed.netloc}"
+            candidates = [
+                f"{origin}/robots.txt",
+                f"{origin}/sitemap.xml",
+            ]
+            for cu in candidates:
+                try:
+                    resp = http_session.get(cu, timeout=min(self.timeout, 10), verify=False)
+                    if resp.status_code != 200 or not resp.text:
+                        continue
+                    text = resp.text
+                    # robots.txt: 提取 Allow / Disallow / Sitemap 行
+                    for line in text.splitlines():
+                        line = line.strip()
+                        if not line or line.startswith('#') or ':' not in line:
+                            continue
+                        key, _, val = line.partition(':')
+                        key = key.strip().lower()
+                        val = val.strip()
+                        if not val:
+                            continue
+                        if key in ('allow', 'disallow'):
+                            link = self._normalize_url(val, origin)
+                            if link:
+                                found.append(link)
+                        elif key == 'sitemap':
+                            found.append(val)
+                    # sitemap.xml: 提取 <loc> 标签内容
+                    for m in re.finditer(r'<loc>\s*(.*?)\s*</loc>', text, re.I | re.S):
+                        loc = m.group(1).strip()
+                        if loc:
+                            found.append(loc)
+                except Exception as e:
+                    logger.debug(_("Discovery fetch failed for {candidate}: {error}").format(candidate=cu, error=str(e)))
+        except Exception as e:
+            logger.debug(_("robots/sitemap discovery failed: {error}").format(error=str(e)))
+        return found
+    
         
     def _fetch_url(self, url, tool_manager=None):
         try:
@@ -692,6 +841,12 @@ class URLBreeder(BreederBase):
                     response.encoding = response.apparent_encoding or 'utf-8'
             except Exception:
                 pass
+
+            # 方案C：记录响应头中暴露的接口提示（Link、X-Endpoint 等）
+            try:
+                self._record_endpoint_headers(response, url)
+            except Exception as e:
+                logger.debug(_("Endpoint header capture failed for {url}: {error}").format(url=url, error=str(e)))
             
             if redirect_as_new_asset and response.history:
                 for r in response.history:
@@ -719,16 +874,17 @@ class URLBreeder(BreederBase):
                             if fingerprint_result:
                                 asset_uid = f"url:{url}"
                                 if self.engine and hasattr(self.engine, 'asset_graph') and asset_uid in self.engine.asset_graph.nodes:
-                                    asset = self.engine.asset_graph.nodes[asset_uid]
-                                    asset.properties['fingerprints'] = fingerprint_result.get('fingerprints', [])
-                                    if fingerprint_result.get('cms'):
-                                        asset.properties['cms'] = fingerprint_result.get('cms')
-                                    if fingerprint_result.get('server'):
-                                        asset.properties['server'] = fingerprint_result.get('server')
-                                    if fingerprint_result.get('title'):
-                                        asset.properties['title'] = fingerprint_result.get('title')
-                                        logger.info(_("Title extracted from EHole: {url}, title: {title}").format(url=url, title=fingerprint_result.get('title')))
-                                    logger.info(_("URL fingerprint extracted: {url}, fingerprints: {fingerprints}").format(url=url, fingerprints=fingerprint_result.get('fingerprints')))
+                                    with self.engine.asset_graph.lock:
+                                        asset = self.engine.asset_graph.nodes[asset_uid]
+                                        asset.properties['fingerprints'] = fingerprint_result.get('fingerprints', [])
+                                        if fingerprint_result.get('cms'):
+                                            asset.properties['cms'] = fingerprint_result.get('cms')
+                                        if fingerprint_result.get('server'):
+                                            asset.properties['server'] = fingerprint_result.get('server')
+                                        if fingerprint_result.get('title'):
+                                            asset.properties['title'] = fingerprint_result.get('title')
+                                            logger.info(_("Title extracted from EHole: {url}, title: {title}").format(url=url, title=fingerprint_result.get('title')))
+                                        logger.info(_("URL fingerprint extracted: {url}, fingerprints: {fingerprints}").format(url=url, fingerprints=fingerprint_result.get('fingerprints')))
                             else:
                                 logger.warning(_("Fingerprinting returned no results: {url}").format(url=url))
                     except Exception as e:
@@ -811,28 +967,29 @@ class URLBreeder(BreederBase):
     def _mark_asset_as_eliminated(self, url, reason):
         logger.info(_("Marking asset as eliminated: {url}, reason: {reason}").format(url=url, reason=reason))
         if self.engine and hasattr(self.engine, 'asset_graph'):
-            asset_uid = f"url:{url}"
-            logger.info(_("Checking if asset exists in graph: {uid}").format(uid=asset_uid))
-            if asset_uid in self.engine.asset_graph.nodes:
-                asset = self.engine.asset_graph.nodes[asset_uid]
-                logger.info(_("Found asset: {uid}, current state: {state}").format(uid=asset_uid, state=asset.state))
-                asset.state = "eliminated"
-                asset.properties['eliminated_reason'] = reason
-                logger.info(_("Asset state updated to eliminated: {uid}, new state: {state}").format(uid=asset_uid, state=asset.state))
-                
-                if reason.startswith(_("HTTP status code:")):
-                    try:
-                        status_code = int(reason.split(":")[1].strip())
-                        asset.properties['status_code'] = status_code
-                        logger.info(_("Status code set for asset: {uid}, code: {code}").format(uid=asset_uid, code=status_code))
-                    except (ValueError, IndexError):
-                        logger.info(_("Unable to extract status code from reason: {reason}").format(reason=reason))
-                
-                logger.info(_("Asset marked as eliminated: {url}, reason: {reason}, state: {state}").format(url=url, reason=reason, state=asset.state))
-                
-                logger.info(_("Rechecking asset state: {uid}, state: {state}").format(uid=asset_uid, state=self.engine.asset_graph.nodes[asset_uid].state))
-            else:
-                logger.info(_("Asset not found in graph: {uid}").format(uid=asset_uid))
+            with self.engine.asset_graph.lock:
+                asset_uid = f"url:{url}"
+                logger.info(_("Checking if asset exists in graph: {uid}").format(uid=asset_uid))
+                if asset_uid in self.engine.asset_graph.nodes:
+                    asset = self.engine.asset_graph.nodes[asset_uid]
+                    logger.info(_("Found asset: {uid}, current state: {state}").format(uid=asset_uid, state=asset.state))
+                    asset.state = "eliminated"
+                    asset.properties['eliminated_reason'] = reason
+                    logger.info(_("Asset state updated to eliminated: {uid}, new state: {state}").format(uid=asset_uid, state=asset.state))
+                    
+                    if reason.startswith(_("HTTP status code:")):
+                        try:
+                            status_code = int(reason.split(":")[1].strip())
+                            asset.properties['status_code'] = status_code
+                            logger.info(_("Status code set for asset: {uid}, code: {code}").format(uid=asset_uid, code=status_code))
+                        except (ValueError, IndexError):
+                            logger.info(_("Unable to extract status code from reason: {reason}").format(reason=reason))
+                    
+                    logger.info(_("Asset marked as eliminated: {url}, reason: {reason}, state: {state}").format(url=url, reason=reason, state=asset.state))
+                    
+                    logger.info(_("Rechecking asset state: {uid}, state: {state}").format(uid=asset_uid, state=self.engine.asset_graph.nodes[asset_uid].state))
+                else:
+                    logger.info(_("Asset not found in graph: {uid}").format(uid=asset_uid))
         else:
             logger.info(_("Unable to access asset graph, cannot mark asset: {url}").format(url=url))
             
@@ -844,7 +1001,44 @@ class URLBreeder(BreederBase):
         else:
             logger.info(_("No current URL asset being processed: {url}").format(url=url))
 
-    
+
+    def _record_endpoint_headers(self, response, url):
+        """方案C：从响应头提取接口/资源提示，记入图谱资产 properties。
+
+        部分后端会在 Link / X-Endpoint / X-Api 等头里暴露接口地址，
+        这些不会出现在页面 HTML 中，属于"行为侧"线索。
+        """
+        endpoint_header_keys = (
+            'Link', 'X-Endpoint', 'X-Endpoint-Url', 'X-Api', 'X-Api-Base',
+            'X-Resource', 'X-Resource-Url', 'X-Service', 'X-Service-Url',
+            'X-Href', 'X-Origin-Endpoint',
+        )
+        hints = {}
+        for key in endpoint_header_keys:
+            val = response.headers.get(key)
+            if val:
+                hints[key] = val
+
+        # 从 Link 头解析 <url> 与 rel
+        link_header = response.headers.get('Link')
+        if link_header:
+            for m in re.finditer(r'<([^>]+)>;\s*rel="?([^";,]+)"?', link_header):
+                target, rel = m.group(1), m.group(2).strip()
+                if target.startswith(('http://', 'https://')) or target.startswith('/'):
+                    hints.setdefault('Link:' + rel, target)
+
+        if not hints:
+            return
+        if self.engine and hasattr(self.engine, 'asset_graph'):
+            asset_uid = f"url:{url}"
+            with self.engine.asset_graph.lock:
+                nodes = self.engine.asset_graph.nodes
+                if asset_uid in nodes:
+                    nodes[asset_uid].properties.setdefault('http_endpoint_hints', {})
+                    nodes[asset_uid].properties['http_endpoint_hints'].update(hints)
+                    logger.debug(_("Captured endpoint hints for {url}: {hints}").format(url=url, hints=hints))
+
+
     def _extract_js_files(self, html_content, base_url):
         js_files = set()
         try:
@@ -865,10 +1059,56 @@ class URLBreeder(BreederBase):
         links = set()
         try:
             soup = BeautifulSoup(html_content, 'html.parser')
+            # <a href> 常规链接
             for a_tag in soup.find_all('a'):
                 href = a_tag.get('href')
                 if href:
                     link = self._normalize_url(href, base_url)
+                    if link:
+                        links.add(link)
+            # iframe / frame src
+            for tag in soup.find_all(['iframe', 'frame']):
+                src = tag.get('src')
+                if src:
+                    link = self._normalize_url(src, base_url)
+                    if link:
+                        links.add(link)
+            # form action
+            for form in soup.find_all('form'):
+                action = form.get('action')
+                if action:
+                    link = self._normalize_url(action, base_url)
+                    if link:
+                        links.add(link)
+            # meta refresh / meta og:url
+            for meta in soup.find_all('meta'):
+                http_equiv = (meta.get('http-equiv') or '').lower()
+                content = meta.get('content')
+                if content:
+                    if http_equiv == 'refresh':
+                        # format: 5;url=https://...
+                        m = re.search(r'url\s*=\s*(.+?)\s*$', content, re.I)
+                        if m:
+                            link = self._normalize_url(m.group(1).strip(), base_url)
+                            if link:
+                                links.add(link)
+                    prop = (meta.get('property') or '').lower()
+                    if prop in ('og:url', 'twitter:url'):
+                        link = self._normalize_url(content.strip(), base_url)
+                        if link:
+                            links.add(link)
+            # img / link / video / audio / source / embed / object / area
+            for tag in soup.find_all(['img', 'link', 'video', 'audio', 'source', 'embed', 'object', 'area']):
+                for attr in ('src', 'href', 'data'):
+                    val = tag.get(attr)
+                    if val:
+                        link = self._normalize_url(val, base_url)
+                        if link:
+                            links.add(link)
+            # HTML 注释中的 URL（开发/测试地址泄露高发区）
+            for comment in soup.find_all(string=lambda s: isinstance(s, str) and '<!--' in s):
+                for m in re.finditer(r'https?://[^\s"\'<>()]+', str(comment)):
+                    link = self._normalize_url(m.group(0).rstrip('.,;:!?'), base_url)
                     if link:
                         links.add(link)
         except Exception as e:
@@ -1070,6 +1310,21 @@ class JSBreeder(BreederBase):
             else:
                 logger.warning(_("Skipping non-HTTP URL: {url}").format(url=url))
                 continue
+
+        # 从 JS 内容中提取 API/接口路径（方案B：字符串拼接、baseURL 变量、任意路径片段）
+        try:
+            api_urls = self._extract_paths_from_js(js_content, js_url)
+            for api_url in api_urls:
+                restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+                api_domain = urlparse(api_url).netloc
+                if restrict_to_seed_domains and api_domain and not self._is_related_to_seed_domain(api_domain):
+                    logger.debug(_("Skipping non-seed-related API path: {url}").format(url=api_url))
+                    continue
+                new_asset = URLAsset(api_url, source=asset.uid, depth=asset.depth+1)
+                new_asset.properties['source_tool'] = 'js_api_extract'
+                new_assets.append(new_asset)
+        except Exception as e:
+            logger.debug(_("API path extraction failed: {error}").format(error=str(e)))
         
         logger.debug(_("JS asset {url} processed, found {count} new assets").format(url=js_url, count=len(new_assets)))
         
@@ -1097,12 +1352,13 @@ class JSBreeder(BreederBase):
         
     def _mark_asset_as_eliminated(self, js_url, reason):
         if self.engine and hasattr(self.engine, 'asset_graph'):
-            asset_uid = f"js:{js_url}"
-            if asset_uid in self.engine.asset_graph.nodes:
-                asset = self.engine.asset_graph.nodes[asset_uid]
-                asset.state = "eliminated"
-                asset.properties['eliminated_reason'] = reason
-                logger.debug(_("Asset marked as eliminated: {url}, reason: {reason}").format(url=js_url, reason=reason))
+            with self.engine.asset_graph.lock:
+                asset_uid = f"js:{js_url}"
+                if asset_uid in self.engine.asset_graph.nodes:
+                    asset = self.engine.asset_graph.nodes[asset_uid]
+                    asset.state = "eliminated"
+                    asset.properties['eliminated_reason'] = reason
+                    logger.debug(_("Asset marked as eliminated: {url}, reason: {reason}").format(url=js_url, reason=reason))
     
     def _extract_urls_from_js(self, js_content):
         pattern = r'https?://[^\s"\'\{\}\(\)\[\]\<\>\`]+'            
@@ -1166,25 +1422,207 @@ class JSBreeder(BreederBase):
         
         return filtered_urls
 
+    def _extract_api_paths_from_js(self, js_content, js_url):
+        """从 JS 源码中提取相对 API 路径并基于 JS 源域名拼成完整 URL。
+
+        常见模式：/api/xxx、/v1/xxx、/rest/xxx、/graphql 等。
+        """
+        try:
+            from urllib.parse import urlparse as _up
+            parsed = _up(js_url)
+            base = f"{parsed.scheme}://{parsed.netloc}"
+        except Exception:
+            return []
+
+        # 匹配引号包裹的相对 API 路径
+        pattern = r'["\'](/(?:api|v\d+|rest|graphql|service|services|rpc|jsonrpc)[^"\']*?)["\']'
+        seen = set()
+        results = []
+        try:
+            for m in re.finditer(pattern, js_content):
+                path = m.group(1)
+                # 过滤带模板/拼接/通配符的
+                if any(ch in path for ch in '${}`%'):
+                    continue
+                if not path.startswith('/') or path == '/':
+                    continue
+                if path in seen:
+                    continue
+                seen.add(path)
+                results.append(f"{base}{path}")
+        except Exception as e:
+            logger.debug(_("API path regex failed: {error}").format(error=str(e)))
+        return results
+
+    # 常见 API base / endpoint 变量名
+    _PATH_VAR_NAMES = re.compile(
+        r'\b(?:baseURL|baseUrl|base_url|BASE_URL|apiBase|apiUrl|api_url|API_URL'
+        r'|endpoint|endpoints|serverUrl|server_url|host|hostname'
+        r'|requestUrl|ajaxUrl|httpBase|urlBase|resourceUrl)\b'
+    )
+
+    def _extract_paths_from_js(self, js_content, js_url):
+        """综合提取 JS 源码中可能存在的 API / 接口路径（方案B）。
+
+        比 `_extract_api_paths_from_js` 更进一步：
+          B1) 字符串拼接字面量组合：'..' + '..' 相邻字面量拼成完整路径
+          B2) 常见 baseURL/endpoint 变量赋值提取
+          B3) 任意引号包裹的路径片段（不限于 /api /v1 前缀）
+        所有路径最终基于 JS 源域名拼成完整 URL 返回。
+        """
+        try:
+            from urllib.parse import urlparse as _up
+            parsed = _up(js_url)
+            base = f"{parsed.scheme}://{parsed.netloc}"
+        except Exception:
+            return []
+
+        paths = set()
+        try:
+            # B1) 字符串拼接：'a' + 'b' + 'c' … 整条连续字面量链拼起来
+            concat_chain = re.compile(
+                r'((?:[\'"`](?:[^\\\'\"]|\\.)*[\'"`])\s*\+\s*)+'
+                r'[\'"`]([^\'\"`]*)[\'"`]', re.S
+            )
+            for m in concat_chain.finditer(js_content):
+                combined = m.group(0)
+                # 剥掉 + 号和引号，拼接各字面量片段
+                pieces = re.findall(r'[\'"`]([^\'\"`]*)[\'"`]', combined)
+                if not pieces:
+                    continue
+                joined = ''.join(pieces)
+                if self._looks_like_api_path(joined):
+                    paths.add(joined)
+                # 也记录部分前缀（拼接链的中间态，如 '/api' 单独作为基础路径）
+                prefix = ''
+                for piece in pieces:
+                    prefix += piece
+                    if self._looks_like_api_path(prefix):
+                        paths.add(prefix)
+
+            # B2) baseURL/endpoint 等变量赋值
+            assign_pattern = re.compile(
+                r'\b(?:baseURL|baseUrl|base_url|apiBase|apiUrl|api_url|API_URL'
+                r'|endpoint|endpoints|serverUrl|server_url|requestUrl|ajaxUrl'
+                r'|httpBase|urlBase|resourceUrl)\b\s*[:=]\s*'
+                r'([\'"`])([^\'\"`]+?)\1', re.I
+            )
+            for m in assign_pattern.finditer(js_content):
+                val = m.group(2).strip()
+                # baseURL/endpoint 变量赋值允许单段路径（如 '/gateway'）
+                if val.startswith('http') or (val.startswith('/') and not any(
+                        ch in val for ch in '${}`\\') and not re.search(
+                        r'\.(?:png|jpe?g|gif|svg|webp|ico|css|js|mjs|woff2?|ttf|eot|map|json)$', val, re.I)):
+                    paths.add(val)
+
+            # B3) 任意引号包裹的相对路径片段（开头是 /，含至少一个子路径）
+            generic_pattern = re.compile(
+                r'[\'"`](/[A-Za-z0-9_\-./{}?=&:%]+?)[\'"`]'
+            )
+            for m in generic_pattern.finditer(js_content):
+                path = m.group(1)
+                if self._looks_like_api_path(path):
+                    paths.add(path)
+
+            # B4) webpack 模块路径映射（如 "abc": function(...) 前的字符串多为资源路径）
+            wp_pattern = re.compile(
+                r'[\'"`](/static/(?:js|css|img|media|assets|chunks?)/[^\'"`]+)[\'"`]'
+            )
+            for m in wp_pattern.finditer(js_content):
+                path = m.group(1)
+                if self._looks_like_api_path(path):
+                    paths.add(path)
+        except Exception as e:
+            logger.debug(_("JS path extraction failed: {error}").format(error=str(e)))
+
+        results = []
+        seen = set()
+        for p in sorted(paths):
+            if p.startswith('http'):
+                full = p
+            elif p.startswith('/'):
+                full = f"{base}{p}"
+            else:
+                continue
+            if full in seen:
+                continue
+            seen.add(full)
+            results.append(full)
+        return results
+
+    @staticmethod
+    def _looks_like_api_path(path):
+        """判定一个字符串片段是否像可用的 API / 资源路径。"""
+        if not path:
+            return False
+        p = path.strip()
+        if len(p) < 2 or len(p) > 300:
+            return False
+        # 含模板/拼接/通配符/换行的直接排除
+        if any(ch in p for ch in '${}`\\'):
+            return False
+        if p.startswith('http'):
+            # 完整 URL 交给 _extract_urls_from_js，这里仍可接受但需是 http(s)
+            return p.startswith(('http://', 'https://'))
+        if not p.startswith('/'):
+            return False
+        # 排除静态资源文件（图/样式/脚本/字体/地图等）
+        if re.search(r'\.(?:png|jpe?g|gif|svg|webp|ico|css|js|mjs|woff2?|ttf|eot|map|json)$', p, re.I):
+            return False
+        # 排除单段短路径（如 /a）；baseURL 变量赋值场景由调用方放宽
+        segments = [s for s in p.split('/') if s]
+        if len(segments) < 2:
+            return False
+        return True
+
 
 class PortBreeder(BreederBase):
     def execute(self, asset, tool_manager):
         if asset.type != ASSET_TYPE_PORT:
             logger.warning(_("Port breeder received non-port asset: {uid}").format(uid=asset.uid))
             return []
-        
-        ip, port = asset.value.split(':')
-        port = int(port)
+
+        # 兼容 IPv6：value 可能形如 2001:db8::1:443 或多个冒号，用 rsplit 取端口。
+        try:
+            ip, port_str = asset.value.rsplit(':', 1)
+            port = int(port_str)
+        except (ValueError, AttributeError) as e:
+            logger.warning(_("Invalid port asset value: {value}, error: {error}").format(value=asset.value, error=str(e)))
+            return []
+
         service = asset.properties.get('service', 'unknown')
         new_assets = []
         
-        if service in ['http', 'https', 'http-proxy', 'https-alt'] or port in [80, 443, 8080, 8443]:
-            protocol = 'https' if port == 443 or port == 8443 or service == 'https' or service == 'https-alt' else 'http'
-            url = f"{protocol}://{ip}:{port}"
-            new_asset = URLAsset(url, source=asset.uid, depth=asset.depth+1)
-            new_assets.append(new_asset)
+        # 对任意开放端口生成 http(s) URL 资产：很多 Web 服务跑在非标端口上。
+        # 常见 Web 端口优先用对应协议；其余端口默认尝试 http。
+        web_http_ports = {80, 8000, 8001, 8008, 8080, 8081, 8088, 8090, 8888, 9000, 9090, 3000, 5000, 7001, 8881}
+        web_https_ports = {443, 8443, 9443}
+        if service in ('http', 'http-proxy', 'http-alt') or port in web_http_ports:
+            protocol = 'http'
+        elif service in ('https', 'https-alt') or port in web_https_ports:
+            protocol = 'https'
+        elif service not in ('ftp', 'ssh', 'smtp', 'dns', 'mysql', 'rdp', 'mongodb', 'redis') and not self._is_known_nonweb_port(port):
+            # 未知服务但非典型非Web端口时，也尝试 http 探测
+            protocol = 'http'
+        else:
+            return new_assets
+
+        url = f"{protocol}://{ip}:{port}"
+        new_asset = URLAsset(url, source=asset.uid, depth=asset.depth+1)
+        new_assets.append(new_asset)
         
         return new_assets
+
+    @staticmethod
+    def _is_known_nonweb_port(port):
+        """已知的明确非 Web 协议端口，不生成 http URL。"""
+        return port in {
+            21, 22, 23, 25, 53, 67, 68, 69, 110, 111, 119, 123, 135, 137,
+            138, 139, 143, 161, 162, 179, 445, 465, 514, 587, 636, 873,
+            990, 993, 995, 1080, 1433, 1521, 2049, 2181, 2375, 3306, 3389,
+            5432, 5672, 5900, 6379, 7002, 8009, 9042, 9200, 9300, 11211,
+            27017, 27018, 28017, 50070, 50030,
+        }
 
 
 class BreederFactory:

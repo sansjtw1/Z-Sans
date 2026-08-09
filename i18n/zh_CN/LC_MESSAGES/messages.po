@@ -1916,3 +1916,191 @@ msgstr "选项"
 
 msgid "positional arguments"
 msgstr "位置参数"
+
+#, python-brace-format
+msgid "API path extraction failed: {error}"
+msgstr "JS 接口路径提取失败: {error}"
+
+
+#, python-brace-format
+msgid "API path regex failed: {error}"
+msgstr "JS 接口路径正则匹配失败: {error}"
+
+
+#, python-brace-format
+msgid "Captured endpoint hints for {url}: {hints}"
+msgstr "已捕获 {url} 的接口提示: {hints}"
+
+
+msgid "DNS brute-force disabled"
+msgstr "内置 DNS 暴力枚举已禁用"
+
+
+#, python-brace-format
+msgid "DNS brute-force failed: {error}"
+msgstr "内置 DNS 暴力枚举失败: {error}"
+
+
+#, python-brace-format
+msgid "DNS brute-force found {count} subdomains"
+msgstr "内置 DNS 暴力枚举发现 {count} 个子域名"
+
+
+#, python-brace-format
+msgid "Discovery fetch failed for {candidate}: {error}"
+msgstr "抓取 {candidate} 失败: {error}"
+
+
+#, python-brace-format
+msgid "Domain scope restriction disabled, adding all links: {link}, domain: {domain}"
+msgstr "域名范围限制已禁用，添加全部链接: {link}，域名: {domain}"
+
+
+#, python-brace-format
+msgid "Domain {domain} not seed-related but added due to no restriction: {url}"
+msgstr "域名 {domain} 与种子无关，但因未开启限制而添加: {url}"
+
+
+#, python-brace-format
+msgid "Endpoint header capture failed for {url}: {error}"
+msgstr "捕获 {url} 的接口响应头失败: {error}"
+
+
+#, python-brace-format
+msgid "Endpoint hint materialization failed: {error}"
+msgstr "接口提示物化为资产失败: {error}"
+
+
+#, python-brace-format
+msgid "Endpoint hint materialized as asset: {target}"
+msgstr "接口提示已物化为资产: {target}"
+
+
+msgid "Engine instance does not exist, defaulting to False to avoid adding unrelated domains"
+msgstr "引擎实例不存在，默认返回 False 以避免添加无关域名"
+
+
+#, python-brace-format
+msgid "Exceeds depth limit {limit}"
+msgstr "超过深度限制 {limit}"
+
+
+#, python-brace-format
+msgid "Exceeds max depth {depth}"
+msgstr "超过最大深度 {depth}"
+
+
+#, python-brace-format
+msgid "Exceeds {type} limit {limit}"
+msgstr "超过 {type} 数量限制 {limit}"
+
+
+#, python-brace-format
+msgid "Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+msgstr "内置 JSFinder 从 {url} 提取了 {url_count} 个 URL 和 {subdomain_count} 个子域名"
+
+
+#, python-brace-format
+msgid "Invalid port asset value: {value}, error: {error}"
+msgstr "无效的端口资产值: {value}，错误: {error}"
+
+
+#, python-brace-format
+msgid "JS path extraction failed: {error}"
+msgstr "JS 路径提取失败: {error}"
+
+
+#, python-brace-format
+msgid "JSFinder error output:
+{error}"
+msgstr "JSFinder 错误输出:
+{error}"
+
+
+#, python-brace-format
+msgid "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+msgstr "JSFinder 从 {url} 提取了 {count} 个子域名，其中 {related} 个与种子相关"
+
+
+#, python-brace-format
+msgid "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+msgstr "JSFinder 从 {url} 提取了 {related} 个与种子相关的 URL，共 {total} 个"
+
+
+#, python-brace-format
+msgid "JSFinder extracted {related} seed-related subdomains from {url}, total: {total}"
+msgstr "JSFinder 从 {url} 提取了 {related} 个与种子相关的子域名，共 {total} 个"
+
+
+#, python-brace-format
+msgid "JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+msgstr "JSFinder 从 {url} 提取了 {url_count} 个 URL 和 {subdomain_count} 个子域名"
+
+
+#, python-brace-format
+msgid "JSFinder output preview:
+{output}"
+msgstr "JSFinder 输出预览:
+{output}"
+
+
+msgid "Matches exclusion rules"
+msgstr "命中排除规则"
+
+
+#, python-brace-format
+msgid "No breeder for type {type}"
+msgstr "没有针对 {type} 类型的繁殖器"
+
+
+#, python-brace-format
+msgid "Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
+msgstr "代理已自动禁用。下一轮将对 {url} 使用直连重试。"
+
+
+#, python-brace-format
+msgid "Running built-in DNS brute-force for subdomains: {domain}"
+msgstr "正在对 {domain} 执行内置 DNS 暴力枚举"
+
+
+msgid "Seed domain list is empty, this may cause domain relevance judgment errors"
+msgstr "种子域名列表为空，可能导致域名相关性判断出错"
+
+
+msgid "Seed domains list attribute not found in engine, all domains will be considered unrelated"
+msgstr "引擎中未找到种子域名列表属性，所有域名将被视为无关"
+
+
+#, python-brace-format
+msgid "Skipping malformed URL (JS concat/template): {url}"
+msgstr "跳过格式异常的 URL（JS 拼接/模板）: {url}"
+
+
+#, python-brace-format
+msgid "Skipping non-seed-related API path: {url}"
+msgstr "跳过与种子无关的接口路径: {url}"
+
+
+#, python-brace-format
+msgid "Skipping non-seed-related discovery link: {link}"
+msgstr "跳过与种子无关的发现链接: {link}"
+
+
+#, python-brace-format
+msgid "URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
+msgstr "URL 资产内容获取失败，已标记为淘汰: {url}，状态: {state}"
+
+
+#, python-brace-format
+msgid "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+msgstr "URL 资产已标记为淘汰: {url}，状态码: {status}，状态: {state}"
+
+
+msgid "Using naabu from system PATH"
+msgstr "使用系统 PATH 中的 naabu"
+
+
+#, python-brace-format
+msgid "robots/sitemap discovery failed: {error}"
+msgstr "robots.txt/sitemap.xml 发现失败: {error}"
+
