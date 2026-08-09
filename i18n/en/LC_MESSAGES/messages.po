@@ -2130,3 +2130,372 @@ msgstr "Using naabu from system PATH"
 msgid "robots/sitemap discovery failed: {error}"
 msgstr "robots/sitemap discovery failed: {error}"
 
+
+msgid "Start the web console"
+msgstr "Start the web console"
+
+
+
+msgid "Web console port"
+msgstr "Web console port"
+
+
+
+msgid "Web console stopped"
+msgstr "Web console stopped"
+
+msgid "actions"
+msgstr "Actions"
+
+
+msgid "all_types"
+msgstr "All types"
+
+
+msgid "analysis"
+msgstr "Analysis"
+
+
+msgid "asset_count"
+msgstr "Assets"
+
+
+msgid "assets"
+msgstr "Assets"
+
+
+msgid "back"
+msgstr "← Back"
+
+
+msgid "base_assets"
+msgstr "Base Assets"
+
+
+msgid "close"
+msgstr "Close"
+
+
+msgid "common"
+msgstr "Common"
+
+
+msgid "common_has"
+msgstr "Common"
+
+
+msgid "compare_empty"
+msgstr "No comparison data"
+
+
+msgid "compare_selected"
+msgstr "Compare Selected"
+
+
+msgid "concurrency"
+msgstr "Concurrency"
+
+
+msgid "config"
+msgstr "Config"
+
+
+msgid "config_file"
+msgstr "Config File (breeding-config.yaml)"
+
+
+msgid "config_saved"
+msgstr "Config saved"
+
+
+msgid "data"
+msgstr "Data"
+
+
+msgid "data_not_found"
+msgstr "Project data not found"
+
+
+msgid "delete_selected"
+msgstr "Delete Selected"
+
+
+msgid "depth"
+msgstr "Depth"
+
+
+msgid "depth_dist"
+msgstr "Depth Distribution"
+
+
+msgid "description"
+msgstr "Description"
+
+
+msgid "detail"
+msgstr "Detail"
+
+
+msgid "disable"
+msgstr "Disable"
+
+
+msgid "domain_seed"
+msgstr "Domain seeds (one per line)"
+
+
+msgid "drag_hint"
+msgstr "Drag to pan · Scroll to zoom"
+
+
+msgid "edges"
+msgstr "Edges"
+
+
+msgid "enable"
+msgstr "Enable"
+
+
+msgid "events"
+msgstr "Events"
+
+
+msgid "follow_log"
+msgstr "Auto-scroll"
+
+
+msgid "handlers"
+msgstr "Handlers"
+
+
+msgid "high_related"
+msgstr "Highly Connected (deg≥3)"
+
+
+msgid "history_projects"
+msgstr "Historical Scans"
+
+
+msgid "ip_seed"
+msgstr "IP seeds (one per line)"
+
+
+msgid "max_depth"
+msgstr "Max Depth"
+
+
+msgid "max_depth_l"
+msgstr "Max Depth"
+
+
+msgid "name"
+msgstr "Name"
+
+
+msgid "new_scan_task"
+msgstr "New Scan Task"
+
+
+msgid "new_task"
+msgstr "New Scan"
+
+
+msgid "no_assets"
+msgstr "No assets"
+
+
+msgid "no_data"
+msgstr "No data"
+
+
+msgid "no_match"
+msgstr "No matching assets"
+
+
+msgid "no_plugins"
+msgstr "No plugins (plugin dir is empty or not loaded)"
+
+
+msgid "no_projects"
+msgstr "No historical scans"
+
+
+msgid "no_props"
+msgstr "No extra properties"
+
+
+msgid "no_tasks"
+msgstr "No tasks"
+
+
+msgid "nodes"
+msgstr "Nodes"
+
+
+msgid "only_base"
+msgstr "Only in Base"
+
+
+msgid "only_base_has"
+msgstr "Only in Base"
+
+
+msgid "only_others"
+msgstr "Only in Others"
+
+
+msgid "only_others_has"
+msgstr "Only in Others"
+
+
+msgid "other_assets"
+msgstr "Other Assets"
+
+
+msgid "output"
+msgstr "Output"
+
+
+msgid "plugin"
+msgstr "Plugin"
+
+
+msgid "plugins"
+msgstr "Plugins"
+
+
+msgid "project_compare"
+msgstr "Project Comparison"
+
+
+msgid "props"
+msgstr "Properties"
+
+
+msgid "raw_json"
+msgstr "Raw JSON"
+
+
+msgid "real_time_log"
+msgstr "Live Log"
+
+
+msgid "refresh"
+msgstr "Refresh"
+
+
+msgid "reload"
+msgstr "Reload"
+
+
+msgid "rescan"
+msgstr "Rescan"
+
+
+msgid "save"
+msgstr "Save"
+
+
+msgid "scan_after_done"
+msgstr "Full project data available after scan completes"
+
+
+msgid "scan_projects"
+msgstr "Scan Projects"
+
+
+msgid "scan_running"
+msgstr "Scan in progress, generating output..."
+
+
+msgid "scan_tasks"
+msgstr "Scan Tasks"
+
+
+msgid "search_assets"
+msgstr "Search assets..."
+
+
+msgid "seed"
+msgstr "Seed"
+
+
+msgid "seed_domains"
+msgstr "Seed Domains"
+
+
+msgid "source"
+msgstr "Source"
+
+
+msgid "start_scan"
+msgstr "Start Scan"
+
+
+msgid "starting"
+msgstr "Starting..."
+
+
+msgid "state_dist"
+msgstr "Asset State Distribution"
+
+
+msgid "status"
+msgstr "Status"
+
+
+msgid "stop"
+msgstr "Stop"
+
+
+msgid "strategy"
+msgstr "Strategy"
+
+
+msgid "task_detail"
+msgstr "Task"
+
+
+msgid "task_failed"
+msgstr "Task failed"
+
+
+msgid "task_started"
+msgstr "Task started"
+
+
+msgid "tasks"
+msgstr "Tasks"
+
+
+msgid "topology"
+msgstr "Topology"
+
+
+msgid "type"
+msgstr "Type"
+
+
+msgid "type_count"
+msgstr "Type Count"
+
+
+msgid "type_dist"
+msgstr "Asset Type Distribution"
+
+
+msgid "url_seed"
+msgstr "URL seeds (one per line)"
+
+
+msgid "version"
+msgstr "Version"
+
+
+msgid "view"
+msgstr "View"
+
+
+msgid "view_output"
+msgstr "View Output"
+

@@ -8,7 +8,7 @@
         <br />
         <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg"/></a>
         <a href="https://www.python.org/downloads/release/python-390/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9+-blue.svg"/></a>
-        <a href="https://github.com/sansjtw1/Z-Sans/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.0.4-blue.svg"/></a>
+        <a href="https://github.com/sansjtw1/Z-Sans/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.0.5-blue.svg"/></a>
         <br>
         <a href="README.md">English</a> | <a href="README_CN.md">中文</a> | <a href="CHANGELOG.md">Changelog</a>
     </p>
@@ -49,7 +49,7 @@ Z-Sans/
 ├── templates/              # Config templates
 ├── breeding-config.yaml    # Main configuration
 ├── main.py                 # Entry point / CLI
-├── CHANGELOG.md            # v0.0.1 → v0.0.2 → v0.0.3 → v0.0.4 release notes
+├── CHANGELOG.md            # v0.0.4 → v0.0.5 release notes
 └── requirements.txt        # Python dependencies
 ```
 
@@ -105,6 +105,12 @@ python main.py -d example.com --watch
 
 # Set max discovery depth
 python main.py -d example.com --depth 4
+
+# Start the web console (project browser, live task logs, config/plugin management)
+python main.py --web
+
+# Web console on a custom port
+python main.py --web --port 9000
 ```
 
 ### Command Line Options
@@ -120,7 +126,29 @@ python main.py -d example.com --depth 4
 --depth         Max discovery depth
 --resume        Continue from the last checkpoint
 --watch         Periodic rescan + change reporting + webhook push
+--web           Start the web console (default port: 8050)
+--port          Web console port
+--list-plugins  List loaded plugins and exit
+--plugin-info   Show details for a plugin by name
 ```
+
+### 🌐 Web Console
+
+The web console is a browser-based management interface for scan projects, live tasks, configuration, and plugins. It is served entirely by the standard library — no separate frontend build or external CDN is required.
+
+```bash
+python main.py --web            # http://0.0.0.0:8050
+python main.py --web --port 9000
+```
+
+Features:
+
+- **Project browser** — browse historical scan runs under `output/`, view the asset graph, analysis charts, and interactive topology
+- **New scan task** — start scans from domain / URL / IP seeds with custom depth, strategy, and concurrency, all in a background thread
+- **Live tasks** — real-time streaming logs (SSE), stop / rescan completed runs
+- **Config editor** — view and edit `breeding-config.yaml` online with YAML validation
+- **Plugin manager** — enable / disable plugins without restarting
+- **Project compare** — diff two runs to find assets only present in either
 
 ## 💻 Configuration
 

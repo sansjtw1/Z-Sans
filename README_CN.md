@@ -112,13 +112,19 @@ python main.py -d example.com -v
 python main.py -d example.com -o your-output-dir
 
 # 继续之前中断的扫描
-python main.py -d example.com-resume
+python main.py -d example.com --resume
 
 # 持续更改监控(增量 + 网络挂接警报)
 python main.py -d example.com --watch
 
 # 设置最大发现深度
-python main.py -d example.com --depth4
+python main.py -d example.com --depth 4
+
+# 启动 Web 控制台（项目浏览、实时任务日志、配置/插件管理）
+python main.py --web
+
+# 自定义端口的 Web 控制台
+python main.py --web --port 9000
 ```
 
 ### 命令行参数
@@ -134,7 +140,29 @@ python main.py -d example.com --depth4
 --depth          设置最大扫描深度
 --resume        从上一个检查点继续
 --watch         定期重新扫描+更改报告+Webhook推送
+--web           启动 Web 控制台（默认端口：8050）
+--port          Web 控制台端口
+--list-plugins  列出已加载插件并退出
+--plugin-info   按名称查看插件详细信息
 ```
+
+### 🌐 Web 控制台
+
+Web 控制台是基于浏览器的管理界面，用于浏览扫描项目、查看实时任务、编辑配置和管理插件。它完全由标准库实现，无需单独的前端构建或外网 CDN。
+
+```bash
+python main.py --web            # http://0.0.0.0:8050
+python main.py --web --port 9000
+```
+
+功能特性：
+
+- **项目浏览** — 浏览 `output/` 下的历史扫描项目，查看资产图、分析图表和交互式拓扑
+- **新建任务** — 通过域名 / URL / IP 种子启动扫描，可自定义深度、策略与并发，后台线程执行
+- **实时任务** — 实时流式日志（SSE）、停止任务、重新扫描已完成任务
+- **配置编辑** — 在线查看与编辑 `breeding-config.yaml`（带 YAML 校验）
+- **插件管理** — 无需重启即可启用 / 禁用插件
+- **项目对比** — 对比两次扫描，找出仅存在于其中一方的资产
 
 ## 💻 配置说明
 

@@ -263,7 +263,7 @@ class OutputHandler:
         stats = self.engine.asset_graph.stats()
         metrics = self.engine.metrics
         gen_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        zs_version = "0.0.2"
+        zs_version = "0.0.5"
         if hasattr(self.engine, 'get_export_metadata'):
             try:
                 _meta = self.engine.get_export_metadata()
@@ -322,9 +322,9 @@ class OutputHandler:
         eliminated_reasons = dict(sorted(eliminated_reasons.items(), key=lambda x: x[1], reverse=True))
 
         degree = {}
-        for (source, target) in edges_snapshot:
-            degree[source] = degree.get(source, 0) + 1
-            degree[target] = degree.get(target, 0) + 1
+        for (source_id, target_id), _relation in edges_snapshot:
+            degree[source_id] = degree.get(source_id, 0) + 1
+            degree[target_id] = degree.get(target_id, 0) + 1
         top_hosts = sorted(
             (node for _node_uid, node in nodes_snapshot
              if node.type in ('domain', 'ip', 'url')),
@@ -334,7 +334,8 @@ class OutputHandler:
 
         graph_nodes = [{'id': uid, 'type': a.type, 'label': a.value, 'depth': a.depth}
                        for uid, a in nodes_snapshot]
-        graph_edges = [{'source': s, 'target': t} for (s, t) in edges_snapshot]
+        graph_edges = [{'source': source_id, 'target': target_id}
+                       for (source_id, target_id), _relation in edges_snapshot]
         graph_data = json.dumps({'nodes': graph_nodes, 'edges': graph_edges},
                                 ensure_ascii=False).replace('<', '\\u003c').replace('\u2028', '\\u2028').replace('\u2029', '\\u2029')
 
@@ -1315,7 +1316,7 @@ class OutputHandler:
                 ctx.scale(viewZoom, viewZoom);
 
                 ctx.lineWidth = 1 / viewZoom;
-                ctx.strokeStyle = 'rgba(100,116,139,0.35)';
+                ctx.strokeStyle = 'rgba(148,163,184,0.7)';
                 edges.forEach(function(e) {
                     var a = byId[e.source], b = byId[e.target];
                     if (!a || !b) return;

@@ -134,3 +134,7 @@ http:
   follow_redirects: true  # Follow redirects
   redirect_as_new_asset: true  # Treat redirects as new assets
   max_redirects: 5    # Maximum redirects
+
+# Plugin configuration
+plugins:
+  disabled: []         # Plugin module names to disable (without .py)

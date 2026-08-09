@@ -22,7 +22,6 @@ except ImportError:
     USE_COLORAMA = False
 from datetime import datetime
 
-import os
 from core.i18n import setup_i18n, _
 
 LOG_CONFIGURED = False
@@ -92,7 +91,7 @@ def configure_logging():
 
 logger = configure_logging()
 
-VERSION = "0.0.4"
+VERSION = "0.0.5"
 DEFAULT_CONFIG_PATH = "breeding-config.yaml"
 PLUGINS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plugins')
 
@@ -107,8 +106,9 @@ from core.output import OutputHandler
 
 
 class BreedingEngine:
-    def __init__(self, config=None):
+    def __init__(self, config=None, register_signals=True):
         self.config = config or {}
+        self.register_signals = register_signals
         self.asset_graph = AssetGraph()
         self.queue = PriorityBreedingQueue(self.config)
         self.state = "initialized"
@@ -124,6 +124,7 @@ class BreedingEngine:
         self._executor = None
         self._hooks = {}
         self.plugins = {}
+        self._stop_requested = False
         
         plugin_cfg = self.config.get('plugins', {}) if isinstance(self.config.get('plugins', {}), dict) else {}
         self.plugin_dir = plugin_cfg.get('dir', PLUGINS_DIR)
@@ -136,7 +137,11 @@ class BreedingEngine:
         self.tool_orchestrator = ToolOrchestrator(self.config, engine=self)
         self.breeder_factory = BreederFactory()
         self.output_handler = OutputHandler(self, self.config.get("output", {}))
-        self._setup_signal_handlers()
+        if register_signals:
+            self._setup_signal_handlers()
+        else:
+            # web/后台线程模式下不注册信号处理器（signal.signal 仅主线程可用）
+            self._signal_handlers_setup = False
         
         # 初始化HTTP配置和全局会话
         from core.zsans_engine import init_http_config
@@ -152,6 +157,7 @@ class BreedingEngine:
         global _stop_signaled
         if signum in (signal.SIGINT, signal.SIGTERM):
             _stop_signaled = True
+            self._stop_requested = True
             self.state = "stopped"
             logger.info(_("Received stop signal, shutting down gracefully..."))
             if self._executor is not None:
@@ -262,6 +268,7 @@ class BreedingEngine:
         if self._finalized:
             return
         self._finalized = True
+        self._stop_requested = True
         global _stop_signaled
         _stop_signaled = True
         self.state = "stopped"
@@ -401,8 +408,8 @@ class BreedingEngine:
         executor = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="zsans")
         self._executor = executor
         try:
-            while self.state == "running" and not _stop_signaled:
-                while self.state == "running" and not _stop_signaled and in_flight < workers and not self.queue.is_empty():
+            while self.state == "running" and not self._stop_requested:
+                while self.state == "running" and not self._stop_requested and in_flight < workers and not self.queue.is_empty():
                     asset = self.queue.get_next(strategy)
                     if not asset:
                         break
@@ -420,17 +427,17 @@ class BreedingEngine:
                         futures.discard(future)
                         in_flight -= 1
                         completed_any = True
-                        if _stop_signaled or self.state != "running":
+                        if self._stop_requested or self.state != "running":
                             break
                     if not completed_any and not futures:
                         break
                 except (concurrent.futures.TimeoutError, TimeoutError):
                     pass
                 
-                if _stop_signaled or self.state != "running":
+                if self._stop_requested or self.state != "running":
                     break
             
-            if self.state == "running" and not _stop_signaled and in_flight > 0:
+            if self.state == "running" and not self._stop_requested and in_flight > 0:
                 for future in as_completed(futures):
                     futures.discard(future)
                     in_flight -= 1
@@ -438,7 +445,7 @@ class BreedingEngine:
             self._executor = None
             executor.shutdown(wait=False, cancel_futures=True)
         
-        if self.state == "running" and not _stop_signaled:
+        if self.state == "running" and not self._stop_requested:
             self.state = "completed"
     
     def _check_resource_limits(self, asset):
@@ -962,6 +969,8 @@ def main():
     parser.add_argument("--watch", help=_("Run in watch mode, rescan periodically and report changes"), action="store_true")
     parser.add_argument("--list-plugins", help=_("List plugins in the plugins directory and exit"), action="store_true")
     parser.add_argument("--plugin-info", metavar="NAME", help=_("Show detailed info about a plugin and exit"))
+    parser.add_argument("--web", help=_("Start the web console"), action="store_true")
+    parser.add_argument("--port", help=_("Web console port"), type=int, default=8050)
   
     args = parser.parse_args()
     
@@ -992,6 +1001,16 @@ def main():
     if args.depth is not None:
         config["max_depth"] = args.depth
         logger.info(_("Maximum scan depth set: {depth}").format(depth=args.depth))
+
+    # Web 控制台模式：启动常驻服务，不执行命令行扫描
+    if args.web:
+        from webapp import start_web_server
+        output_dir = config.get('output', {}).get('dir', 'output') if isinstance(config.get('output'), dict) else 'output'
+        try:
+            start_web_server(config, args.config, output_dir, port=args.port)
+        except KeyboardInterrupt:
+            logger.info(_("Web console stopped"))
+        return 0
     
     engine = BreedingEngine(config)
     

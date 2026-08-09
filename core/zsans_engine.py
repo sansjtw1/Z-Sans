@@ -346,7 +346,11 @@ class Asset:
                 parts = urlsplit(value.strip())
                 scheme = parts.scheme.lower()
                 netloc = parts.netloc.lower()
-                return urlunsplit((scheme, netloc, parts.path, parts.query, parts.fragment))
+                path = parts.path
+                # 归一化：无路径与根路径 "/" 视为同一 URL（https://x 与 https://x/）
+                if path == '':
+                    path = '/'
+                return urlunsplit((scheme, netloc, path, parts.query, parts.fragment))
             except Exception:
                 return value.lower()
         return value.lower()

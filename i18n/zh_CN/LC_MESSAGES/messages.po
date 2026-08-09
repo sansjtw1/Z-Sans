@@ -2104,3 +2104,372 @@ msgstr "使用系统 PATH 中的 naabu"
 msgid "robots/sitemap discovery failed: {error}"
 msgstr "robots.txt/sitemap.xml 发现失败: {error}"
 
+
+msgid "Start the web console"
+msgstr "启动 Web 控制台"
+
+
+
+msgid "Web console port"
+msgstr "Web 控制台端口"
+
+
+
+msgid "Web console stopped"
+msgstr "Web 控制台已停止"
+
+msgid "actions"
+msgstr "操作"
+
+
+msgid "all_types"
+msgstr "全部类型"
+
+
+msgid "analysis"
+msgstr "分析"
+
+
+msgid "asset_count"
+msgstr "资产数"
+
+
+msgid "assets"
+msgstr "资产"
+
+
+msgid "back"
+msgstr "返回"
+
+
+msgid "base_assets"
+msgstr "基线资产数"
+
+
+msgid "close"
+msgstr "关闭"
+
+
+msgid "common"
+msgstr "共有"
+
+
+msgid "common_has"
+msgstr "共有"
+
+
+msgid "compare_empty"
+msgstr "对比数据为空"
+
+
+msgid "compare_selected"
+msgstr "对比所选"
+
+
+msgid "concurrency"
+msgstr "并发"
+
+
+msgid "config"
+msgstr "配置"
+
+
+msgid "config_file"
+msgstr "配置文件 (breeding-config.yaml)"
+
+
+msgid "config_saved"
+msgstr "配置已保存"
+
+
+msgid "data"
+msgstr "数据"
+
+
+msgid "data_not_found"
+msgstr "项目数据不存在"
+
+
+msgid "delete_selected"
+msgstr "删除所选"
+
+
+msgid "depth"
+msgstr "深度"
+
+
+msgid "depth_dist"
+msgstr "深度分布"
+
+
+msgid "description"
+msgstr "描述"
+
+
+msgid "detail"
+msgstr "详情"
+
+
+msgid "disable"
+msgstr "禁用"
+
+
+msgid "domain_seed"
+msgstr "域名种子（每行一个）"
+
+
+msgid "drag_hint"
+msgstr "拖拽平移 · 滚轮缩放"
+
+
+msgid "edges"
+msgstr "边"
+
+
+msgid "enable"
+msgstr "启用"
+
+
+msgid "events"
+msgstr "事件"
+
+
+msgid "follow_log"
+msgstr "跟随滚动"
+
+
+msgid "handlers"
+msgstr "处理器"
+
+
+msgid "high_related"
+msgstr "高关联资产(度≥3)"
+
+
+msgid "history_projects"
+msgstr "历史扫描项目"
+
+
+msgid "ip_seed"
+msgstr "IP 种子（每行一个）"
+
+
+msgid "max_depth"
+msgstr "最大深度"
+
+
+msgid "max_depth_l"
+msgstr "最大深度"
+
+
+msgid "name"
+msgstr "名称"
+
+
+msgid "new_scan_task"
+msgstr "新建探测任务"
+
+
+msgid "new_task"
+msgstr "新建任务"
+
+
+msgid "no_assets"
+msgstr "无资产"
+
+
+msgid "no_data"
+msgstr "无数据"
+
+
+msgid "no_match"
+msgstr "无匹配资产"
+
+
+msgid "no_plugins"
+msgstr "暂无插件（插件目录为空或未加载）"
+
+
+msgid "no_projects"
+msgstr "暂无历史扫描项目"
+
+
+msgid "no_props"
+msgstr "无附加属性"
+
+
+msgid "no_tasks"
+msgstr "暂无任务"
+
+
+msgid "nodes"
+msgstr "节点"
+
+
+msgid "only_base"
+msgstr "仅基线有"
+
+
+msgid "only_base_has"
+msgstr "仅基线有"
+
+
+msgid "only_others"
+msgstr "仅其他有"
+
+
+msgid "only_others_has"
+msgstr "仅其他有"
+
+
+msgid "other_assets"
+msgstr "其他项目资产数"
+
+
+msgid "output"
+msgstr "输出"
+
+
+msgid "plugin"
+msgstr "插件"
+
+
+msgid "plugins"
+msgstr "插件"
+
+
+msgid "project_compare"
+msgstr "项目对比"
+
+
+msgid "props"
+msgstr "属性 (properties)"
+
+
+msgid "raw_json"
+msgstr "原始 JSON"
+
+
+msgid "real_time_log"
+msgstr "实时日志"
+
+
+msgid "refresh"
+msgstr "刷新"
+
+
+msgid "reload"
+msgstr "重新加载"
+
+
+msgid "rescan"
+msgstr "重扫"
+
+
+msgid "save"
+msgstr "保存"
+
+
+msgid "scan_after_done"
+msgstr "扫描完成后即可查看完整项目数据"
+
+
+msgid "scan_projects"
+msgstr "扫描项目"
+
+
+msgid "scan_running"
+msgstr "扫描进行中，输出生成中…"
+
+
+msgid "scan_tasks"
+msgstr "扫描任务"
+
+
+msgid "search_assets"
+msgstr "搜索资产..."
+
+
+msgid "seed"
+msgstr "种子"
+
+
+msgid "seed_domains"
+msgstr "种子域名"
+
+
+msgid "source"
+msgstr "来源"
+
+
+msgid "start_scan"
+msgstr "开始扫描"
+
+
+msgid "starting"
+msgstr "启动中..."
+
+
+msgid "state_dist"
+msgstr "资产状态分布"
+
+
+msgid "status"
+msgstr "状态"
+
+
+msgid "stop"
+msgstr "停止"
+
+
+msgid "strategy"
+msgstr "策略"
+
+
+msgid "task_detail"
+msgstr "任务"
+
+
+msgid "task_failed"
+msgstr "任务失败"
+
+
+msgid "task_started"
+msgstr "已启动任务"
+
+
+msgid "tasks"
+msgstr "任务进度"
+
+
+msgid "topology"
+msgstr "拓扑"
+
+
+msgid "type"
+msgstr "类型"
+
+
+msgid "type_count"
+msgstr "类型数"
+
+
+msgid "type_dist"
+msgstr "资产类型分布"
+
+
+msgid "url_seed"
+msgstr "URL 种子（每行一个）"
+
+
+msgid "version"
+msgstr "版本"
+
+
+msgid "view"
+msgstr "查看"
+
+
+msgid "view_output"
+msgstr "查看输出"
+

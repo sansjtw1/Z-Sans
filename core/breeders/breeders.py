@@ -99,25 +99,17 @@ class BreederBase:
             return True
             
         for seed_domain in self.engine.seed_domains:
-            if domain.endswith('.' + seed_domain):
-                domain_parts = domain.split('.')
-                seed_parts = seed_domain.split('.')
-                
-                if domain_parts[-len(seed_parts):] == seed_parts:
-                    logger.info(_("Domain {domain} is a subdomain of seed domain {seed}").format(domain=domain, seed=seed_domain))
-                    return True
-                else:
-                    logger.warning(_("Domain {domain} ends with .{seed} but is not a direct subdomain").format(domain=domain, seed=seed_domain))
-                    continue
-        
-        for seed_domain in self.engine.seed_domains:
             domain_parts = domain.split('.')
             seed_parts = seed_domain.split('.')
             
-            if len(domain_parts) >= len(seed_parts):
-                if domain_parts[-len(seed_parts):] == seed_parts:
+            if len(domain_parts) >= len(seed_parts) and domain_parts[-len(seed_parts):] == seed_parts:
+                if domain.endswith('.' + seed_domain):
+                    logger.info(_("Domain {domain} is a subdomain of seed domain {seed}").format(domain=domain, seed=seed_domain))
+                else:
                     logger.info(_("Domain {domain} contains all parts of seed domain {seed}").format(domain=domain, seed=seed_domain))
-                    return True
+                return True
+            elif domain.endswith('.' + seed_domain):
+                logger.warning(_("Domain {domain} ends with .{seed} but is not a direct subdomain").format(domain=domain, seed=seed_domain))
         
         logger.warning(_("Domain {domain} is not related to any seed domain").format(domain=domain))
         return False
@@ -137,10 +129,18 @@ class BreederBase:
         return False
         
     def _ip_in_range(self, ip, ip_range):
+        """判断 IP 是否在指定范围/网段内。
+
+        支持两种格式：
+        - CIDR：如 `10.0.0.0/8`、`192.168.1.0/24`，按前缀精确匹配；
+        - 旧式 /16 简写：如 `192.168.0.0`，仅比较前两段（兼容历史配置）。
+        """
         try:
+            if '/' in ip_range:
+                import ipaddress
+                return ipaddress.ip_address(ip) in ipaddress.ip_network(ip_range, strict=False)
             ip_parts = ip.split('.')
             range_parts = ip_range.split('.')
-            
             return ip_parts[0] == range_parts[0] and ip_parts[1] == range_parts[1]
         except Exception as e:
             logger.error(_("IP range check error: {error}").format(error=str(e)))
@@ -280,9 +280,27 @@ class DomainBreeder(BreederBase):
         'game', 'games', 'video', 'live', 'tv', 'radio', 'music', 'newsletter',
         'security', 'sso', 'oauth', 'saml', 'keycloak', 'cas', 'ldap', 'radius',
         'tracking', 'analytics', 'stats', 'report', 'reports', 'export',
+        # 内容 / 服务 / 常见部署类子域
+        'book', 'books', 'read', 'reader', 'novel', 'magazine', 'paper',
+        'library', 'ebook', 'story', 'comic', 'article', 'doc', 'documents',
+        'home', 'homepage', 'index', 'main', 'web', 'webapp', 'site', 'sites',
+        'cms', 'phpmyadmin', 'phpadmin', 'mysqladmin', 'pgadmin',
+        'graphql', 'grpc', 'websocket', 'socket', 'ws', 'wss', 'sse',
+        'push', 'notify', 'notification', 'message', 'sms', 'mailchimp',
+        'cdn2', 'cdn3', 'static2', 'static3', 'img2', 'img3', 'upload',
+        'oss', 'cos', 'storage', 'bucket', 'backup', 'bak', 'temp', 'tmp',
+        'cache', 'cached', 'sess', 'session', 'token', 'auth2', 'sso2',
+        'staging2', 'dev2', 'test2', 'pre', 'preprod', 'canary', 'gray',
+        'job', 'jobs', 'career', 'careers', 'hr', 'recruit', 'about',
+        'contact', 'faq', 'service', 'services', 'product', 'products',
+        'buy', 'sale', 'market', 'mall', 'order2', 'pay2', 'checkout',
+        'wx', 'wechat', 'weixin', 'wechat2', 'alipay', 'unionpay',
+        'android', 'ios', 'h5', 'wap2', 'm2', 'mini', 'miniapp', 'webview',
+        'api-dev', 'api-test', 'api-staging', 'api-prod', 'api-internal',
+        'gw', 'api-gw', 'api-gateway', 'open', 'openapi', 'public', 'pub',
     ]
 
-    def _dns_brute_subdomains(self, domain, max_workers=10, timeout=2.0):
+    def _dns_brute_subdomains(self, domain, max_workers=30, timeout=3.0):
         """用内置词表暴力枚举子域名 A 记录，无需外部工具。
 
         返回解析成功的子域列表；网络异常时静默降级，不影响主流程。
@@ -293,17 +311,24 @@ class DomainBreeder(BreederBase):
         def _probe(sub):
             full = f"{sub}.{domain}"
             try:
+                socket.setdefaulttimeout(timeout)
                 socket.getaddrinfo(full, None, socket.AF_INET)
                 return full
-            except (socket.gaierror, socket.error):
+            except (socket.gaierror, socket.error, OSError):
                 return None
 
-        with cf.ThreadPoolExecutor(max_workers=max_workers) as pool:
-            futures = [pool.submit(_probe, sub) for sub in self._BRUTE_SUBDOMAINS]
-            for future in cf.as_completed(futures):
-                result = future.result()
-                if result:
-                    found.append(result)
+        try:
+            with cf.ThreadPoolExecutor(max_workers=max_workers) as pool:
+                futures = [pool.submit(_probe, sub) for sub in self._BRUTE_SUBDOMAINS]
+                for future in cf.as_completed(futures, timeout=max(10, timeout * 8)):
+                    try:
+                        result = future.result()
+                    except Exception:
+                        result = None
+                    if result:
+                        found.append(result)
+        except cf.TimeoutError:
+            logger.warning(_("DNS brute-force timed out for {domain}").format(domain=domain))
         return found
     
     def _filter_subdomains(self, subdomains, domain):
@@ -1607,7 +1632,9 @@ class PortBreeder(BreederBase):
         else:
             return new_assets
 
-        url = f"{protocol}://{ip}:{port}"
+        # IPv6 地址需用方括号包裹，否则 urlparse 无法识别 host/port
+        ip_for_url = f"[{ip}]" if ':' in ip else ip
+        url = f"{protocol}://{ip_for_url}:{port}"
         new_asset = URLAsset(url, source=asset.uid, depth=asset.depth+1)
         new_assets.append(new_asset)
         
