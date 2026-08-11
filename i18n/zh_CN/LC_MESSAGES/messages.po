@@ -1921,199 +1921,180 @@ msgstr "位置参数"
 msgid "API path extraction failed: {error}"
 msgstr "JS 接口路径提取失败: {error}"
 
-
 #, python-brace-format
 msgid "API path regex failed: {error}"
 msgstr "JS 接口路径正则匹配失败: {error}"
-
 
 #, python-brace-format
 msgid "Captured endpoint hints for {url}: {hints}"
 msgstr "已捕获 {url} 的接口提示: {hints}"
 
-
 msgid "DNS brute-force disabled"
 msgstr "内置 DNS 暴力枚举已禁用"
-
 
 #, python-brace-format
 msgid "DNS brute-force failed: {error}"
 msgstr "内置 DNS 暴力枚举失败: {error}"
 
-
 #, python-brace-format
 msgid "DNS brute-force found {count} subdomains"
 msgstr "内置 DNS 暴力枚举发现 {count} 个子域名"
-
 
 #, python-brace-format
 msgid "Discovery fetch failed for {candidate}: {error}"
 msgstr "抓取 {candidate} 失败: {error}"
 
-
 #, python-brace-format
-msgid "Domain scope restriction disabled, adding all links: {link}, domain: {domain}"
+msgid ""
+"Domain scope restriction disabled, adding all links: {link}, domain: "
+"{domain}"
 msgstr "域名范围限制已禁用，添加全部链接: {link}，域名: {domain}"
 
-
 #, python-brace-format
-msgid "Domain {domain} not seed-related but added due to no restriction: {url}"
+msgid ""
+"Domain {domain} not seed-related but added due to no restriction: {url}"
 msgstr "域名 {domain} 与种子无关，但因未开启限制而添加: {url}"
-
 
 #, python-brace-format
 msgid "Endpoint header capture failed for {url}: {error}"
 msgstr "捕获 {url} 的接口响应头失败: {error}"
 
-
 #, python-brace-format
 msgid "Endpoint hint materialization failed: {error}"
 msgstr "接口提示物化为资产失败: {error}"
-
 
 #, python-brace-format
 msgid "Endpoint hint materialized as asset: {target}"
 msgstr "接口提示已物化为资产: {target}"
 
-
-msgid "Engine instance does not exist, defaulting to False to avoid adding unrelated domains"
+msgid ""
+"Engine instance does not exist, defaulting to False to avoid adding "
+"unrelated domains"
 msgstr "引擎实例不存在，默认返回 False 以避免添加无关域名"
-
 
 #, python-brace-format
 msgid "Exceeds depth limit {limit}"
 msgstr "超过深度限制 {limit}"
 
-
 #, python-brace-format
 msgid "Exceeds max depth {depth}"
 msgstr "超过最大深度 {depth}"
-
 
 #, python-brace-format
 msgid "Exceeds {type} limit {limit}"
 msgstr "超过 {type} 数量限制 {limit}"
 
-
 #, python-brace-format
-msgid "Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+msgid ""
+"Internal JSFinder extracted {url_count} URLs and {subdomain_count} "
+"subdomains from {url}"
 msgstr "内置 JSFinder 从 {url} 提取了 {url_count} 个 URL 和 {subdomain_count} 个子域名"
-
 
 #, python-brace-format
 msgid "Invalid port asset value: {value}, error: {error}"
 msgstr "无效的端口资产值: {value}，错误: {error}"
 
-
 #, python-brace-format
 msgid "JS path extraction failed: {error}"
 msgstr "JS 路径提取失败: {error}"
 
+#, python-brace-format
+msgid ""
+"JSFinder error output:\n"
+"{error}"
+msgstr ""
+"JSFinder 错误输出:\n"
+"{error}"
 
 #, python-brace-format
-msgid "JSFinder error output:
-{error}"
-msgstr "JSFinder 错误输出:
-{error}"
-
-
-#, python-brace-format
-msgid "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+msgid ""
+"JSFinder extracted {count} subdomains from {url}, {related} seed-related"
 msgstr "JSFinder 从 {url} 提取了 {count} 个子域名，其中 {related} 个与种子相关"
 
-
 #, python-brace-format
-msgid "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+msgid ""
+"JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
 msgstr "JSFinder 从 {url} 提取了 {related} 个与种子相关的 URL，共 {total} 个"
 
-
 #, python-brace-format
-msgid "JSFinder extracted {related} seed-related subdomains from {url}, total: {total}"
+msgid ""
+"JSFinder extracted {related} seed-related subdomains from {url}, total: "
+"{total}"
 msgstr "JSFinder 从 {url} 提取了 {related} 个与种子相关的子域名，共 {total} 个"
 
-
 #, python-brace-format
-msgid "JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+msgid ""
+"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from "
+"{url}"
 msgstr "JSFinder 从 {url} 提取了 {url_count} 个 URL 和 {subdomain_count} 个子域名"
 
-
 #, python-brace-format
-msgid "JSFinder output preview:
-{output}"
-msgstr "JSFinder 输出预览:
-{output}"
-
+msgid ""
+"JSFinder output preview:\n"
+"{output}"
+msgstr ""
+"JSFinder 输出预览:\n"
+"{output}"
 
 msgid "Matches exclusion rules"
 msgstr "命中排除规则"
-
 
 #, python-brace-format
 msgid "No breeder for type {type}"
 msgstr "没有针对 {type} 类型的繁殖器"
 
-
 #, python-brace-format
-msgid "Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
+msgid ""
+"Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
 msgstr "代理已自动禁用。下一轮将对 {url} 使用直连重试。"
-
 
 #, python-brace-format
 msgid "Running built-in DNS brute-force for subdomains: {domain}"
 msgstr "正在对 {domain} 执行内置 DNS 暴力枚举"
 
-
-msgid "Seed domain list is empty, this may cause domain relevance judgment errors"
+msgid ""
+"Seed domain list is empty, this may cause domain relevance judgment errors"
 msgstr "种子域名列表为空，可能导致域名相关性判断出错"
 
-
-msgid "Seed domains list attribute not found in engine, all domains will be considered unrelated"
+msgid ""
+"Seed domains list attribute not found in engine, all domains will be "
+"considered unrelated"
 msgstr "引擎中未找到种子域名列表属性，所有域名将被视为无关"
-
 
 #, python-brace-format
 msgid "Skipping malformed URL (JS concat/template): {url}"
 msgstr "跳过格式异常的 URL（JS 拼接/模板）: {url}"
 
-
 #, python-brace-format
 msgid "Skipping non-seed-related API path: {url}"
 msgstr "跳过与种子无关的接口路径: {url}"
-
 
 #, python-brace-format
 msgid "Skipping non-seed-related discovery link: {link}"
 msgstr "跳过与种子无关的发现链接: {link}"
 
-
 #, python-brace-format
-msgid "URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
+msgid ""
+"URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
 msgstr "URL 资产内容获取失败，已标记为淘汰: {url}，状态: {state}"
 
-
 #, python-brace-format
-msgid "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+msgid ""
+"URL asset marked as eliminated: {url}, status: {status}, state: {state}"
 msgstr "URL 资产已标记为淘汰: {url}，状态码: {status}，状态: {state}"
-
 
 msgid "Using naabu from system PATH"
 msgstr "使用系统 PATH 中的 naabu"
-
 
 #, python-brace-format
 msgid "robots/sitemap discovery failed: {error}"
 msgstr "robots.txt/sitemap.xml 发现失败: {error}"
 
-
 msgid "Start the web console"
 msgstr "启动 Web 控制台"
 
-
-
 msgid "Web console port"
 msgstr "Web 控制台端口"
-
-
 
 msgid "Web console stopped"
 msgstr "Web 控制台已停止"
@@ -2121,355 +2102,410 @@ msgstr "Web 控制台已停止"
 msgid "actions"
 msgstr "操作"
 
-
 msgid "all_types"
 msgstr "全部类型"
-
 
 msgid "analysis"
 msgstr "分析"
 
-
 msgid "asset_count"
 msgstr "资产数"
-
 
 msgid "assets"
 msgstr "资产"
 
-
 msgid "back"
 msgstr "返回"
-
 
 msgid "base_assets"
 msgstr "基线资产数"
 
-
 msgid "close"
 msgstr "关闭"
-
 
 msgid "common"
 msgstr "共有"
 
-
 msgid "common_has"
 msgstr "共有"
-
 
 msgid "compare_empty"
 msgstr "对比数据为空"
 
-
 msgid "compare_selected"
 msgstr "对比所选"
-
 
 msgid "concurrency"
 msgstr "并发"
 
-
 msgid "config"
 msgstr "配置"
-
 
 msgid "config_file"
 msgstr "配置文件 (breeding-config.yaml)"
 
-
 msgid "config_saved"
 msgstr "配置已保存"
-
 
 msgid "data"
 msgstr "数据"
 
-
 msgid "data_not_found"
 msgstr "项目数据不存在"
-
 
 msgid "delete_selected"
 msgstr "删除所选"
 
-
 msgid "depth"
 msgstr "深度"
-
 
 msgid "depth_dist"
 msgstr "深度分布"
 
-
 msgid "description"
 msgstr "描述"
-
 
 msgid "detail"
 msgstr "详情"
 
-
 msgid "disable"
 msgstr "禁用"
-
 
 msgid "domain_seed"
 msgstr "域名种子（每行一个）"
 
-
 msgid "drag_hint"
 msgstr "拖拽平移 · 滚轮缩放"
-
 
 msgid "edges"
 msgstr "边"
 
-
 msgid "enable"
 msgstr "启用"
-
 
 msgid "events"
 msgstr "事件"
 
-
 msgid "follow_log"
 msgstr "跟随滚动"
-
 
 msgid "handlers"
 msgstr "处理器"
 
-
 msgid "high_related"
 msgstr "高关联资产(度≥3)"
-
 
 msgid "history_projects"
 msgstr "历史扫描项目"
 
-
 msgid "ip_seed"
 msgstr "IP 种子（每行一个）"
-
 
 msgid "max_depth"
 msgstr "最大深度"
 
-
 msgid "max_depth_l"
 msgstr "最大深度"
-
 
 msgid "name"
 msgstr "名称"
 
-
 msgid "new_scan_task"
 msgstr "新建探测任务"
-
 
 msgid "new_task"
 msgstr "新建任务"
 
-
 msgid "no_assets"
 msgstr "无资产"
-
 
 msgid "no_data"
 msgstr "无数据"
 
-
 msgid "no_match"
 msgstr "无匹配资产"
-
 
 msgid "no_plugins"
 msgstr "暂无插件（插件目录为空或未加载）"
 
-
 msgid "no_projects"
 msgstr "暂无历史扫描项目"
-
 
 msgid "no_props"
 msgstr "无附加属性"
 
-
 msgid "no_tasks"
 msgstr "暂无任务"
-
 
 msgid "nodes"
 msgstr "节点"
 
-
 msgid "only_base"
 msgstr "仅基线有"
-
 
 msgid "only_base_has"
 msgstr "仅基线有"
 
-
 msgid "only_others"
 msgstr "仅其他有"
-
 
 msgid "only_others_has"
 msgstr "仅其他有"
 
-
 msgid "other_assets"
 msgstr "其他项目资产数"
-
 
 msgid "output"
 msgstr "输出"
 
-
 msgid "plugin"
 msgstr "插件"
-
 
 msgid "plugins"
 msgstr "插件"
 
-
 msgid "project_compare"
 msgstr "项目对比"
-
 
 msgid "props"
 msgstr "属性 (properties)"
 
-
 msgid "raw_json"
 msgstr "原始 JSON"
-
 
 msgid "real_time_log"
 msgstr "实时日志"
 
-
 msgid "refresh"
 msgstr "刷新"
-
 
 msgid "reload"
 msgstr "重新加载"
 
-
 msgid "rescan"
 msgstr "重扫"
-
 
 msgid "save"
 msgstr "保存"
 
-
 msgid "scan_after_done"
 msgstr "扫描完成后即可查看完整项目数据"
-
 
 msgid "scan_projects"
 msgstr "扫描项目"
 
-
 msgid "scan_running"
 msgstr "扫描进行中，输出生成中…"
-
 
 msgid "scan_tasks"
 msgstr "扫描任务"
 
-
 msgid "search_assets"
 msgstr "搜索资产..."
-
 
 msgid "seed"
 msgstr "种子"
 
-
 msgid "seed_domains"
 msgstr "种子域名"
-
 
 msgid "source"
 msgstr "来源"
 
-
 msgid "start_scan"
 msgstr "开始扫描"
-
 
 msgid "starting"
 msgstr "启动中..."
 
-
 msgid "state_dist"
 msgstr "资产状态分布"
-
 
 msgid "status"
 msgstr "状态"
 
-
 msgid "stop"
 msgstr "停止"
-
 
 msgid "strategy"
 msgstr "策略"
 
-
 msgid "task_detail"
 msgstr "任务"
-
 
 msgid "task_failed"
 msgstr "任务失败"
 
-
 msgid "task_started"
 msgstr "已启动任务"
-
 
 msgid "tasks"
 msgstr "任务进度"
 
-
 msgid "topology"
 msgstr "拓扑"
-
 
 msgid "type"
 msgstr "类型"
 
-
 msgid "type_count"
 msgstr "类型数"
-
 
 msgid "type_dist"
 msgstr "资产类型分布"
 
-
 msgid "url_seed"
 msgstr "URL 种子（每行一个）"
-
 
 msgid "version"
 msgstr "版本"
 
-
 msgid "view"
 msgstr "查看"
-
 
 msgid "view_output"
 msgstr "查看输出"
 
+msgid "Asset type {type} disabled, skipping {uid}"
+msgstr "资产类型 {type} 已禁用，跳过 {uid}"
+
+msgid "Asset type {type} is disabled"
+msgstr "资产类型 {type} 已禁用"
+
+msgid "Configured EHole path does not exist, falling back: {path}"
+msgstr "配置的 EHole 路径不存在，回退: {path}"
+
+msgid "Configured WhatWeb path does not exist, falling back: {path}"
+msgstr "配置的 WhatWeb 路径不存在，回退: {path}"
+
+msgid "Created default config file from template: {path}"
+msgstr "已从模板创建默认配置文件: {path}"
+
+msgid "DNS brute-force timed out for {domain}"
+msgstr "对 {domain} 的 DNS 暴力破解超时"
+
+msgid "EHole config.ini copy failed: {error}"
+msgstr "EHole config.ini 复制失败: {error}"
+
+msgid "EHole execution timed out: {url}"
+msgstr "EHole 执行超时: {url}"
+
+msgid "EHole finger.json copy failed: {error}"
+msgstr "EHole finger.json 复制失败: {error}"
+
+msgid "EHole json output missing: {path}"
+msgstr "EHole json 输出缺失: {path}"
+
+msgid "EHole json parse failed: {err}"
+msgstr "EHole json 解析失败: {err}"
+
+msgid "EHole returned empty fingerprint list"
+msgstr "EHole 返回空指纹列表"
+
+msgid "EHole stderr: {err}"
+msgstr "EHole 标准错误: {err}"
+
+msgid ""
+"EHole tool not found (no binary for current platform), keeping internal "
+"title extraction"
+msgstr "未找到 EHole 工具（当前平台无二进制），沿用内置标题提取"
+
+msgid ""
+"Fingerprint engine disabled (engine=none), using internal title extraction"
+msgstr "指纹引擎已禁用（engine=none），使用内置标题提取"
+
+msgid "Fingerprint merged result: {result}"
+msgstr "指纹合并结果: {result}"
+
+msgid "Fingerprinting feature not enabled, skipping fingerprint call"
+msgstr "指纹识别功能未开启，跳过指纹调用"
+
+msgid "Found tool ehole in local multi-arch directory"
+msgstr "在本地多架构目录中找到 ehole 工具"
+
+msgid "Found tool whatweb"
+msgstr "找到 whatweb 工具"
+
+msgid "Found tool {tool} in local directory"
+msgstr "在本地目录中找到工具 {tool}"
+
+msgid "IP range discovery disabled by config, skipping IP resolution"
+msgstr "IP 范围发现已被配置禁用，跳过 IP 解析"
+
+msgid "Local EHole resolution failed: {error}"
+msgstr "本地 EHole 解析失败: {error}"
+
+msgid "Local tool resolution failed for {name}: {err}"
+msgstr "工具 {name} 本地解析失败: {err}"
+
+msgid ""
+"No fingerprint tool available (ehole/whatweb), using internal title "
+"extraction"
+msgstr "没有可用的指纹工具（ehole/whatweb），使用内置标题提取"
+
+msgid ""
+"Plugin name conflict: {cur} declares {name} already provided by {prev}, "
+"skipped"
+msgstr "插件名冲突: {cur} 声明的 {name} 已由 {prev} 提供，跳过"
+
+msgid "Plugin name conflict: {name} from {a} and {b}, keeping {a}"
+msgstr "插件名冲突: {name} 同时来自 {a} 与 {b}，保留 {a}"
+
+msgid "Plugin {cur} conflicts with {prev} ({name}), skipped"
+msgstr "插件 {cur} 与 {prev}（{name}）冲突，跳过"
+
+msgid "Selected fingerprint tool {tool} not available, skipping"
+msgstr "选定的指纹工具 {tool} 不可用，跳过"
+
+msgid "Subdomain discovery disabled by config, skipping"
+msgstr "子域名发现已被配置禁用，跳过"
+
+msgid "Title extracted from WhatWeb: {title}"
+msgstr "从 WhatWeb 提取标题: {title}"
+
+msgid "Title extracted from fingerprint tool: {url}, title: {title}"
+msgstr "从指纹工具提取标题: {url}, 标题: {title}"
+
+msgid "Tool registered: {name} (path={path}, args={args})"
+msgstr "工具已注册: {name} (路径={path}, 参数={args})"
+
+msgid "Using EHole from configured path: {path}"
+msgstr "使用配置路径的 EHole: {path}"
+
+msgid "Using WhatWeb from configured path: {path}"
+msgstr "使用配置路径的 WhatWeb: {path}"
+
+msgid "Using local EHole for {os}/{arch}: {path}"
+msgstr "使用本地 EHole（{os}/{arch}）: {path}"
+
+msgid "Using local WhatWeb: {path}"
+msgstr "使用本地 WhatWeb: {path}"
+
+msgid "Using naabu from local directory: {path}"
+msgstr "使用本地目录的 naabu: {path}"
+
+msgid "Using subfinder from local directory: {path}"
+msgstr "使用本地目录的 subfinder: {path}"
+
+msgid "WhatWeb call exception: {error}"
+msgstr "WhatWeb 调用异常: {error}"
+
+msgid "WhatWeb execution timed out: {url}"
+msgstr "WhatWeb 执行超时: {url}"
+
+msgid "WhatWeb json output missing: {path}"
+msgstr "WhatWeb json 输出缺失: {path}"
+
+msgid "WhatWeb json parse failed: {err}"
+msgstr "WhatWeb json 解析失败: {err}"
+
+msgid "WhatWeb returned empty fingerprint list"
+msgstr "WhatWeb 返回空指纹列表"
+
+msgid "WhatWeb stderr: {err}"
+msgstr "WhatWeb 标准错误: {err}"
+
+msgid ""
+"WhatWeb tool not found (no binary for current platform), keeping internal "
+"title extraction"
+msgstr "未找到 WhatWeb 工具（当前平台无二进制），沿用内置标题提取"

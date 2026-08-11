@@ -20,15 +20,20 @@
 
 ## 1. Plugin Mechanism Overview
 
-- **A plugin is just a Python file**: drop any `.py` into the `plugins/` directory, and the engine loads it automatically at startup, dispatching scan-lifecycle events to it.
-- **Discovery rule**: every top-level callable named with an `on_` prefix in the plugin file is automatically registered as a handler for the corresponding event. Other functions are not registered and can be used as plain helper utilities.
+- **A plugin is a Python file or directory**: drop a `.py` file into the plugin directory (default `plugins/`), or a directory containing an entry file (`<name>.py` / `plugin.py` / `main.py` / `__init__.py`), and the engine loads it automatically at startup, dispatching scan-lifecycle events to it.
+- **Discovery rule**: every top-level callable named with an `on_` prefix in the plugin module is automatically registered as a handler for the corresponding event. Other functions are not registered and can be used as plain helper utilities.
 - **Non-intrusive**: plugin modules are loaded in their own namespace; a crashing plugin never breaks the scan.
-- **Config switch**: `plugins.dir` in `breeding-config.yaml` sets the plugin directory; `plugins.disabled` disables individual plugins.
+- **CLI integration (optional)**: a plugin may define `register_cli(parser)` to add its own command-line arguments to `main.py`; the arguments only exist while the plugin is loaded (see 8.2).
+- **Config switch**: `plugins.dir` in `breeding-config.yaml` sets the plugin directory; `plugins.disabled` disables individual plugins (by plugin name, file or directory).
+- **Conflict handling**: same-name plugins keep only the first one (sorted order), losers are recorded in `engine.plugin_conflicts`; plugins can also declare mutual exclusions (see 4 / 8.4).
 
 ```text
-plugins/
-├── shodan_scan.py        # your plugin
-└── text.py        # text
+plugins/                 # or any other dir configured by plugins.dir
+├── shodan_scan.py       # single-file plugin
+└── report/              # directory plugin
+    ├── plugin.py        # entry (any of plugin.py / main.py / __init__.py / report.py)
+    ├── config.yaml      # optional bundled defaults
+    └── README.md        # optional docs shown by --plugin-info
 ```
 
 ---
@@ -102,6 +107,26 @@ __manifest__ = {
 
 Legacy constants are also supported: `PLUGIN_NAME` / `PLUGIN_VERSION` / `PLUGIN_DESCRIPTION` / `PLUGIN_AUTHOR`.
 
+`__plugin__` is accepted as an alias of `__manifest__`.
+
+**Mutual exclusion**: declare in the manifest that two plugins must not run
+together (patterns support `*` / `?` fnmatch wildcards):
+
+```python
+__manifest__ = {
+    "name": "shodan_scan",
+    "version": "0.1.0",
+    "description": "Enrich IP asset fingerprints via Shodan",
+    "author": "your name",
+    "conflicts": ["other_scan", "scanner_*"],   # fnmatch(*) patterns
+}
+```
+
+Equivalent keys: `conflicts` / `conflict_with` / `incompatible` in the
+manifest, or a module-level `PLUGIN_CONFLICTS` list. When a conflict is
+detected, only the winner is loaded; the loser is skipped and reported in
+`engine.plugin_conflicts`.
+
 ---
 
 ## 5. Platform Capabilities: What You Can Access
@@ -118,6 +143,8 @@ Legacy constants are also supported: `PLUGIN_NAME` / `PLUGIN_VERSION` / `PLUGIN_
 | `engine.output_handler.output_dir` | Output root directory (parent of all timestamped subdirectories) |
 | `engine.save_checkpoint()` | Manually save a checkpoint |
 | `engine.register_hook / emit_hook` | Custom events (see 6.4) |
+| `engine.plugins` | dict of loaded plugin info (name -> info), same as `--list-plugins` |
+| `engine.plugin_conflicts` | list of conflict records (`reason` / `winner` / `loser`) between plugins |
 
 **Asset object**:
 
@@ -127,7 +154,7 @@ Legacy constants are also supported: `PLUGIN_NAME` / `PLUGIN_VERSION` / `PLUGIN_
 | `asset.type` | `domain` / `ip` / `url` / `port` / `js`, etc. |
 | `asset.value` | The value, e.g. `example.com` |
 | `asset.depth` | Breeding depth |
-| `asset.state` | `initialized` / `scanning` / `scanned` / `eliminated` / `excluded` / `failed` |
+| `asset.state` | `new` (initial) / `scanning` / `scanned` / `eliminated` / `excluded` / `failed` |
 | `asset.properties` | **dict, freely readable/writable by engine and plugins; ends up in the exported JSON** |
 | `asset.to_dict()` | JSON-friendly asset representation |
 
@@ -263,20 +290,54 @@ Any other plugin that registers `on_port_reported` will receive it; custom event
 
 ## 8. Plugin Management
 
+### 8.1 Commands
+
 | Command | Purpose |
 |---------|---------|
-| `python main.py --list-plugins` | List plugins: version, handler count, status, subscribed events |
-| `python main.py --plugin-info <name>` | Show full info for one plugin |
+| `python main.py --list-plugins` | List plugins: version, handler count, kind, status, subscribed events |
+| `python main.py --plugin-info <name>` | Show full info for one plugin (incl. directory files/doc and its `plugin_help()`) |
+| `python main.py --web` | Web console -> **Plugins** page lists plugins and can enable/disable them (`/api/plugins`) |
 | Config file | Control loading behavior (below) |
 
 ```yaml
 plugins:
   dir: plugins              # plugin directory (default: plugins/)
-  disabled:                 # disable list, values are plugin names (without .py)
+  disabled:                 # disable list; values are plugin names (without .py)
     - my_plugin
 ```
 
-Plugin status: `loaded` / `disabled` / `failed` (the reason is shown when import fails).
+`plugins.disabled` applies to single-file **and** directory plugins. Plugin
+status: `loaded` / `disabled` / `failed` (the reason is shown when import
+fails).
+
+### 8.2 CLI integration
+
+A plugin may define `register_cli(parser)`. While the plugin is loaded,
+`main.py` calls it during argument parsing, so its flags appear in `--help`.
+Disable the plugin (or point `plugins.dir` elsewhere) and its flags disappear.
+
+```python
+def register_cli(parser):
+    parser.add_argument("--my-feature", action="store_true",
+                        help="Provided by my_plugin (only while loaded)")
+```
+
+### 8.3 Directory plugins
+
+A directory plugin's folder is prepended to `sys.path` when it is imported, so
+it can `import` sibling helpers, configs and resources. `--plugin-info`
+displays the folder's file list and a summary of its `README.md` / `说明.md`.
+An entry file is required — resource-only folders are not treated as plugins.
+
+### 8.4 Conflicts & mutual exclusion
+
+- Same plugin name from two sources (e.g. `foo.py` + `foo/`): the first in
+  sorted order wins; the other is skipped and logged.
+- Two plugins declaring the same manifest `name`: the first wins.
+- `conflicts` declarations (see section 4) between loaded plugins: the first
+  wins.
+- Every loser is recorded in `engine.plugin_conflicts` as
+  `{name, reason, winner, loser}`.
 
 ---
 

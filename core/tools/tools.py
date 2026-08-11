@@ -23,10 +23,130 @@ PY_EXE = sys.executable or 'python'
 def _script_path(name):
     return os.path.join(REPO_ROOT, 'assets', name)
 
+
+def _copy_peer(src, dst):
+    import shutil
+    shutil.copyfile(src, dst)
+    try:
+        os.chmod(dst, os.stat(src).st_mode)
+    except OSError:
+        pass
+
+
+# ---- 平台 / 本地工具解析的必留逻辑（原 provisioning.py，已并入本模块）----
+
+_TEMP_DIR_CACHE = None
+
+
+def _default_tools_dir():
+    """默认本地工具目录：项目根下的 tools/。"""
+    return os.path.join(REPO_ROOT, 'tools')
+
+
+def _detect_platform():
+    """返回 (os_name, arch)，如 ("linux", "amd64") / ("windows", "arm64")。"""
+    import platform
+    raw = platform.system().lower()
+    if raw.startswith('win'):
+        os_name = 'windows'
+    elif raw == 'darwin':
+        os_name = 'darwin'
+    else:
+        os_name = 'linux'
+
+    machine = platform.machine().lower()
+    if machine in ('x86_64', 'amd64'):
+        arch = 'amd64'
+    elif machine in ('aarch64', 'arm64'):
+        arch = 'arm64'
+    elif machine in ('i386', 'i686', 'x86'):
+        arch = '386'
+    elif machine.startswith('arm'):
+        arch = 'arm'
+    else:
+        arch = 'amd64'
+    return os_name, arch
+
+
+def _exe_name(bin_name):
+    """按平台给可执行文件补充 .exe 后缀。"""
+    return bin_name + ('.exe' if os.name == 'nt' else '')
+
+
+# 各工具在本地多架构目录中的可执行文件名（无则与工具名同名）
+_MULTIARCH_BINS = {'ehole': 'EHole'}
+
+
+def _local_multiarch_binary(name, tools_dir=None):
+    """返回 tools/<name>/{os}/{arch}/ 下当前平台的可执行文件，无则返回 None。
+
+    用于 EHole 这类“本机 arm64 自行编译、其余架构预下载到本地”的内部工具。
+    """
+    tools_dir = tools_dir or _default_tools_dir()
+    os_name, arch = _detect_platform()
+    cand = os.path.join(tools_dir, name, os_name, arch, _exe_name(_MULTIARCH_BINS.get(name, name)))
+    if os.path.isfile(cand):
+        return cand
+    return None
+
+
+def _writable_temp_dir(tools_dir=None):
+    """返回一个确定可写的临时目录（低权限环境 /tmp 可能不可写）。
+
+    候选顺序：
+      1. 环境变量 ZSANS_TEMP_DIR（用户显式指定，最高优先级）
+      2. $TMPDIR
+      3. tempfile.gettempdir()（通常为 /tmp）
+    以上都不可写时，回退到 tools/.tmp（tools 目录本身即可写时）。
+    """
+    global _TEMP_DIR_CACHE
+    candidates = []
+    env_dir = os.environ.get('ZSANS_TEMP_DIR')
+    if env_dir:
+        candidates.append(env_dir)
+    tdir = os.environ.get('TMPDIR')
+    if tdir:
+        candidates.append(tdir)
+    candidates.append(tempfile.gettempdir())
+
+    extra = os.path.join(tools_dir or _default_tools_dir(), '.tmp')
+    candidates.append(extra)
+
+    probe = _TEMP_DIR_CACHE
+    for cand in candidates:
+        try:
+            os.makedirs(cand, exist_ok=True)
+            test_file = os.path.join(cand, '.zsans_wtest_%d' % os.getpid())
+            with open(test_file, 'w') as f:
+                f.write('ok')
+            os.unlink(test_file)
+            _TEMP_DIR_CACHE = cand
+            return cand
+        except OSError:
+            continue
+    _TEMP_DIR_CACHE = None
+    return None
+
+
+def _ensure_tempdir_global():
+    """把 tempfile 全局临时目录改为可写位置（低权限环境兜底）。"""
+    wd = _writable_temp_dir()
+    if wd:
+        tempfile.tempdir = wd
+    return tempfile.gettempdir()
+
+
 class ToolOrchestrator:
     def __init__(self, config=None, engine=None):
         self.config = config or {}
         self.engine = engine
+        # 低权限环境兼容: /tmp 不可写时把 tempfile 全局临时目录
+        # 落到可写位置(如项目 tools/.tmp),让 run_ehole/subfinder/JSFinder
+        # 等内部的 NamedTemporaryFile 不再依赖 /tmp。
+        try:
+            _ensure_tempdir_global()
+        except Exception:
+            pass
         self.concurrency = self.config.get('concurrency', {}).get('max_tasks', 5)
         self.executor = ThreadPoolExecutor(max_workers=self.concurrency)
         self.running_tasks = {}
@@ -49,6 +169,38 @@ class ToolOrchestrator:
         
         for tool in tools_to_remove:
             self.tool_paths.pop(tool)
+        
+        # 工具定义:每个外部工具的附加参数等元信息,插件可通过 register_tool 扩展
+        self.tool_defs = {}
+        for tool_name in ('subfinder', 'naabu', 'ehole', 'whatweb'):
+            self.tool_defs[tool_name] = {'extra_args': []}
+    
+    def register_tool(self, name, path=None, version=None, extra_args=None, **kwargs):
+        """注册 / 覆盖一个外部工具的定义(供插件扩展)。
+
+        - path:        可执行文件完整路径;提供则写入 self.tool_paths,引擎调用即生效
+        - version:     工具的版本号(仅记录,不校验)
+        - extra_args:  追加到该工具命令末尾的参数列表,如 ['-top-ports', '1000']
+        """
+        if not isinstance(name, str) or not name:
+            return False
+        self.tool_defs.setdefault(name, {'extra_args': []})
+        if extra_args:
+            self.tool_defs[name]['extra_args'] = [str(a) for a in extra_args]
+        if version:
+            self.tool_defs[name]['version'] = str(version)
+        if path:
+            self.tool_paths[name] = os.path.abspath(path)
+        logger.info(_("Tool registered: {name} (path={path}, args={args})").format(
+            name=name,
+            path=self.tool_paths.get(name, '-'),
+            args=self.tool_defs[name].get('extra_args'),
+        ))
+        return True
+
+    def tool_extra_args(self, name):
+        """返回某工具已注册的附加参数列表。"""
+        return list((self.tool_defs.get(name) or {}).get('extra_args') or [])
     
     def run_subfinder(self, domain):
         if not self._check_tool_exists('subfinder'):
@@ -68,16 +220,23 @@ class ToolOrchestrator:
                 if os.path.exists(tool_path):
                     subfinder_path = tool_path
                     logger.info(_("Using subfinder path from configuration: {path}").format(path=subfinder_path))
-            elif os.name == 'nt' and os.path.exists(os.path.join('assets', 'subfinder.exe')):
+            else:
+                local_path = self._resolve_local_tool_binary('subfinder')
+                if local_path:
+                    subfinder_path = local_path
+                    logger.info(_("Using subfinder from local directory: {path}").format(path=subfinder_path))
+            if os.name == 'nt' and os.path.exists(os.path.join('assets', 'subfinder.exe')):
                 subfinder_path = os.path.abspath(os.path.join('assets', 'subfinder.exe'))
                 logger.info(_("Using subfinder.exe from assets directory: {path}").format(path=subfinder_path))
             
-            cmd = [subfinder_path, '-d', domain, '-o', temp_path, '-silent']
+            cmd = [subfinder_path, '-d', domain, '-o', temp_path, '-silent'] + self.tool_extra_args('subfinder')
             logger.info(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
             
             try:
                 if os.name == 'nt' and subfinder_path.endswith('.exe'):
                     cmd_str = f'"{subfinder_path}" -d {domain} -o "{temp_path}" -silent'
+                    if self.tool_extra_args('subfinder'):
+                        cmd_str += ' ' + ' '.join(self.tool_extra_args('subfinder'))
                     logger.info(_("Using shell execution: {cmd}").format(cmd=cmd_str))
                     subprocess.run(cmd_str, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, timeout=120)
                 else:
@@ -159,21 +318,26 @@ class ToolOrchestrator:
     def run_naabu(self, ip):
         naabu_path = self.tool_paths.get('naabu')
         if not naabu_path or not self._check_tool_exists('naabu'):
-            # 与 subfinder 行为保持一致：配置路径缺失时尝试系统 PATH 中的 naabu
-            from shutil import which
-            if which('naabu'):
-                naabu_path = 'naabu'
-                logger.info(_("Using naabu from system PATH"))
+            # 与 subfinder 行为保持一致：配置路径缺失时尝试本地/系统 PATH 中的 naabu
+            local_path = self._resolve_local_tool_binary('naabu')
+            if local_path:
+                naabu_path = local_path
+                logger.info(_("Using naabu from local directory: {path}").format(path=naabu_path))
             else:
-                logger.warning(_("Naabu tool not found or invalid path, using internal method instead"))
-                return self._run_internal_port_scanner(ip)
+                from shutil import which
+                if which('naabu'):
+                    naabu_path = 'naabu'
+                    logger.info(_("Using naabu from system PATH"))
+                else:
+                    logger.warning(_("Naabu tool not found or invalid path, using internal method instead"))
+                    return self._run_internal_port_scanner(ip)
         
         open_ports = {}
         try:
             with tempfile.NamedTemporaryFile(delete=False, mode='w+t') as temp_file:
                 temp_path = temp_file.name
             
-            cmd = [naabu_path, '-host', ip, '-json', '-o', temp_path, '-silent']
+            cmd = [naabu_path, '-host', ip, '-json', '-o', temp_path, '-silent'] + self.tool_extra_args('naabu')
             logger.info(_("Executing naabu command: {cmd}").format(cmd=' '.join(cmd)))
             subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=240)
             
@@ -492,14 +656,131 @@ class ToolOrchestrator:
         
         return subdomains
     
+    def _resolve_ehole_binary(self):
+        """解析当前平台可用的 EHole 可执行文件路径，返回 None 表示无可用二进制。
+
+        优先级：
+          1. 配置 external_tools.paths.ehole（用户显式指定，人为空则跳过）
+          2. 内置多架构目录 tools/ehole/{os}/{arch}/EHole[.exe]
+             （linux/arm64 已本机编译，其余架构预下载到本地，按平台自动选择）
+          3. 旧的单目录布局 tools/ehole/EHole[.exe] / assets/ehole
+          4. 系统 PATH
+
+        EHole 要求 finger.json 与可执行文件同目录，因此多架构目录内每份
+        都自带 finger.json 与 config.ini；返回前会补齐缺失的配套文件。
+        """
+        if 'ehole' in self.tool_paths:
+            tp = self.tool_paths['ehole']
+            if tp and os.path.isfile(tp):
+                logger.debug(_("Using EHole from configured path: {path}").format(path=tp))
+                return tp
+            if tp:
+                logger.warning(_("Configured EHole path does not exist, falling back: {path}").format(path=tp))
+
+        try:
+            os_name, arch = _detect_platform()
+            candidates = []
+            arch_dir = os.path.join(REPO_ROOT, 'tools', 'ehole', os_name, arch)
+            if os.path.isdir(arch_dir):
+                candidates.append(os.path.join(arch_dir, _exe_name('EHole')))
+            for cand in candidates:
+                if os.path.isfile(cand):
+                    self._ensure_ehole_peers(cand)
+                    logger.debug(_("Using local EHole for {os}/{arch}: {path}").format(os=os_name, arch=arch, path=cand))
+                    return cand
+        except Exception as e:
+            logger.debug(_("Local EHole resolution failed: {error}").format(error=e))
+
+        for cand in (
+            os.path.join(REPO_ROOT, 'tools', 'ehole', 'EHole' + ('.exe' if os.name == 'nt' else '')),
+            os.path.join('assets', 'ehole'),
+            os.path.join('assets', 'ehole.exe'),
+        ):
+            if os.path.isfile(cand):
+                self._ensure_ehole_peers(cand)
+                return cand
+
+        try:
+            subprocess.run(['which', 'ehole'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return 'ehole'
+        except subprocess.CalledProcessError:
+            return None
+
+    def _resolve_whatweb_binary(self):
+        """解析当前平台可用的 WhatWeb 可执行文件路径，返回 None 表示无可用二进制。
+
+        优先级：
+          1. 配置 external_tools.paths.whatweb（用户显式指定，人为空则跳过）
+          2. 本地目录 tools/whatweb/whatweb（含多架构 tools/whatweb/{os}/{arch}/）
+          3. assets/whatweb
+          4. 系统 PATH
+
+        WhatWeb 以 Ruby 脚本形式分发（无预编译二进制），因此主要靠 PATH /
+        用户配置路径发现；放在 tools/whatweb 下亦可自动识别。
+        """
+        if 'whatweb' in self.tool_paths:
+            tp = self.tool_paths['whatweb']
+            if tp and os.path.isfile(tp):
+                logger.debug(_("Using WhatWeb from configured path: {path}").format(path=tp))
+                return tp
+            if tp:
+                logger.warning(_("Configured WhatWeb path does not exist, falling back: {path}").format(path=tp))
+
+        local = self._resolve_local_tool_binary('whatweb')
+        if local:
+            logger.debug(_("Using local WhatWeb: {path}").format(path=local))
+            return local
+
+        for cand in (os.path.join('assets', 'whatweb'), os.path.join('assets', 'whatweb.rb')):
+            if os.path.isfile(cand):
+                return cand
+
+        try:
+            subprocess.run(['which', 'whatweb'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return 'whatweb'
+        except subprocess.CalledProcessError:
+            return None
+
+    @staticmethod
+    def _ensure_ehole_peers(bin_path):
+        """EHole 启动需在可执行文件同目录读取 finger.json / config.ini。
+
+        多架构目录内已逐个预置,此处仅对可能的旧单文件布局做兜底补齐。
+        """
+        if os.name == 'nt' or not os.path.isfile(bin_path):
+            return
+        base = os.path.dirname(bin_path) or '.'
+        got = os.listdir(base)
+        files = {}
+        for n in got:
+            full = os.path.join(base, n)
+            if os.path.isfile(full):
+                files[n.lower()] = full
+        for src_cand in (
+            os.path.join(REPO_ROOT, 'tools', 'ehole', 'linux', 'amd64', 'finger.json'),
+            os.path.join(REPO_ROOT, 'tools', 'ehole', 'linux', 'arm64', 'finger.json'),
+        ):
+            if os.path.isfile(src_cand) and 'finger.json' not in files:
+                try:
+                    _copy_peer(src_cand, os.path.join(base, 'finger.json'))
+                except OSError as e:
+                    logger.debug(_("EHole finger.json copy failed: {error}").format(error=e))
+            if os.path.isfile(src_cand) and 'config.ini' not in files:
+                try:
+                    _copy_peer(src_cand.replace('finger.json', 'config.ini'), os.path.join(base, 'config.ini'))
+                except OSError as e:
+                    logger.debug(_("EHole config.ini copy failed: {error}").format(error=e))
+            break
+
     def run_ehole(self, url):
         fingerprint_enabled = self.config.get('external_tools', {}).get('fingerprint', {}).get('enabled', False)
         if not fingerprint_enabled:
             logger.info(_("Fingerprinting feature not enabled, skipping EHole call"))
             return None
-            
-        if not self._check_tool_exists('ehole'):
-            logger.warning(_("EHole tool not found, cannot perform fingerprinting"))
+
+        ehole_path = self._resolve_ehole_binary()
+        if not ehole_path:
+            logger.warning(_("EHole tool not found (no binary for current platform), keeping internal title extraction"))
             return None
         
         cleaned_url = url.strip()
@@ -519,109 +800,352 @@ class ToolOrchestrator:
             'title': None
         }
         
+        out_json_path = None
         try:
-            ehole_path = 'ehole'
-            
-            if 'ehole' in self.tool_paths:
-                tool_path = self.tool_paths['ehole']
-                if os.path.exists(tool_path):
-                    ehole_path = tool_path
-                    logger.info(_("Using EHole path from configuration: {path}").format(path=ehole_path))
-            
-            cmd = [ehole_path, 'finger', '-u', cleaned_url]
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.json', mode='w+t') as tmp_out:
+                out_json_path = tmp_out.name
+
+            cmd = [ehole_path, 'finger', '-u', cleaned_url, '-o', out_json_path] + self.tool_extra_args('ehole')
             logger.info(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
             
+            process = None
             try:
                 if os.name == 'nt' and ehole_path.endswith('.exe'):
                     final_url = cleaned_url.strip()
                     while '`' in final_url or '"' in final_url:
                         final_url = final_url.replace('`', '').replace('"', '')
                     final_url = final_url.strip()
-                    logger.debug(_("Original URL: {url}").format(url=url))
-                    logger.debug(_("Cleaned URL: {url}").format(url=cleaned_url))
-                    logger.debug(_("Final URL: {url}").format(url=final_url))
-                    cmd_str = f'"{ehole_path}" finger -u "{final_url}"'
+                    cmd_str = f'"{ehole_path}" finger -u "{final_url}" -o "{out_json_path}"'
+                    if self.tool_extra_args('ehole'):
+                        cmd_str += ' ' + ' '.join(self.tool_extra_args('ehole'))
                     logger.debug(_("Using shell string execution: {cmd}").format(cmd=cmd_str))
                     process = subprocess.run(cmd_str, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, timeout=60)
                 else:
                     process = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
-                
-                output = process.stdout.decode('utf-8', errors='ignore')
-                logger.debug(_("EHole raw output: {output}").format(output=output))
-                
-                found_result = False
-                for line in output.split('\n'):
-                    if '|' in line and (cleaned_url in line or any(part.strip() == cleaned_url for part in line.split('|'))):
-                        parts = line.strip().strip('[]').split('|')
-                        logger.debug(_("EHole output parsing: {parts}").format(parts=parts))
-                        
-                        if len(parts) >= 6:
-                            fingerprints = parts[1].strip().split(',')
-                            result['fingerprints'] = [fp.strip() for fp in fingerprints if fp.strip()]
-                            result['cms'] = fingerprints[0].strip() if fingerprints and fingerprints[0].strip() else None
-                            result['server'] = parts[2].strip() if parts[2].strip() else None
-                            try:
-                                result['status_code'] = int(parts[3].strip())
-                            except (ValueError, IndexError):
-                                pass
-                            
-                            if len(parts) > 5 and parts[5].strip():
-                                result['title'] = parts[5].strip()
-                                logger.info(_("Title extracted from EHole: {title}").format(title=result['title']))
-                            
-                            logger.info(_("Fingerprint result: {result}").format(result=result))
-                            found_result = True
-                            break
-                
-                if not found_result:
-                    logger.info(_("No exact match found, trying looser matching"))
-                    for line in output.split('\n'):
-                        if '|' in line:
-                            parts = line.strip().strip('[]').split('|')
-                            logger.debug(_("EHole loose match output parsing: {parts}").format(parts=parts))
-                            
-                            if len(parts) >= 6:
-                                fingerprints = parts[1].strip().split(',')
-                                result['fingerprints'] = [fp.strip() for fp in fingerprints if fp.strip()]
-                                result['cms'] = fingerprints[0].strip() if fingerprints and fingerprints[0].strip() else None
-                                result['server'] = parts[2].strip() if parts[2].strip() else None
-                                try:
-                                    result['status_code'] = int(parts[3].strip())
-                                except (ValueError, IndexError):
-                                    pass
-                                
-                                if len(parts) > 5 and parts[5].strip():
-                                    result['title'] = parts[5].strip()
-                                    logger.info(_("Title extracted from EHole loose match: {title}").format(title=result['title']))
-                                
-                                logger.info(_("Fingerprint loose match result: {result}").format(result=result))
-                                found_result = True
-                                break
-                
-                return result
-            except subprocess.CalledProcessError as e:
-                error_msg = e.stderr.decode('utf-8', errors='ignore') if e.stderr else str(e)
-                logger.error(_("EHole execution failed: {error}").format(error=error_msg))
-                
-                if error_msg and 'error' in error_msg.lower():
-                    logger.error(_("EHole error details: {error}").format(error=error_msg))
-                
-                if 'invalid' in error_msg.lower() and 'url' in error_msg.lower():
-                    logger.error(_("Possible URL format issue caused EHole failure: {url}").format(url=cleaned_url))
-                
+            except subprocess.TimeoutExpired:
+                logger.error(_("EHole execution timed out: {url}").format(url=cleaned_url))
                 return None
+            
+            if process and process.stderr:
+                logger.debug(_("EHole stderr: {err}").format(err=process.stderr[:300].decode('utf-8', errors='ignore')))
+            
+            return self._parse_ehole_json(out_json_path, result)
         except Exception as e:
             logger.error(_("EHole call exception: {error}").format(error=str(e)))
-            import traceback
-            logger.error(_("EHole exception details: {traceback}").format(traceback=traceback.format_exc()))
             return None
-    
+        finally:
+            try:
+                if out_json_path and os.path.exists(out_json_path):
+                    os.unlink(out_json_path)
+            except OSError:
+                pass
+
+    def _parse_ehole_json(self, json_path, result):
+        """解析 EHole v3.x 的 -o json 输出。返回 result；找不到目标时也尽力用首条。
+
+        输出样例：
+            [{ "url": "...", "cms": "", "server": "nginx/1.18.0",
+               "statuscode": 200, "length": 77, "title": "..." }]
+        """
+        if not json_path or not os.path.isfile(json_path):
+            logger.debug(_("EHole json output missing: {path}").format(path=json_path))
+            return result
+        try:
+            with open(json_path, 'r', encoding='utf-8', errors='ignore') as f:
+                data = json.load(f)
+        except Exception as e:
+            logger.warning(_("EHole json parse failed: {err}").format(err=e))
+            return result
+        if not isinstance(data, list) or not data:
+            logger.debug(_("EHole returned empty fingerprint list"))
+            return result
+
+        entry = data[0]
+        if not isinstance(entry, dict):
+            return result
+
+        cms = str(entry.get('cms') or '').strip()
+        fingerprints = [fp.strip() for fp in cms.split(',') if fp.strip()]
+        result['fingerprints'] = fingerprints
+        result['cms'] = fingerprints[0] if fingerprints else (cms or None)
+        result['server'] = (str(entry.get('server') or '').strip()) or None
+        title = (str(entry.get('title') or '').strip()) or None
+        if title:
+            result['title'] = title
+            logger.info(_("Title extracted from EHole: {title}").format(title=title))
+        try:
+            result['status_code'] = int(entry.get('statuscode') or entry.get('status') or 0) or None
+        except (TypeError, ValueError):
+            pass
+        logger.info(_("Fingerprint result: {result}").format(result=result))
+        return result
+
+    def run_whatweb(self, url):
+        """使用 WhatWeb 对 URL 做指纹识别，返回与 run_ehole 相同结构的 result。
+
+        WhatWeb 输出信息比 EHole 更丰富（JS 框架、博客/电商系统、版本等），
+        通过 ``--log-json`` 把结构化结果写入临时文件再解析。找不到工具时
+        返回 None，由上层回退到内置标题提取。
+        """
+        whatweb_path = self._resolve_whatweb_binary()
+        if not whatweb_path:
+            logger.warning(_("WhatWeb tool not found (no binary for current platform), keeping internal title extraction"))
+            return None
+
+        cleaned_url = url.strip()
+        cleaned_url = cleaned_url.replace('`', '').replace('"', '')
+        if not cleaned_url.startswith(('http://', 'https://')):
+            logger.warning(_("Invalid URL format: {url}, skipping fingerprinting").format(url=url))
+            return None
+
+        logger.info(_("Cleaned URL: {url}").format(url=cleaned_url))
+
+        result = {
+            'url': url,
+            'fingerprints': [],
+            'cms': None,
+            'server': None,
+            'status_code': None,
+            'title': None
+        }
+
+        out_json_path = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.json', mode='w+t') as tmp_out:
+                out_json_path = tmp_out.name
+
+            cmd = [whatweb_path, '--no-errors',
+                   '--log-json=' + out_json_path, cleaned_url] + self.tool_extra_args('whatweb')
+            logger.info(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
+
+            try:
+                process = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=90)
+            except subprocess.TimeoutExpired:
+                logger.error(_("WhatWeb execution timed out: {url}").format(url=cleaned_url))
+                return None
+
+            if process and process.stderr:
+                logger.debug(_("WhatWeb stderr: {err}").format(err=process.stderr[:300].decode('utf-8', errors='ignore')))
+
+            return self._parse_whatweb_json(out_json_path, result)
+        except Exception as e:
+            logger.error(_("WhatWeb call exception: {error}").format(error=str(e)))
+            return None
+        finally:
+            try:
+                if out_json_path and os.path.exists(out_json_path):
+                    os.unlink(out_json_path)
+            except OSError:
+                pass
+
+    @staticmethod
+    def _whatweb_meta_plugins():
+        """WhatWeb 输出中与“指纹/CMS”无关的元信息插件名。
+
+        其余命中的插件名会全部进入 fingerprints 列表（可含多个，代表完整
+        技术栈），首个作为 cms。
+        """
+        return {
+            'Title', 'HTTPServer', 'IP', 'Country', 'RedirectLocation', 'Script',
+            'MetaGenerator', 'Cookies', 'HTML5', 'MetaAuthor', 'MetaDescription',
+            'MetaKeywords', 'MetaRefresh', 'X-Powered-By', 'HTTPStatusCode',
+            'HTTPHeaders', 'Via-Proxy', 'X-Forwarded-For', 'Allow', 'UncommonHeaders',
+            'InterestingHeaders', 'Content-Type', 'Content-Language', 'Content-Encoding',
+            'Content-Length', 'X-Frame-Options', 'X-Content-Type-Options',
+            'Clickjacking', 'Framing', 'PasswordField', 'Form', 'Robots.txt',
+            'ServerHeader', 'Strict-Transport-Security', 'Content-Security-Policy',
+            'HttpOnly', 'Secure', 'Set-Cookie', 'Date', 'Expires', 'Last-Modified',
+        }
+
+    def _parse_whatweb_json(self, json_path, result):
+        """解析 WhatWeb 的 --log-json 输出，返回 result。
+
+        输出样例：
+            [{ "target": "http://example.com/", "http_status": 200,
+               "plugins": { "HTTPServer": {"string": ["nginx"], ...},
+                            "Title": {"string": ["Example"], ...},
+                            "WordPress": {"version": ["6.4"], ...} } }]
+        """
+        if not json_path or not os.path.isfile(json_path):
+            logger.debug(_("WhatWeb json output missing: {path}").format(path=json_path))
+            return result
+        try:
+            with open(json_path, 'r', encoding='utf-8', errors='ignore') as f:
+                data = json.load(f)
+        except Exception as e:
+            logger.warning(_("WhatWeb json parse failed: {err}").format(err=e))
+            return result
+        if not isinstance(data, list) or not data:
+            logger.debug(_("WhatWeb returned empty fingerprint list"))
+            return result
+
+        entry = data[0]
+        if not isinstance(entry, dict):
+            return result
+
+        plugins = entry.get('plugins') or {}
+        meta = self._whatweb_meta_plugins()
+        fingerprints = []
+        for pname, pinfo in sorted(plugins.items()):
+            if pname in meta:
+                continue
+            info = pinfo if isinstance(pinfo, dict) else {}
+            if info.get('string') or info.get('version') or info.get('module') or info.get('os'):
+                fingerprints.append(pname)
+
+        result['fingerprints'] = fingerprints
+        result['cms'] = fingerprints[0] if fingerprints else None
+
+        for pname in ('HTTPServer', 'WebServer', 'X-Powered-By'):
+            pinfo = plugins.get(pname)
+            if isinstance(pinfo, dict) and pinfo.get('string'):
+                result['server'] = str(pinfo['string'][0]).strip() or None
+                break
+
+        title_info = plugins.get('Title')
+        if isinstance(title_info, dict) and title_info.get('string'):
+            title = str(title_info['string'][0]).strip() or None
+            if title:
+                result['title'] = title
+                logger.info(_("Title extracted from WhatWeb: {title}").format(title=title))
+
+        try:
+            result['status_code'] = int(entry.get('http_status') or 0) or None
+        except (TypeError, ValueError):
+            pass
+
+        logger.info(_("Fingerprint result: {result}").format(result=result))
+        return result
+
+    def run_fingerprint(self, url):
+        """统一指纹识别入口：按配置选择引擎（auto/ehole/whatweb/both）。
+
+        返回与 run_ehole 相同的 result 结构；'both' 会合并两个工具的
+        fingerprints 并优先采用更完整的一侧。没有任何工具可用或功能未启用时
+        返回 None，上层自动回退到内置标题提取。
+        """
+        fp_cfg = self.config.get('external_tools', {}).get('fingerprint', {}) or {}
+        if not fp_cfg.get('enabled', False):
+            logger.info(_("Fingerprinting feature not enabled, skipping fingerprint call"))
+            return None
+
+        engine = str(fp_cfg.get('engine', 'auto') or 'auto').lower()
+        if engine == 'none':
+            logger.info(_("Fingerprint engine disabled (engine=none), using internal title extraction"))
+            return None
+
+        if engine == 'ehole':
+            selected = ['ehole']
+        elif engine == 'whatweb':
+            selected = ['whatweb']
+        elif engine == 'both':
+            selected = ['ehole', 'whatweb']
+        else:  # auto
+            selected = []
+            if self._resolve_ehole_binary():
+                selected.append('ehole')
+            if self._resolve_whatweb_binary():
+                selected.append('whatweb')
+            if not selected:
+                logger.warning(_("No fingerprint tool available (ehole/whatweb), using internal title extraction"))
+                return None
+
+        merged = {
+            'url': url,
+            'fingerprints': [],
+            'cms': None,
+            'server': None,
+            'status_code': None,
+            'title': None,
+            'fingerprint_tools': [],
+        }
+
+        runner = {
+            'ehole': self.run_ehole,
+            'whatweb': self.run_whatweb,
+        }
+        available = {
+            'ehole': self._resolve_ehole_binary() is not None,
+            'whatweb': self._resolve_whatweb_binary() is not None,
+        }
+        for tool in selected:
+            if not available[tool]:
+                if engine != 'auto':
+                    logger.warning(_("Selected fingerprint tool {tool} not available, skipping").format(tool=tool))
+                continue
+            res = runner[tool](url)
+            if not res:
+                continue
+            merged['fingerprint_tools'].append(tool)
+            if res.get('fingerprints'):
+                for fp in res['fingerprints']:
+                    if fp not in merged['fingerprints']:
+                        merged['fingerprints'].append(fp)
+            if res.get('cms') and not merged['cms']:
+                merged['cms'] = res['cms']
+            if res.get('server') and not merged['server']:
+                merged['server'] = res['server']
+            if res.get('status_code') and not merged['status_code']:
+                merged['status_code'] = res['status_code']
+            if res.get('title') and not merged['title']:
+                merged['title'] = res['title']
+
+        if not merged['fingerprint_tools']:
+            logger.warning(_("Fingerprinting returned no results: {url}").format(url=url))
+            return None
+        logger.info(_("Fingerprint merged result: {result}").format(result=merged))
+        return merged
+
+    def _resolve_local_tool_binary(self, tool_name):
+        """在本地目录解析工具二进制路径(架构自选)。
+
+        兼容两种布局:
+          tools/<name>/<bin>                    (单目录)
+          tools/<name>/{os}/{arch}/<bin>        (多架构预置, 如 EHole)
+        找不到返回 None。
+        """
+        try:
+            tools_dir = _default_tools_dir()
+            exe = _exe_name(tool_name)
+            cands = []
+            ma = _local_multiarch_binary(tool_name, tools_dir)
+            if ma:
+                cands.append(ma)
+            cands.append(os.path.join(tools_dir, tool_name, exe))
+            # 兼容 assets/ 下的内置位置
+            cands.append(os.path.join('assets', tool_name))
+            if os.name == 'nt':
+                cands.append(os.path.join('assets', tool_name + '.exe'))
+            for c in cands:
+                try:
+                    if c and os.path.isfile(c):
+                        return os.path.abspath(c)
+                except OSError:
+                    continue
+        except Exception as e:
+            logger.debug(_("Local tool resolution failed for {name}: {err}").format(name=tool_name, err=e))
+        return None
+
     def _check_tool_exists(self, tool_name):
         if tool_name in self.tool_paths:
             tool_path = self.tool_paths[tool_name]
             if os.path.exists(tool_path):
                 logger.debug(_("Found tool {tool} at configured path: {path}").format(tool=tool_name, path=tool_path))
                 return True
+        
+        if tool_name == 'ehole':
+            if self._resolve_ehole_binary():
+                logger.debug(_("Found tool ehole in local multi-arch directory"))
+                return True
+
+        if tool_name == 'whatweb':
+            if self._resolve_whatweb_binary():
+                logger.debug(_("Found tool whatweb"))
+                return True
+        
+        if self._resolve_local_tool_binary(tool_name):
+            logger.debug(_("Found tool {tool} in local directory").format(tool=tool_name))
+            return True
         
         assets_tool_path = os.path.join('assets', tool_name)
         if os.path.exists(assets_tool_path):

@@ -40,6 +40,7 @@ tr:hover td { background:rgba(56,189,248,.05); }
 .badge-running { background:rgba(56,189,248,.15); color:var(--accent); }
 .badge-completed { background:rgba(74,222,128,.15); color:var(--green); }
 .badge-failed { background:rgba(248,113,113,.15); color:var(--red); }
+.badge-stopped { background:rgba(251,191,36,.15); color:var(--yellow); }
 .badge-loaded { background:rgba(74,222,128,.15); color:var(--green); }
 .badge-disabled { background:rgba(148,163,184,.15); color:var(--text2); }
 .badge-failed-p { background:rgba(248,113,113,.15); color:var(--red); }

@@ -57,6 +57,7 @@ asset_types:
     tools:
       jsfinder: true      # JS file discovery
       link_extract: true  # Link extraction
+      fingerprint: true   # Web fingerprint identification (local multi-arch EHole)
     title_extraction:     # Title extraction settings
       enabled: true           # Enable title extraction
       max_length: 50         # Maximum title length
@@ -98,8 +99,10 @@ external_tools:
     subfinder: null    # subfinder path, e.g.: /usr/bin/subfinder
     naabu: null        # naabu path, e.g.: D:\naabu\naabu.exe
     ehole: null        # EHole fingerprinting tool path
+    whatweb: null      # WhatWeb fingerprinting tool path
   fingerprint:       # Fingerprinting configuration
-    enabled: false    # Enable fingerprint identification
+    enabled: true     # Enable fingerprint identification (uses local multi-arch EHole)
+    engine: auto      # Fingerprint engine: auto (use whichever is available) / ehole / whatweb / both (run both and merge)
 
 # Internationalization configuration
 language:
@@ -134,7 +137,3 @@ http:
   follow_redirects: true  # Follow redirects
   redirect_as_new_asset: true  # Treat redirects as new assets
   max_redirects: 5    # Maximum redirects
-
-# Plugin configuration
-plugins:
-  disabled: []         # Plugin module names to disable (without .py)

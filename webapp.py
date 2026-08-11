@@ -208,9 +208,15 @@ class ScanManager:
                 ok = engine.run()
 
                 task["metrics"] = dict(engine.metrics)
-                task["status"] = "completed" if ok else "failed"
-                if not ok and engine.metrics.get("errors"):
-                    task["error"] = f"{engine.metrics.get('errors')} errors during scan"
+                # 用户主动停止的任务应显示 stopped，而非 failed/completed：
+                # engine.stop() 会把状态置为 stopped，此时 run() 返回 False
+                # 或 True 均不代表"失败"。
+                if task.get("_stopped_by_user"):
+                    task["status"] = "stopped"
+                else:
+                    task["status"] = "completed" if ok else "failed"
+                    if not ok and engine.metrics.get("errors"):
+                        task["error"] = f"{engine.metrics.get('errors')} errors during scan"
             except Exception as e:
                 logger.error("Web task %s failed: %s", tid, e)
                 task["status"] = "failed"
@@ -240,6 +246,7 @@ class ScanManager:
             engine = t.get("engine")
             if engine and t["status"] == "running":
                 engine.stop()
+                t["_stopped_by_user"] = True
                 return True
             return False
 
@@ -469,7 +476,7 @@ def _set_plugins_disabled_text(raw, disabled):
                     block_end = j
                     break
             for j in range(idx + 1, block_end):
-                md = re.match(r'^(\s+)disabled:\s*(#.*)?$', lines[j])
+                md = re.match(r'^(\s+)disabled:', lines[j])
                 if md and len(md.group(1)) > len(plugins_indent):
                     disabled_line_idx = j
                     disabled_indent = len(md.group(1))

@@ -141,6 +141,12 @@ DEFAULT_CONFIG = {
     # 繁殖策略: priority_based(优先级), depth_first(深度优先), breadth_first(广度优先), time_based(时间顺序)
     "strategy": "priority_based",  # 基于优先级的策略
 
+    # 插件配置（目录插件与单文件插件自动加载）
+    "plugins": {
+        "dir": None,         # 插件目录路径，None 时使用 PLUGINS_DIR
+        "disabled": []       # 需要禁用的插件名列表
+    },
+
     # 资产范围配置
     "asset_scope": {
         "restrict_to_seed_domains": True,    # 限制在种子域名范围内
@@ -181,7 +187,8 @@ DEFAULT_CONFIG = {
                 "subfinder": True,      # subfinder工具
                 "free_subfinder": False, # 免费版subfinder
                 "crtsh": True,         # 证书透明度查询
-                "dnsx": True           # DNS解析工具
+                "dnsx": True,         # DNS解析工具
+                "dns_brute": True     # DNS暴力枚举子域名
             }
         },
 
@@ -192,7 +199,8 @@ DEFAULT_CONFIG = {
             "priority": 8,        # 优先级
             "tools": {
                 "naabu": True,         # 端口扫描工具
-                "reverse_dns": True   # 反向DNS解析
+                "reverse_dns": True,  # 反向DNS解析
+                "port_range": "1-1024,3306,3389,5432,5900,6379,7001,8000-8500,8888,9000-9100,9200,27017,11211"  # 内置端口扫描器扫描范围
             }
         },
 
@@ -203,7 +211,8 @@ DEFAULT_CONFIG = {
             "priority": 10,       # 优先级
             "tools": {
                 "jsfinder": True,      # JS文件发现
-                "link_extract": True  # 链接提取
+                "link_extract": True,  # 链接提取
+                "fingerprint": False  # 站点指纹识别（依赖 ehole）
             },
             "title_extraction": {     # 标题提取配置
                 "enabled": True,           # 启用标题提取
@@ -237,6 +246,7 @@ DEFAULT_CONFIG = {
     # 输出配置
     "output": {
         "dir": "output",          # 输出目录
+        "output_prefix": "zsans",  # 输出文件名前缀
         "graph_format": "json",   # 图形输出格式
         "asset_report": "json",   # 资产报告格式
         "keep_eliminated_assets": True,  # 是否保留被排除的资产
@@ -254,11 +264,15 @@ DEFAULT_CONFIG = {
         "paths": {               # 工具路径配置
             "subfinder": None,    # subfinder工具路径，如：/usr/bin/subfinder
             "naabu": None,        # naabu工具路径，如：D:\naabu\naabu.exe
-            "ehole": None         # EHole指纹识别工具路径
+            "ehole": None,        # EHole指纹识别工具路径
+            "whatweb": None       # WhatWeb指纹识别工具路径
         },
         "fingerprint": {       # 指纹识别配置
-            "enabled": False    # 是否启用指纹识别功能
-        }
+            "enabled": False,   # 是否启用指纹识别功能
+            # 引擎选择：auto（有哪个用哪个，默认）/ ehole / whatweb / both（两者都跑并合并结果）
+            "engine": "auto"
+        },
+        "jsfinder_timeout": 30  # JSFinder 抓取单个域名超时时间（秒）
     },
 
     # 国际化配置

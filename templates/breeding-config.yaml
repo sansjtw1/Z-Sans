@@ -1,10 +1,21 @@
-# 资产挖掘遍历策略：priority_based（优先级优先）、depth_first（深度优先）、breadth_first（广度优先）、time_based（时间顺序）
+# Z-Sans 资产繁殖引擎配置模板（完整参考版）
+# 本模板覆盖 engine 支持的全部配置项，均含中文注释。
+# 使用方法：复制此文件到项目根目录并改名为 breeding-config.yaml，
+# 然后执行 `python main.py --init`（或直接运行 `python main.py` 自动加载）。
+# 若没有此文件，程序将使用内置的默认配置（core/zsans_engine.py 中的 DEFAULT_CONFIG）。
+
+# 繁殖策略：priority_based（优先级优先）、depth_first（深度优先）、breadth_first（广度优先）、time_based（时间顺序）
 strategy: priority_based  # 采用基于优先级的遍历策略
+
+# 插件配置（目录插件与单文件插件自动加载）
+plugins:
+  dir: null             # 插件目录路径，null 时使用项目根目录下的 plugins/
+  disabled: []          # 需要禁用的插件名列表（用于解决同名插件冲突）
 
 # 资产扫描范围配置
 asset_scope:
   restrict_to_seed_domains: true    # 仅扫描种子域名范围内资产
-  restrict_to_seed_ip_ranges: false  # 不限制仅扫描种子IP段
+  restrict_to_seed_ip_ranges: true  # 仅扫描种子IP段范围（与 DEFAULT_CONFIG 默认一致，可改为 false 不限制）
   include_subdomains: true          # 扫描包含所有子域名
   include_ip_ranges: true           # 同步扫描关联IP段
 
@@ -38,6 +49,7 @@ asset_types:
       free_subfinder: false # 不使用免费版subfinder
       crtsh: true         # 启用证书透明度日志crt.sh查询
       dnsx: true          # 启用dnsx做DNS解析验证
+      dns_brute: true     # 启用DNS暴力枚举子域名
 
   # IP资产配置
   ip:
@@ -47,6 +59,7 @@ asset_types:
     tools:
       naabu: true         # 启用naabu端口扫描
       reverse_dns: true   # IP反向DNS解析
+      port_range: '1-1024,3306,3389,5432,5900,6379,7001,8000-8500,8888,9000-9100,9200,27017,11211'  # 内置端口扫描器扫描范围
 
   # URL链接资产配置
   url:
@@ -56,6 +69,7 @@ asset_types:
     tools:
       jsfinder: true      # 启用JS文件提取
       link_extract: true  # 页面超链接提取
+      fingerprint: false  # 启用站点指纹识别（依赖 external_tools.fingerprint.enabled 与 ehole）
     title_extraction:     # 网页标题抓取配置
       enabled: true           # 网页标题获取
       max_length: 50         # 标题最大截取长度
@@ -81,6 +95,7 @@ asset_types:
 # 输出文件配置
 output:
   dir: output          # 输出文件夹名称
+  output_prefix: zsans # 输出文件名前缀（如 zsans_domains.json）
   graph_format: json   # 资产关系图存储格式
   asset_report: json   # 资产清单报告格式
   keep_eliminated_assets: true  # 保留已过滤剔除的资产数据
@@ -97,8 +112,11 @@ external_tools:
     subfinder: null    # subfinder程序路径，示例：/usr/bin/subfinder
     naabu: null        # naabu程序路径，示例：D:\naabu\naabu.exe
     ehole: null        # EHole站点指纹识别工具路径
+    whatweb: null      # WhatWeb站点指纹识别工具路径
   fingerprint:       # 站点指纹识别配置
     enabled: false    # 站点指纹识别功能
+    engine: auto      # 指纹识别引擎：auto（有哪个用哪个，默认）/ ehole / whatweb / both（两者都跑并合并结果）
+  jsfinder_timeout: 30  # JSFinder 抓取每个域名时的超时时间（秒）
 
 # 国际化多语言配置
 language:
@@ -122,6 +140,18 @@ exclusions:
   ports: []           # 需过滤的端口列表
   patterns:           # 正则匹配过滤规则
   - \.(css|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot)$
+
+# 断点续扫配置（配合 --resume 使用）
+checkpoint:
+  enabled: true      # 是否启用断点续扫（默认开启，扫描期间定期保存进度）
+  interval: 50       # 每处理多少资产保存一次断点
+  file: null         # 断点文件路径，null 时使用 <output_dir>/checkpoint.json
+
+# 变更监控配置（配合 --watch 使用）
+monitoring:
+  enabled: false        # 是否启用 --watch 变更监控
+  interval: 3600        # 监控轮询间隔（秒）
+  webhook_url: null     # 变更告警 Webhook 地址，POST JSON 通知
 
 # HTTP网络请求全局配置
 http:

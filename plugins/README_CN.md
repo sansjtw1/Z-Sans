@@ -20,15 +20,20 @@
 
 ## 一、插件机制总览
 
-- **插件就是普通 Python 文件**:把任意 `.py` 放进 `plugins/` 目录,引擎启动时自动加载,并在扫描生命周期中向它派发事件。
-- **识别规则**:插件文件里所有顶层、以 `on_` 开头且可调用的函数,会被自动注册为对应事件的处理器;其余函数不会被注册,可以当作普通工具函数。
+- **插件就是 Python 文件或目录**:把任意 `.py` 放进插件目录(默认 `plugins/`),或放入含入口文件的目录(`<目录名>.py` / `plugin.py` / `main.py` / `__init__.py`),引擎启动时自动加载,并在扫描生命周期中派发事件给它。
+- **识别规则**:插件模块里所有顶层、以 `on_` 开头且可调用的函数,会被自动注册为对应事件的处理器;其余函数不会被注册,可以当作普通工具函数。
 - **无侵入**:插件模块加载在独立命名空间,一个插件写崩溃不会拖垮扫描。
-- **配置开关**:`breeding-config.yaml` 的 `plugins.dir` 指定插件目录、`plugins.disabled` 禁用个别插件。
+- **CLI 集成(可选)**:插件可定义 `register_cli(parser)`,向 `main.py` 追加自己的命令行参数;**仅当插件被加载时**该参数才存在(见 8.2)。
+- **配置开关**:`breeding-config.yaml` 的 `plugins.dir` 指定插件目录、`plugins.disabled` 禁用个别插件(按插件名,文件与目录通用)。
+- **冲突处理**:同名插件(如 `foo.py` + `foo/`)只保留排序首位,失败者记入 `engine.plugin_conflicts`;插件也可声明互斥(见 四 / 8.4)。
 
 ```text
-plugins/
-├── shodan_scan.py        # 你写的插件
-└── text.py        # text
+plugins/                 # 或 plugins.dir 指定的任意目录
+├── shodan_scan.py       # 单文件插件
+└── report/              # 目录插件
+    ├── plugin.py        # 入口(plugin.py / main.py / __init__.py / report.py 任一)
+    ├── config.yaml      # 可选:插件自带默认配置
+    └── README.md        # 可选:--plugin-info 展示的说明文档
 ```
 
 ---
@@ -102,6 +107,24 @@ __manifest__ = {
 
 也可用旧常量:`PLUGIN_NAME` / `PLUGIN_VERSION` / `PLUGIN_DESCRIPTION` / `PLUGIN_AUTHOR`。
 
+`__plugin__` 已作为 `__manifest__` 的别名被支持。
+
+**互斥声明**:在清单中声明两个插件不能同时加载(模式支持 `*` / `?` 通配):
+
+```python
+__manifest__ = {
+    "name": "shodan_scan",
+    "version": "0.1.0",
+    "description": "通过 Shodan 补充 IP 资产指纹",
+    "author": "你的名字",
+    "conflicts": ["other_scan", "scanner_*"],   # fnmatch(*) 通配
+}
+```
+
+等同键:`conflicts` / `conflict_with` / `incompatible`(清单内),或模块级
+`PLUGIN_CONFLICTS` 列表。检测到冲突时只加载胜者,败者被跳过并记入
+`engine.plugin_conflicts`。
+
 ---
 
 ## 五、平台能力:能拿到什么
@@ -118,6 +141,8 @@ __manifest__ = {
 | `engine.output_handler.output_dir` | 输出根目录(所有时间戳子目录的父目录) |
 | `engine.save_checkpoint()` | 手动存检查点 |
 | `engine.register_hook / emit_hook` | 自定义事件(见 6.4) |
+| `engine.plugins` | 已加载插件信息 dict(名称 -> 信息),与 `--list-plugins` 一致 |
+| `engine.plugin_conflicts` | 插件冲突记录列表(`reason` / `winner` / `loser`) |
 
 **Asset 对象**:
 
@@ -127,7 +152,7 @@ __manifest__ = {
 | `asset.type` | `domain` / `ip` / `url` / `port` / `js` 等 |
 | `asset.value` | 值,如 `example.com` |
 | `asset.depth` | 繁殖深度 |
-| `asset.state` | `initialized` / `scanning` / `scanned` / `eliminated` / `excluded` / `failed` |
+| `asset.state` | `new`(初始) / `scanning` / `scanned` / `eliminated` / `excluded` / `failed` |
 | `asset.properties` | **dict,引擎与插件都可自由读写,最终进导出 JSON** |
 | `asset.to_dict()` | JSON 友好的资产表示 |
 
@@ -263,10 +288,13 @@ def on_asset_scanned(asset, new_assets):
 
 ## 八、插件管理
 
+### 8.1 命令
+
 | 命令 | 作用 |
 |------|------|
-| `python main.py --list-plugins` | 列出插件:版本、处理器数、状态、订阅事件 |
-| `python main.py --plugin-info <name>` | 查看某个插件完整信息 |
+| `python main.py --list-plugins` | 列出插件:版本、处理器数、类型、状态、订阅事件 |
+| `python main.py --plugin-info <name>` | 查看某个插件完整信息(含目录插件文件/文档及其 `plugin_help()`) |
+| `python main.py --web` | Web 控制台 -> **插件**页面列出插件并可启停(`/api/plugins`) |
 | 配置文件 | 控制加载行为(见下) |
 
 ```yaml
@@ -276,7 +304,33 @@ plugins:
     - my_plugin
 ```
 
-插件状态:`loaded` / `disabled` / `failed`(import 异常时显示原因)。
+`plugins.disabled` 对单文件**和**目录插件均生效。插件状态:`loaded` /
+`disabled` / `failed`(import 异常时显示原因)。
+
+### 8.2 CLI 集成
+
+插件可定义 `register_cli(parser)`;插件加载期间,`main.py` 在解析参数时会
+调用它,其参数会出现在 `--help` 中。禁用插件(或改掉 `plugins.dir`)后参数消失。
+
+```python
+def register_cli(parser):
+    parser.add_argument("--my-feature", action="store_true",
+                        help="由 my_plugin 提供(仅在加载时存在)")
+```
+
+### 8.3 目录插件
+
+目录插件导入时其所在目录会前置进 `sys.path`,可自由 `import` 同目录的辅助
+模块、配置与资源。`--plugin-info` 会展示目录内文件清单及 `README.md` /
+`说明.md` 的摘要。必须含入口文件——纯资源目录不算插件。
+
+### 8.4 冲突与互斥
+
+- 同名插件来自两个来源(如 `foo.py` + `foo/`):排序首个胜出,其余跳过并记日志。
+- 两个插件在清单中声明相同 `name`:先加载者胜。
+- `conflicts` 互斥声明(见 四章)命中已加载插件:先加载者胜。
+- 所有败者都会以 `{name, reason, winner, loser}` 记入
+  `engine.plugin_conflicts`。
 
 ---
 

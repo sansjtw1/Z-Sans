@@ -1947,199 +1947,199 @@ msgstr "positional arguments"
 msgid "API path extraction failed: {error}"
 msgstr "API path extraction failed: {error}"
 
-
 #, python-brace-format
 msgid "API path regex failed: {error}"
 msgstr "API path regex failed: {error}"
-
 
 #, python-brace-format
 msgid "Captured endpoint hints for {url}: {hints}"
 msgstr "Captured endpoint hints for {url}: {hints}"
 
-
 msgid "DNS brute-force disabled"
 msgstr "DNS brute-force disabled"
-
 
 #, python-brace-format
 msgid "DNS brute-force failed: {error}"
 msgstr "DNS brute-force failed: {error}"
 
-
 #, python-brace-format
 msgid "DNS brute-force found {count} subdomains"
 msgstr "DNS brute-force found {count} subdomains"
-
 
 #, python-brace-format
 msgid "Discovery fetch failed for {candidate}: {error}"
 msgstr "Discovery fetch failed for {candidate}: {error}"
 
+#, python-brace-format
+msgid ""
+"Domain scope restriction disabled, adding all links: {link}, domain: "
+"{domain}"
+msgstr ""
+"Domain scope restriction disabled, adding all links: {link}, domain: "
+"{domain}"
 
 #, python-brace-format
-msgid "Domain scope restriction disabled, adding all links: {link}, domain: {domain}"
-msgstr "Domain scope restriction disabled, adding all links: {link}, domain: {domain}"
-
-
-#, python-brace-format
-msgid "Domain {domain} not seed-related but added due to no restriction: {url}"
-msgstr "Domain {domain} not seed-related but added due to no restriction: {url}"
-
+msgid ""
+"Domain {domain} not seed-related but added due to no restriction: {url}"
+msgstr ""
+"Domain {domain} not seed-related but added due to no restriction: {url}"
 
 #, python-brace-format
 msgid "Endpoint header capture failed for {url}: {error}"
 msgstr "Endpoint header capture failed for {url}: {error}"
 
-
 #, python-brace-format
 msgid "Endpoint hint materialization failed: {error}"
 msgstr "Endpoint hint materialization failed: {error}"
-
 
 #, python-brace-format
 msgid "Endpoint hint materialized as asset: {target}"
 msgstr "Endpoint hint materialized as asset: {target}"
 
-
-msgid "Engine instance does not exist, defaulting to False to avoid adding unrelated domains"
-msgstr "Engine instance does not exist, defaulting to False to avoid adding unrelated domains"
-
+msgid ""
+"Engine instance does not exist, defaulting to False to avoid adding "
+"unrelated domains"
+msgstr ""
+"Engine instance does not exist, defaulting to False to avoid adding "
+"unrelated domains"
 
 #, python-brace-format
 msgid "Exceeds depth limit {limit}"
 msgstr "Exceeds depth limit {limit}"
 
-
 #, python-brace-format
 msgid "Exceeds max depth {depth}"
 msgstr "Exceeds max depth {depth}"
-
 
 #, python-brace-format
 msgid "Exceeds {type} limit {limit}"
 msgstr "Exceeds {type} limit {limit}"
 
-
 #, python-brace-format
-msgid "Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
-msgstr "Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
-
+msgid ""
+"Internal JSFinder extracted {url_count} URLs and {subdomain_count} "
+"subdomains from {url}"
+msgstr ""
+"Internal JSFinder extracted {url_count} URLs and {subdomain_count} "
+"subdomains from {url}"
 
 #, python-brace-format
 msgid "Invalid port asset value: {value}, error: {error}"
 msgstr "Invalid port asset value: {value}, error: {error}"
 
-
 #, python-brace-format
 msgid "JS path extraction failed: {error}"
 msgstr "JS path extraction failed: {error}"
 
+#, python-brace-format
+msgid ""
+"JSFinder error output:\n"
+"{error}"
+msgstr ""
+"JSFinder error output:\n"
+"{error}"
 
 #, python-brace-format
-msgid "JSFinder error output:
-{error}"
-msgstr "JSFinder error output:
-{error}"
-
-
-#, python-brace-format
-msgid "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
-msgstr "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
-
+msgid ""
+"JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+msgstr ""
+"JSFinder extracted {count} subdomains from {url}, {related} seed-related"
 
 #, python-brace-format
-msgid "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
-msgstr "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
-
-
-#, python-brace-format
-msgid "JSFinder extracted {related} seed-related subdomains from {url}, total: {total}"
-msgstr "JSFinder extracted {related} seed-related subdomains from {url}, total: {total}"
-
+msgid ""
+"JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+msgstr ""
+"JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
 
 #, python-brace-format
-msgid "JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
-msgstr "JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
-
+msgid ""
+"JSFinder extracted {related} seed-related subdomains from {url}, total: "
+"{total}"
+msgstr ""
+"JSFinder extracted {related} seed-related subdomains from {url}, total: "
+"{total}"
 
 #, python-brace-format
-msgid "JSFinder output preview:
-{output}"
-msgstr "JSFinder output preview:
-{output}"
+msgid ""
+"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from "
+"{url}"
+msgstr ""
+"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from "
+"{url}"
 
+#, python-brace-format
+msgid ""
+"JSFinder output preview:\n"
+"{output}"
+msgstr ""
+"JSFinder output preview:\n"
+"{output}"
 
 msgid "Matches exclusion rules"
 msgstr "Matches exclusion rules"
-
 
 #, python-brace-format
 msgid "No breeder for type {type}"
 msgstr "No breeder for type {type}"
 
-
 #, python-brace-format
-msgid "Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
-msgstr "Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
-
+msgid ""
+"Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
+msgstr ""
+"Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
 
 #, python-brace-format
 msgid "Running built-in DNS brute-force for subdomains: {domain}"
 msgstr "Running built-in DNS brute-force for subdomains: {domain}"
 
+msgid ""
+"Seed domain list is empty, this may cause domain relevance judgment errors"
+msgstr ""
+"Seed domain list is empty, this may cause domain relevance judgment errors"
 
-msgid "Seed domain list is empty, this may cause domain relevance judgment errors"
-msgstr "Seed domain list is empty, this may cause domain relevance judgment errors"
-
-
-msgid "Seed domains list attribute not found in engine, all domains will be considered unrelated"
-msgstr "Seed domains list attribute not found in engine, all domains will be considered unrelated"
-
+msgid ""
+"Seed domains list attribute not found in engine, all domains will be "
+"considered unrelated"
+msgstr ""
+"Seed domains list attribute not found in engine, all domains will be "
+"considered unrelated"
 
 #, python-brace-format
 msgid "Skipping malformed URL (JS concat/template): {url}"
 msgstr "Skipping malformed URL (JS concat/template): {url}"
 
-
 #, python-brace-format
 msgid "Skipping non-seed-related API path: {url}"
 msgstr "Skipping non-seed-related API path: {url}"
-
 
 #, python-brace-format
 msgid "Skipping non-seed-related discovery link: {link}"
 msgstr "Skipping non-seed-related discovery link: {link}"
 
+#, python-brace-format
+msgid ""
+"URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
+msgstr ""
+"URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
 
 #, python-brace-format
-msgid "URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
-msgstr "URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
-
-
-#, python-brace-format
-msgid "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
-msgstr "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
-
+msgid ""
+"URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+msgstr ""
+"URL asset marked as eliminated: {url}, status: {status}, state: {state}"
 
 msgid "Using naabu from system PATH"
 msgstr "Using naabu from system PATH"
-
 
 #, python-brace-format
 msgid "robots/sitemap discovery failed: {error}"
 msgstr "robots/sitemap discovery failed: {error}"
 
-
 msgid "Start the web console"
 msgstr "Start the web console"
 
-
-
 msgid "Web console port"
 msgstr "Web console port"
-
-
 
 msgid "Web console stopped"
 msgstr "Web console stopped"
@@ -2147,355 +2147,419 @@ msgstr "Web console stopped"
 msgid "actions"
 msgstr "Actions"
 
-
 msgid "all_types"
 msgstr "All types"
-
 
 msgid "analysis"
 msgstr "Analysis"
 
-
 msgid "asset_count"
 msgstr "Assets"
-
 
 msgid "assets"
 msgstr "Assets"
 
-
 msgid "back"
 msgstr "← Back"
-
 
 msgid "base_assets"
 msgstr "Base Assets"
 
-
 msgid "close"
 msgstr "Close"
-
 
 msgid "common"
 msgstr "Common"
 
-
 msgid "common_has"
 msgstr "Common"
-
 
 msgid "compare_empty"
 msgstr "No comparison data"
 
-
 msgid "compare_selected"
 msgstr "Compare Selected"
-
 
 msgid "concurrency"
 msgstr "Concurrency"
 
-
 msgid "config"
 msgstr "Config"
-
 
 msgid "config_file"
 msgstr "Config File (breeding-config.yaml)"
 
-
 msgid "config_saved"
 msgstr "Config saved"
-
 
 msgid "data"
 msgstr "Data"
 
-
 msgid "data_not_found"
 msgstr "Project data not found"
-
 
 msgid "delete_selected"
 msgstr "Delete Selected"
 
-
 msgid "depth"
 msgstr "Depth"
-
 
 msgid "depth_dist"
 msgstr "Depth Distribution"
 
-
 msgid "description"
 msgstr "Description"
-
 
 msgid "detail"
 msgstr "Detail"
 
-
 msgid "disable"
 msgstr "Disable"
-
 
 msgid "domain_seed"
 msgstr "Domain seeds (one per line)"
 
-
 msgid "drag_hint"
 msgstr "Drag to pan · Scroll to zoom"
-
 
 msgid "edges"
 msgstr "Edges"
 
-
 msgid "enable"
 msgstr "Enable"
-
 
 msgid "events"
 msgstr "Events"
 
-
 msgid "follow_log"
 msgstr "Auto-scroll"
-
 
 msgid "handlers"
 msgstr "Handlers"
 
-
 msgid "high_related"
 msgstr "Highly Connected (deg≥3)"
-
 
 msgid "history_projects"
 msgstr "Historical Scans"
 
-
 msgid "ip_seed"
 msgstr "IP seeds (one per line)"
-
 
 msgid "max_depth"
 msgstr "Max Depth"
 
-
 msgid "max_depth_l"
 msgstr "Max Depth"
-
 
 msgid "name"
 msgstr "Name"
 
-
 msgid "new_scan_task"
 msgstr "New Scan Task"
-
 
 msgid "new_task"
 msgstr "New Scan"
 
-
 msgid "no_assets"
 msgstr "No assets"
-
 
 msgid "no_data"
 msgstr "No data"
 
-
 msgid "no_match"
 msgstr "No matching assets"
-
 
 msgid "no_plugins"
 msgstr "No plugins (plugin dir is empty or not loaded)"
 
-
 msgid "no_projects"
 msgstr "No historical scans"
-
 
 msgid "no_props"
 msgstr "No extra properties"
 
-
 msgid "no_tasks"
 msgstr "No tasks"
-
 
 msgid "nodes"
 msgstr "Nodes"
 
-
 msgid "only_base"
 msgstr "Only in Base"
-
 
 msgid "only_base_has"
 msgstr "Only in Base"
 
-
 msgid "only_others"
 msgstr "Only in Others"
-
 
 msgid "only_others_has"
 msgstr "Only in Others"
 
-
 msgid "other_assets"
 msgstr "Other Assets"
-
 
 msgid "output"
 msgstr "Output"
 
-
 msgid "plugin"
 msgstr "Plugin"
-
 
 msgid "plugins"
 msgstr "Plugins"
 
-
 msgid "project_compare"
 msgstr "Project Comparison"
-
 
 msgid "props"
 msgstr "Properties"
 
-
 msgid "raw_json"
 msgstr "Raw JSON"
-
 
 msgid "real_time_log"
 msgstr "Live Log"
 
-
 msgid "refresh"
 msgstr "Refresh"
-
 
 msgid "reload"
 msgstr "Reload"
 
-
 msgid "rescan"
 msgstr "Rescan"
-
 
 msgid "save"
 msgstr "Save"
 
-
 msgid "scan_after_done"
 msgstr "Full project data available after scan completes"
-
 
 msgid "scan_projects"
 msgstr "Scan Projects"
 
-
 msgid "scan_running"
 msgstr "Scan in progress, generating output..."
-
 
 msgid "scan_tasks"
 msgstr "Scan Tasks"
 
-
 msgid "search_assets"
 msgstr "Search assets..."
-
 
 msgid "seed"
 msgstr "Seed"
 
-
 msgid "seed_domains"
 msgstr "Seed Domains"
-
 
 msgid "source"
 msgstr "Source"
 
-
 msgid "start_scan"
 msgstr "Start Scan"
-
 
 msgid "starting"
 msgstr "Starting..."
 
-
 msgid "state_dist"
 msgstr "Asset State Distribution"
-
 
 msgid "status"
 msgstr "Status"
 
-
 msgid "stop"
 msgstr "Stop"
-
 
 msgid "strategy"
 msgstr "Strategy"
 
-
 msgid "task_detail"
 msgstr "Task"
-
 
 msgid "task_failed"
 msgstr "Task failed"
 
-
 msgid "task_started"
 msgstr "Task started"
-
 
 msgid "tasks"
 msgstr "Tasks"
 
-
 msgid "topology"
 msgstr "Topology"
-
 
 msgid "type"
 msgstr "Type"
 
-
 msgid "type_count"
 msgstr "Type Count"
-
 
 msgid "type_dist"
 msgstr "Asset Type Distribution"
 
-
 msgid "url_seed"
 msgstr "URL seeds (one per line)"
-
 
 msgid "version"
 msgstr "Version"
 
-
 msgid "view"
 msgstr "View"
-
 
 msgid "view_output"
 msgstr "View Output"
 
+msgid "Asset type {type} disabled, skipping {uid}"
+msgstr "Asset type {type} disabled, skipping {uid}"
+
+msgid "Asset type {type} is disabled"
+msgstr "Asset type {type} is disabled"
+
+msgid "Configured EHole path does not exist, falling back: {path}"
+msgstr "Configured EHole path does not exist, falling back: {path}"
+
+msgid "Configured WhatWeb path does not exist, falling back: {path}"
+msgstr "Configured WhatWeb path does not exist, falling back: {path}"
+
+msgid "Created default config file from template: {path}"
+msgstr "Created default config file from template: {path}"
+
+msgid "DNS brute-force timed out for {domain}"
+msgstr "DNS brute-force timed out for {domain}"
+
+msgid "EHole config.ini copy failed: {error}"
+msgstr "EHole config.ini copy failed: {error}"
+
+msgid "EHole execution timed out: {url}"
+msgstr "EHole execution timed out: {url}"
+
+msgid "EHole finger.json copy failed: {error}"
+msgstr "EHole finger.json copy failed: {error}"
+
+msgid "EHole json output missing: {path}"
+msgstr "EHole json output missing: {path}"
+
+msgid "EHole json parse failed: {err}"
+msgstr "EHole json parse failed: {err}"
+
+msgid "EHole returned empty fingerprint list"
+msgstr "EHole returned empty fingerprint list"
+
+msgid "EHole stderr: {err}"
+msgstr "EHole stderr: {err}"
+
+msgid ""
+"EHole tool not found (no binary for current platform), keeping internal "
+"title extraction"
+msgstr ""
+"EHole tool not found (no binary for current platform), keeping internal "
+"title extraction"
+
+msgid ""
+"Fingerprint engine disabled (engine=none), using internal title extraction"
+msgstr ""
+"Fingerprint engine disabled (engine=none), using internal title extraction"
+
+msgid "Fingerprint merged result: {result}"
+msgstr "Fingerprint merged result: {result}"
+
+msgid "Fingerprinting feature not enabled, skipping fingerprint call"
+msgstr "Fingerprinting feature not enabled, skipping fingerprint call"
+
+msgid "Found tool ehole in local multi-arch directory"
+msgstr "Found tool ehole in local multi-arch directory"
+
+msgid "Found tool whatweb"
+msgstr "Found tool whatweb"
+
+msgid "Found tool {tool} in local directory"
+msgstr "Found tool {tool} in local directory"
+
+msgid "IP range discovery disabled by config, skipping IP resolution"
+msgstr "IP range discovery disabled by config, skipping IP resolution"
+
+msgid "Local EHole resolution failed: {error}"
+msgstr "Local EHole resolution failed: {error}"
+
+msgid "Local tool resolution failed for {name}: {err}"
+msgstr "Local tool resolution failed for {name}: {err}"
+
+msgid ""
+"No fingerprint tool available (ehole/whatweb), using internal title "
+"extraction"
+msgstr ""
+"No fingerprint tool available (ehole/whatweb), using internal title "
+"extraction"
+
+msgid ""
+"Plugin name conflict: {cur} declares {name} already provided by {prev}, "
+"skipped"
+msgstr ""
+"Plugin name conflict: {cur} declares {name} already provided by {prev}, "
+"skipped"
+
+msgid "Plugin name conflict: {name} from {a} and {b}, keeping {a}"
+msgstr "Plugin name conflict: {name} from {a} and {b}, keeping {a}"
+
+msgid "Plugin {cur} conflicts with {prev} ({name}), skipped"
+msgstr "Plugin {cur} conflicts with {prev} ({name}), skipped"
+
+msgid "Selected fingerprint tool {tool} not available, skipping"
+msgstr "Selected fingerprint tool {tool} not available, skipping"
+
+msgid "Subdomain discovery disabled by config, skipping"
+msgstr "Subdomain discovery disabled by config, skipping"
+
+msgid "Title extracted from WhatWeb: {title}"
+msgstr "Title extracted from WhatWeb: {title}"
+
+msgid "Title extracted from fingerprint tool: {url}, title: {title}"
+msgstr "Title extracted from fingerprint tool: {url}, title: {title}"
+
+msgid "Tool registered: {name} (path={path}, args={args})"
+msgstr "Tool registered: {name} (path={path}, args={args})"
+
+msgid "Using EHole from configured path: {path}"
+msgstr "Using EHole from configured path: {path}"
+
+msgid "Using WhatWeb from configured path: {path}"
+msgstr "Using WhatWeb from configured path: {path}"
+
+msgid "Using local EHole for {os}/{arch}: {path}"
+msgstr "Using local EHole for {os}/{arch}: {path}"
+
+msgid "Using local WhatWeb: {path}"
+msgstr "Using local WhatWeb: {path}"
+
+msgid "Using naabu from local directory: {path}"
+msgstr "Using naabu from local directory: {path}"
+
+msgid "Using subfinder from local directory: {path}"
+msgstr "Using subfinder from local directory: {path}"
+
+msgid "WhatWeb call exception: {error}"
+msgstr "WhatWeb call exception: {error}"
+
+msgid "WhatWeb execution timed out: {url}"
+msgstr "WhatWeb execution timed out: {url}"
+
+msgid "WhatWeb json output missing: {path}"
+msgstr "WhatWeb json output missing: {path}"
+
+msgid "WhatWeb json parse failed: {err}"
+msgstr "WhatWeb json parse failed: {err}"
+
+msgid "WhatWeb returned empty fingerprint list"
+msgstr "WhatWeb returned empty fingerprint list"
+
+msgid "WhatWeb stderr: {err}"
+msgstr "WhatWeb stderr: {err}"
+
+msgid ""
+"WhatWeb tool not found (no binary for current platform), keeping internal "
+"title extraction"
+msgstr ""
+"WhatWeb tool not found (no binary for current platform), keeping internal "
+"title extraction"

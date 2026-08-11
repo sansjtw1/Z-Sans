@@ -158,7 +158,13 @@ class DomainBreeder(BreederBase):
         
         restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
         
-        subdomains = self._discover_subdomains(domain, tool_manager)
+        # include_subdomains: 关闭时跳过子域名枚举
+        include_subdomains = self.config.get('asset_scope', {}).get('include_subdomains', True)
+        if not include_subdomains:
+            logger.info(_("Subdomain discovery disabled by config, skipping"))
+            subdomains = []
+        else:
+            subdomains = self._discover_subdomains(domain, tool_manager)
         for subdomain in subdomains:
             if restrict_to_seed_domains:
                 is_related = self._is_related_to_seed_domain(subdomain)
@@ -174,7 +180,13 @@ class DomainBreeder(BreederBase):
             new_asset = DomainAsset(subdomain, source=asset.uid, depth=asset.depth+1)
             new_assets.append(new_asset)
         
-        ip_addresses = self._resolve_domain(domain)
+        # include_ip_ranges: 关闭时跳过域名的 IP 解析与 IP 资产生成
+        include_ip_ranges = self.config.get('asset_scope', {}).get('include_ip_ranges', True)
+        if not include_ip_ranges:
+            logger.info(_("IP range discovery disabled by config, skipping IP resolution"))
+            ip_addresses = []
+        else:
+            ip_addresses = self._resolve_domain(domain)
         for ip in ip_addresses:
             restrict_to_seed_ip_ranges = self.config.get('asset_scope', {}).get('restrict_to_seed_ip_ranges', True)
             if restrict_to_seed_ip_ranges and not self._is_in_seed_ip_range(ip):
@@ -884,7 +896,7 @@ class URLBreeder(BreederBase):
                 logger.debug(_("URL request successful: {url}, status: 200").format(url=url))
                 url_config = self.config.get('asset_types', {}).get('url', {})
                 
-                if url_config.get('tools', {}).get('fingerprint', False) and tool_manager and hasattr(tool_manager, 'run_ehole'):
+                if url_config.get('tools', {}).get('fingerprint', False) and tool_manager and hasattr(tool_manager, 'run_fingerprint'):
                     try:
                         cleaned_url = url.strip()
                         while '`' in cleaned_url or '"' in cleaned_url:
@@ -895,7 +907,7 @@ class URLBreeder(BreederBase):
                             logger.warning(_("Invalid URL format for fingerprinting: {url}").format(url=url))
                         else:
                             logger.info(_("Starting fingerprinting, original URL: {url}, cleaned URL: {cleaned}").format(url=url, cleaned=cleaned_url))
-                            fingerprint_result = tool_manager.run_ehole(cleaned_url)
+                            fingerprint_result = tool_manager.run_fingerprint(cleaned_url)
                             if fingerprint_result:
                                 asset_uid = f"url:{url}"
                                 if self.engine and hasattr(self.engine, 'asset_graph') and asset_uid in self.engine.asset_graph.nodes:
@@ -908,7 +920,7 @@ class URLBreeder(BreederBase):
                                             asset.properties['server'] = fingerprint_result.get('server')
                                         if fingerprint_result.get('title'):
                                             asset.properties['title'] = fingerprint_result.get('title')
-                                            logger.info(_("Title extracted from EHole: {url}, title: {title}").format(url=url, title=fingerprint_result.get('title')))
+                                            logger.info(_("Title extracted from fingerprint tool: {url}, title: {title}").format(url=url, title=fingerprint_result.get('title')))
                                         logger.info(_("URL fingerprint extracted: {url}, fingerprints: {fingerprints}").format(url=url, fingerprints=fingerprint_result.get('fingerprints')))
                             else:
                                 logger.warning(_("Fingerprinting returned no results: {url}").format(url=url))

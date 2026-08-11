@@ -54,3 +54,10 @@ logs/
 secrets.yaml
 *.key
 *.pem
+
+# update instructions
+CHANGELOG.md
+CHANGELOG-EN.md
+
+# The test is used for
+Z-Sans/
