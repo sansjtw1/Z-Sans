@@ -13,6 +13,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
   --bg: #0f172a; --bg2: #1e293b; --card: #1e293b; --border: #334155;
   --text: #e2e8f0; --text2: #94a3b8; --accent: #38bdf8; --accent2: #0ea5e9;
   --green: #4ade80; --red: #f87171; --yellow: #fbbf24; --purple: #a78bfa;
+  --ok: #4ade80; --err: #f87171;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif; }
@@ -52,6 +53,23 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
 .btn-danger { background:var(--red); }
 .btn-ghost { background:transparent; color:var(--text2); border:1px solid var(--border); }
 .btn-sm { padding:4px 10px; font-size:.75rem; }
+.btn-group { display:inline-flex; gap:6px; align-items:center; }
+.btn-primary { background:var(--accent); }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.form-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+.form-field label { display:block; font-size:.8rem; color:var(--text2); margin-bottom:6px; font-weight:600; }
+.form-field input, .form-field select, .form-field textarea {
+  width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text);
+  border-radius:6px; padding:8px 10px; font-size:.85rem; box-sizing:border-box;
+}
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline:none; border-color:var(--accent); }
+.form-field small { display:block; margin-top:4px; font-size:.72rem; color:var(--text2); }
+.switch { position:relative; display:inline-block; width:42px; height:22px; }
+.switch input { opacity:0; width:0; height:0; }
+.switch .slider { position:absolute; cursor:pointer; inset:0; background:var(--border); border-radius:999px; transition:.2s; }
+.switch .slider:before { content:''; position:absolute; height:16px; width:16px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+.switch input:checked + .slider { background:var(--accent); }
+.switch input:checked + .slider:before { transform:translateX(20px); }
 .empty { text-align:center; color:var(--text2); padding:40px 0; }
 .progress { height:8px; background:var(--bg); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
 .progress>div { height:100%; background:linear-gradient(90deg,var(--accent2),var(--accent)); transition:width .4s; }
@@ -212,7 +230,7 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
             <input v-model="assetFilter" :placeholder="t('search_assets')" style="flex:1">
             <select v-model="typeFilter">
               <option value="">{{ t('all_types') }}</option>
-              <option v-for="t in typeList" :key="t" :value="t">{{ t }}</option>
+              <option v-for="tl in typeList" :key="tl" :value="tl">{{ tl }}</option>
             </select>
           </div>
           <div v-if="filteredAssets.length">
@@ -352,16 +370,16 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
         <table>
           <thead><tr><th>ID</th><th>{{ t('seed') }}</th><th>{{ t('status') }}</th><th>{{ t('asset_count') }}</th><th>{{ t('depth') }}</th><th>{{ t('actions') }}</th></tr></thead>
           <tbody>
-            <tr v-for="t in tasks" :key="t.id">
-              <td>{{ t.id }}</td>
-              <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ seedSummary(t.seeds) }}</td>
-              <td><span class="badge" :class="'badge-'+t.status">{{ t.status }}</span></td>
-              <td>{{ t.metrics.assets_processed || 0 }}</td>
-              <td>{{ t.metrics.depth_reached || 0 }}</td>
+            <tr v-for="task in tasks" :key="task.id">
+              <td>{{ task.id }}</td>
+              <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ seedSummary(task.seeds) }}</td>
+              <td><span class="badge" :class="'badge-'+task.status">{{ task.status }}</span></td>
+              <td>{{ task.metrics.assets_processed || 0 }}</td>
+              <td>{{ task.metrics.depth_reached || 0 }}</td>
               <td>
-                <button class="btn btn-sm btn-ghost" @click="viewTask(t.id)">{{ t('detail') }}</button>
-                <button v-if="t.status==='running'" class="btn btn-sm btn-danger" @click="stopTask(t.id)">{{ t('stop') }}</button>
-                <button v-if="t.status!=='running'" class="btn btn-sm btn-ghost" @click="rescanTask(t.id)">{{ t('rescan') }}</button>
+                <button class="btn btn-sm btn-ghost" @click="viewTask(task.id)">{{ t('detail') }}</button>
+                <button v-if="task.status==='running'" class="btn btn-sm btn-danger" @click="stopTask(task.id)">{{ t('stop') }}</button>
+                <button v-if="task.status!=='running'" class="btn btn-sm btn-ghost" @click="rescanTask(task.id)">{{ t('rescan') }}</button>
               </td>
             </tr>
           </tbody>
@@ -427,8 +445,11 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
               <td style="font-size:.72rem;color:var(--text2)">{{ (p.events||[]).join(', ') }}</td>
               <td style="color:var(--text2)">{{ p.description }}</td>
               <td>
-                <button v-if="p.status==='disabled'" class="btn btn-sm" @click="togglePlugin(p.name)">{{ t('enable') }}</button>
-                <button v-else class="btn btn-sm btn-ghost" @click="togglePlugin(p.name)">{{ t('disable') }}</button>
+                <span class="btn-group">
+                  <button v-if="p.status==='disabled'" class="btn btn-sm" @click="togglePlugin(p.name)">{{ t('enable') }}</button>
+                  <button v-else class="btn btn-sm btn-ghost" @click="togglePlugin(p.name)">{{ t('disable') }}</button>
+                  <button v-if="p.webui || p.schema" class="btn btn-sm btn-primary" @click="openPlugin(p)">{{ t('enter') }}</button>
+                </span>
               </td>
             </tr>
           </tbody>
@@ -436,6 +457,47 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
         </div>
       </div>
       <div v-else class="card"><div class="empty">{{ t('no_plugins') }}</div></div>
+    </div>
+
+    <!-- 插件界面 -->
+    <div v-if="page==='plugin' && activePlugin">
+      <div class="row" style="margin-bottom:16px;justify-content:space-between">
+        <h2 style="font-size:1.1rem">{{ activePlugin.name }} <span style="color:var(--text2);font-size:.8rem">{{ activePlugin.version }}</span></h2>
+        <button class="btn btn-ghost" @click="go('plugins')">← {{ t('back') }}</button>
+      </div>
+
+      <div v-if="activePlugin.webui" class="card" style="padding:0;overflow:hidden">
+        <iframe :src="'/api/plugins/' + activePlugin.name + '/webui'"
+                style="width:100%;height:70vh;border:0;display:block" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+      </div>
+
+      <div v-if="activePlugin.schema" class="card">
+        <div class="form-grid">
+          <div v-for="(field, key) in schemaFields" :key="key" class="form-field">
+            <label>{{ field.title || key }}</label>
+            <div v-if="field.type==='boolean'">
+              <label class="switch">
+                <input type="checkbox" v-model="pluginForm[key]" @change="schemaDirty=true">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <select v-else-if="field.type==='select' || (field.enum && field.enum.length)" v-model="pluginForm[key]" @change="schemaDirty=true">
+              <option v-for="opt in (field.enum||[])" :key="opt" :value="opt">{{ field.enumLabels && field.enumLabels[opt] ? field.enumLabels[opt] : opt }}</option>
+            </select>
+            <input v-else-if="field.type==='number' || field.type==='integer'" type="number" v-model.number="pluginForm[key]" @input="schemaDirty=true">
+            <textarea v-else-if="field.type==='textarea'" v-model="pluginForm[key]" rows="3" @input="schemaDirty=true"></textarea>
+            <input v-else-if="field.type==='array' || (field.type==='string' && field.items)" v-model="pluginForm[key]" @input="schemaDirty=true" placeholder="逗号分隔">
+            <input v-else type="text" v-model="pluginForm[key]" @input="schemaDirty=true">
+            <small v-if="field.description">{{ field.description }}</small>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px;gap:8px">
+          <button class="btn btn-primary" @click="savePluginConfig" :disabled="!schemaDirty">{{ t('save') }}</button>
+          <button class="btn btn-ghost" @click="loadPluginConfig">{{ t('reload') }}</button>
+          <span v-if="schemaSaved" style="color:var(--ok);font-size:.85rem">{{ t('config_saved') }}</span>
+          <span v-if="schemaError" style="color:var(--err);font-size:.85rem">{{ schemaError }}</span>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -475,6 +537,11 @@ createApp({
       configSaved: false,
       configError: null,
       plugins: [],
+      activePlugin: null,
+      pluginForm: {},
+      schemaDirty: false,
+      schemaSaved: false,
+      schemaError: null,
     };
   },
   computed: {
@@ -508,6 +575,13 @@ createApp({
     activeTaskLogText() {
       if (!this.activeTask) return '';
       return this.activeTask._logs ? this.activeTask._logs.join('\n') : '暂无日志';
+    },
+    schemaFields() {
+      const s = this.activePlugin && this.activePlugin.schema;
+      const props = (s && s.properties) || {};
+      const out = {};
+      for (const k of Object.keys(props)) out[k] = props[k];
+      return out;
     },
     compareList() {
       if (!this.compareData) return [];
@@ -569,7 +643,7 @@ createApp({
       if (v === null || v === undefined) return '';
       return typeof v === 'object' ? JSON.stringify(v, null, 2) : String(v);
     },
-    go(p) { this.page = p; if (p==='projects') this.loadProjects(); if (p==='tasks') this.loadTasks(); if (p==='config') this.loadConfig(); if (p==='plugins') this.loadPlugins(); },
+    go(p) { this.page = p; if (p==='projects') this.loadProjects(); if (p==='tasks') this.loadTasks(); if (p==='config') this.loadConfig(); if (p==='plugins') this.loadPlugins(); if (p==='plugin' && this.activePlugin && this.activePlugin.schema) this.loadPluginConfig(); },
     api(path, opts) { return fetch(path, opts).then(r => r.json()); },
     loadProjects() { this.api('/api/projects').then(d => { if (Array.isArray(d)) this.projects = d; }); },
     compareSelected() {
@@ -784,6 +858,58 @@ createApp({
       this.api('/api/plugins/' + name + '/toggle', {method:'POST'}).then(d => {
         if (d.ok) { this.loadPlugins(); } else { alert('操作失败: ' + (d.error||'')); }
       });
+    },
+    openPlugin(p) {
+      this.activePlugin = p;
+      this.schemaDirty = false;
+      this.schemaSaved = false;
+      this.schemaError = null;
+      this.pluginForm = {};
+      if (p.schema) this.loadPluginConfig();
+      this.page = 'plugin';
+    },
+    loadPluginConfig() {
+      this.api('/api/plugins/' + this.activePlugin.name + '/config').then(d => {
+        const saved = d.config || {};
+        const props = (this.activePlugin.schema && this.activePlugin.schema.properties) || {};
+        const form = {};
+        for (const k of Object.keys(props)) {
+          const f = props[k];
+          const def = f.default;
+          let v;
+          if (k in saved) v = saved[k];
+          else if (def !== undefined) v = def;
+          else if (f.type === 'boolean') v = false;
+          else if (f.type === 'number' || f.type === 'integer') v = 0;
+          else if (f.type === 'array' || (f.type === 'string' && f.items)) v = [];
+          else v = '';
+          // 数组/逗号分隔字段用文本输入，内部以逗号字符串表示，保存时再拆回数组
+          if (Array.isArray(v)) v = v.map(String).join(', ');
+          form[k] = v;
+        }
+        this.pluginForm = form;
+        this.schemaDirty = false;
+        this.schemaSaved = false;
+        this.schemaError = null;
+      });
+    },
+    savePluginConfig() {
+      const props = (this.activePlugin.schema && this.activePlugin.schema.properties) || {};
+      const config = {};
+      for (const k of Object.keys(props)) {
+        const f = props[k];
+        let v = this.pluginForm[k];
+        if ((f.type === 'array' || (f.type === 'string' && f.items)) && typeof v === 'string') {
+          v = v.split(/[,\n]/).map(s => s.trim()).filter(Boolean);
+        }
+        config[k] = v;
+      }
+      const body = { config };
+      this.api('/api/plugins/' + this.activePlugin.name + '/config',
+        {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}).then(d => {
+          if (d.ok) { this.schemaSaved = true; this.schemaDirty = false; this.schemaError = null; }
+          else { this.schemaError = d.error || '保存失败'; }
+        });
     },
   },
   watch: {

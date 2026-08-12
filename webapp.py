@@ -35,6 +35,16 @@ class ScanManager:
             self._next_id += 1
             return tid
 
+    def _task_metrics(self, t):
+        """返回任务当前 metrics；运行中从引擎实时读取，否则用完成时的快照。"""
+        engine = t.get("engine")
+        if engine is not None and getattr(engine, "metrics", None):
+            try:
+                return dict(engine.metrics)
+            except Exception:
+                pass
+        return dict(t["metrics"]) if t.get("metrics") else {}
+
     def list_tasks(self):
         with self._lock:
             return [
@@ -44,7 +54,7 @@ class ScanManager:
                     "status": t["status"],
                     "started_at": t["started_at"],
                     "finished_at": t["finished_at"],
-                    "metrics": dict(t["metrics"]) if t.get("metrics") else {},
+                    "metrics": self._task_metrics(t),
                     "run_dir": t.get("run_dir"),
                 }
                 for t in sorted(self._tasks.values(), key=lambda x: x["started_at"] or 0, reverse=True)
@@ -61,7 +71,7 @@ class ScanManager:
                 "status": t["status"],
                 "started_at": t["started_at"],
                 "finished_at": t["finished_at"],
-                "metrics": dict(t["metrics"]) if t.get("metrics") else {},
+                "metrics": self._task_metrics(t),
                 "run_dir": t.get("run_dir"),
                 "error": t.get("error"),
                 "traceback": t.get("traceback"),
@@ -328,6 +338,66 @@ class ScanManager:
             else:
                 base[k] = v
 
+    # ── 插件前端配置（webui/schema 表单）──────────────
+    def plugin_config_path(self, plugin_name):
+        """插件 web 配置独立存储路径（不污染主配置文件）。"""
+        cfg_dir = os.path.join(self._output_dir, "plugin_config")
+        return os.path.join(cfg_dir, re.sub(r'[^A-Za-z0-9_.-]', '_', plugin_name) + ".yaml")
+
+    def get_plugin_config(self, plugin_name):
+        """读取插件 web 配置；无则返回 {}。"""
+        p = self.plugin_config_path(plugin_name)
+        data, err = read_config_file(p) if os.path.exists(p) else (None, None)
+        if err or data is None:
+            return {}
+        return data
+
+    def set_plugin_config(self, plugin_name, data):
+        """保存插件 web 配置（整体覆盖）。"""
+        if not isinstance(data, dict):
+            return False, "config must be an object"
+        p = self.plugin_config_path(plugin_name)
+        try:
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with open(p, 'w', encoding='utf-8') as f:
+                yaml.dump(data, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+            return True, None
+        except Exception as e:
+            return False, str(e)
+
+    def resolve_plugin_webui(self, plugin_name, rel=''):
+        """定位插件 webui 文件绝对路径。
+
+        rel 为空返回主 webui；否则返回插件目录下相对路径 rel（用于加载
+        同目录 schema/json/css/js 等资源）。返回 (abs_path|None, error|None)。
+        """
+        if not re.match(r'^[A-Za-z0-9_.-]+$', plugin_name or ''):
+            return None, "invalid plugin name"
+        try:
+            plugins = list_plugins(lambda: self._new_engine())
+        except Exception as e:
+            return None, str(e)
+        for info in plugins:
+            if info.get("name") != plugin_name:
+                continue
+            base = info.get("path") or ""
+            if not base:
+                return None, "plugin not found"
+            base_abs = os.path.abspath(base)
+            if rel:
+                abs_path = os.path.abspath(os.path.join(base_abs, rel))
+            else:
+                webui = info.get("webui") or ""
+                if not webui:
+                    return None, "plugin has no webui"
+                abs_path = os.path.abspath(os.path.join(base_abs, webui))
+            if not abs_path.startswith(base_abs + os.sep) and abs_path != base_abs:
+                return None, "path escapes plugin dir"
+            if not os.path.isfile(abs_path):
+                return None, "file not found"
+            return abs_path, None
+        return None, "plugin not found"
+
 
 class _TaskLogHandler(logging.Handler):
     """把 zsans 日志收集到任务内存队列。"""
@@ -507,8 +577,211 @@ def _set_plugins_disabled_text(raw, disabled):
     out = raw.rstrip('\n')
     if out:
         out += "\n"
-    out += "plugins:\n  disabled: {list_repr}\n".format(list_repr=list_repr)
+    out += f"plugins:\n  disabled: {list_repr}\n"
     return out
+
+
+def _yaml_scalar_repr(value):
+    """把值转成单行 YAML 标量表示（供文本级替换）。"""
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, (list, tuple)):
+        return "[" + ", ".join(_yaml_scalar_repr(v) for v in value) + "]"
+    if isinstance(value, dict):
+        return "{}"
+    s = str(value)
+    if s == "":
+        return "''"
+    if any(ch in s for ch in "\n:#"):
+        return "'" + s.replace("'", "''") + "'"
+    return s
+
+
+def _yaml_block_line(lines, start, indent, key):
+    """在 lines[start:] 中定位 indented key 行的索引；找不到返回 -1。"""
+    pat = re.compile(r'^(%s)%s:(?:\s|$)' % (" " * indent, re.escape(key)))
+    for i in range(start, len(lines)):
+        line = lines[i]
+        if not line.strip():
+            continue
+        m = pat.match(line)
+        if m:
+            return i
+        # 缩进比目标浅的行说明已离开父块，停止搜索，避免误匹配后续兄弟块
+        if indent > 0 and not line.startswith(' ') and not line.startswith('\t'):
+            break
+    return -1
+
+
+def _yaml_find_parent_block(lines, start, parent_indent):
+    """返回 parent 子块的结束索引（不含）：从 start 起，到下一个缩进 <= parent_indent 的行止。"""
+    end = len(lines)
+    for i in range(start, len(lines)):
+        line = lines[i]
+        if not line.strip():
+            continue
+        # 缩进 <= 父缩进的非空行表示离开父块
+        m = re.match(r'^(\s*)', line)
+        if m and len(m.group(1)) <= parent_indent and not line.strip().startswith('#'):
+            end = i
+            break
+    return end
+
+
+def _yaml_value_lines(key, value, indent):
+    """把 key+value 序列化为多行 YAML 文本行（支持标量/list/dict）。"""
+    pad = " " * indent
+    if isinstance(value, dict):
+        if not value:
+            return [f"{pad}{key}: {{}}"]
+        out = [f"{pad}{key}:"]
+        for k, v in value.items():
+            out.extend(_yaml_value_lines(k, v, indent + 2))
+        return out
+    if isinstance(value, list):
+        if not value:
+            return [f"{pad}{key}: []"]
+        # 使用 flow 风格单行表示整个列表，避免块式缩进复杂度
+        flow = yaml.dump(value, default_flow_style=True, allow_unicode=True).strip()
+        return [f"{pad}{key}: {flow}"]
+    return [f"{pad}{key}: {_yaml_scalar_repr(value)}"]
+
+
+def _yaml_insert_chain(lines, keys, value, anchor_line, base_indent):
+    """在 anchor_line（插入到其之后）处插入 keys 链，最内层为 value。"""
+    insert_at = anchor_line + 1
+    out = list(lines)
+    for depth, key in enumerate(keys[:-1]):
+        indent = base_indent + depth * 2
+        out.insert(insert_at, " " * indent + f"{key}:")
+        insert_at += 1
+    leaf_lines = _yaml_value_lines(keys[-1], value, base_indent + (len(keys) - 1) * 2)
+    for i, ln in enumerate(leaf_lines):
+        out.insert(insert_at + i, ln)
+    return out
+
+
+def _yaml_find_deepest(lines, keys):
+    """逐级定位 keys；返回 (found_depth, last_idx, indent)。found_depth 为成功匹配的最大层数。"""
+    start = 0
+    indent = 0
+    last_idx = -1
+    found_depth = 0
+    for depth, key in enumerate(keys):
+        idx = _yaml_block_line(lines, start, indent, key)
+        if idx < 0:
+            break
+        last_idx = idx
+        found_depth = depth + 1
+        start = idx + 1
+        indent = depth * 2 + 2
+    return found_depth, last_idx, indent
+
+
+def _yaml_strip_block_body(lines, idx, key_indent):
+    """删除 lines[idx]（某 key 行）之后属于其旧值的子块行，返回新行列表。
+
+    删除规则（从 idx+1 起连续消费）：
+      - 缩进 > key_indent 的行（嵌套子键）
+      - 缩进 == key_indent 且以 '- ' 开头的块级序列项（YAML 允许与 key 同缩进）
+      - 上述行之间的空行
+    遇到缩进 <= key_indent 的非序列项行停止。
+    """
+    j = idx + 1
+    while j < len(lines):
+        line = lines[j]
+        if not line.strip():
+            # 空行：向后找下一个非空行判断是否仍在子块内
+            k = j
+            while k < len(lines) and not lines[k].strip():
+                k += 1
+            if k >= len(lines):
+                break
+            m = re.match(r'^(\s*)(-(\s|$)|.)', lines[k])
+            nind = len(m.group(1)) if m else 0
+            is_seq = bool(m and m.group(2).startswith('-'))
+            if nind > key_indent or (nind == key_indent and is_seq):
+                j = k
+                continue
+            break
+        m = re.match(r'^(\s*)(-(\s|$)|.*)', line)
+        nind = len(m.group(1)) if m else 0
+        is_seq = bool(m and m.group(2).startswith('-'))
+        if nind > key_indent or (nind == key_indent and is_seq):
+            j += 1
+        else:
+            break
+    if j > idx + 1:
+        del lines[idx + 1:j]
+    return lines
+
+
+def apply_config_patch(raw, updates):
+    """文本级更新 YAML 中若干 key 的值，保留注释与其他内容。
+
+    updates: { "a.b.c": value, "a.x": value } —— 用点路径定位嵌套 key。
+    已存在的 key 就地更新（保留行尾注释）；不存在的 key 在父块末尾插入。
+    若父块也不存在，则整条链按需创建。
+    """
+    if not updates:
+        return raw, None
+    try:
+        yaml.safe_load(raw)
+    except Exception as e:
+        return raw, f"YAML 语法错误: {e}"
+    lines = raw.splitlines()
+
+    # 先排序，父路径优先于子路径，避免插入影响后续定位
+    ordered = sorted(updates.items(), key=lambda kv: (len(kv[0].split('.')), kv[0]))
+    for dotted, value in ordered:
+        keys = [k for k in dotted.split('.') if k]
+        if not keys:
+            continue
+        found_depth, last_idx, indent = _yaml_find_deepest(lines, keys)
+        if found_depth == len(keys):
+            # 全路径存在：就地更新（先删旧子块，再用多行表示覆盖整块）
+            line = lines[last_idx]
+            comment = ""
+            m = re.match(r'^(\s*[^#]*?)(\s+#.*)?$', line)
+            if m and m.group(2):
+                comment = m.group(2)
+            key_indent = indent - 2
+            lines = _yaml_strip_block_body(lines, last_idx, key_indent)
+            value_lines = _yaml_value_lines(keys[-1], value, key_indent)
+            lines[last_idx] = value_lines[0] + (comment if len(value_lines) == 1 else "")
+            for bi, bl in enumerate(value_lines[1:], start=1):
+                lines.insert(last_idx + bi, bl)
+        else:
+            # 需插入：以已找到的父位置为锚
+            missing = keys[found_depth:]
+            if found_depth == 0:
+                # 顶层新 key：追加到文件末尾
+                if lines and lines[-1].strip():
+                    lines.append("")
+                if len(missing) == 1:
+                    lines.extend(_yaml_value_lines(missing[0], value, 0))
+                else:
+                    base = []
+                    for depth, key in enumerate(missing[:-1]):
+                        base.append(f"{'  ' * depth}{key}:")
+                    lines.extend(base)
+                    lines.extend(_yaml_value_lines(missing[-1], value, (len(missing) - 1) * 2))
+            else:
+                parent_indent = (found_depth - 1) * 2
+                block_end = _yaml_find_parent_block(lines, last_idx + 1, parent_indent)
+                anchor = block_end - 1
+                # 跳过父块末尾的空行，找到最后一个实际行作为插入锚点
+                while anchor >= last_idx and (not lines[anchor].strip() or lines[anchor].strip().startswith('#')):
+                    anchor -= 1
+                if anchor < last_idx:
+                    anchor = last_idx
+                lines = _yaml_insert_chain(lines, missing, value, anchor, found_depth * 2)
+
+    return "\n".join(lines), None
 
 
 def write_config_yaml(path, raw):
@@ -558,6 +831,9 @@ def list_plugins(engine_factory):
                 "handlers": info.get("handlers"),
                 "events": info.get("events", []),
                 "path": info.get("path"),
+                "kind": info.get("kind", "file"),
+                "webui": info.get("webui", ""),
+                "schema": info.get("schema"),
             }
             for info in engine.plugins.values()
         ]
@@ -584,7 +860,7 @@ WEB_I18N_KEYS = [
     "asset_count","detail","stop","rescan","task_detail","view_output",
     "real_time_log","follow_log","no_tasks","no_projects","config_file",
     "reload","save","config_saved","plugin","name","version","handlers",
-    "events","description","enable","disable","no_plugins","search_assets",
+    "events","description","enable","disable","no_plugins","search_assets","enter",
     "all_types","assets","analysis","topology","raw_json","no_match",
     "type_dist","state_dist","depth_dist","no_data","depth","high_related",
     "seed_domains","nodes","edges","type_count","max_depth_l","props",
@@ -657,6 +933,36 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "not found"}, 404)
             return
         ctype = 'application/javascript; charset=utf-8' if name.endswith('.js') else 'application/octet-stream'
+        try:
+            with open(file_path, 'rb') as f:
+                body = f.read()
+        except Exception:
+            self._send_json({"error": "read failed"}, 500)
+            return
+        self.send_response(200)
+        self.send_header('Content-Type', ctype)
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _send_file(self, file_path):
+        """发送任意文件，按扩展名决定 Content-Type（供插件 webui 托管）。"""
+        ext = os.path.splitext(file_path)[1].lower()
+        ctype = {
+            '.html': 'text/html; charset=utf-8',
+            '.htm': 'text/html; charset=utf-8',
+            '.js': 'application/javascript; charset=utf-8',
+            '.mjs': 'application/javascript; charset=utf-8',
+            '.css': 'text/css; charset=utf-8',
+            '.json': 'application/json; charset=utf-8',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.gif': 'image/gif',
+            '.svg': 'image/svg+xml',
+            '.ico': 'image/x-icon',
+            '.woff2': 'font/woff2',
+        }.get(ext, 'application/octet-stream')
         try:
             with open(file_path, 'rb') as f:
                 body = f.read()
@@ -807,6 +1113,29 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                 mgr = self._get_manager()
                 plugins = list_plugins(lambda: mgr._new_engine())
                 self._send_json({"plugins": plugins})
+            elif path.startswith('/api/plugins/') and '/webui' in path:
+                parts = path.split('/')
+                name = parts[3]
+                # /api/plugins/<name>/webui[/<sub>...]
+                sub = ''
+                if len(parts) > 5:
+                    sub = '/'.join(parts[5:])
+                mgr = self._get_manager()
+                abs_path, err = mgr.resolve_plugin_webui(name, rel=sub)
+                if err:
+                    self._send_json({"error": err}, 404)
+                else:
+                    self._send_file(abs_path)
+            elif path.startswith('/api/plugins/') and path.endswith('/config'):
+                name = path.split('/')[3]
+                cfg = self._get_manager().get_plugin_config(name)
+                self._send_json({"name": name, "config": cfg})
+            elif path == '/api/config/json':
+                data, err = read_config_file(self._get_manager()._config_path)
+                if err:
+                    self._send_json({"error": err}, 500)
+                else:
+                    self._send_json({"config": data})
             elif path == '/api/config/schema':
                 self._send_json(self._get_manager()._base_config)
             else:
@@ -852,6 +1181,25 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                     self._send_json({"ok": True})
                 else:
                     self._send_json({"error": err}, 500)
+            elif path == '/api/config/patch':
+                body = self._json_body()
+                updates = body.get('updates')
+                if not isinstance(updates, dict):
+                    self._send_json({"error": "updates must be an object"}, 400)
+                    return
+                cur_raw, err = read_config_raw(self._get_manager()._config_path)
+                if err:
+                    self._send_json({"error": err}, 500)
+                    return
+                new_raw, perr = apply_config_patch(cur_raw, updates)
+                if perr:
+                    self._send_json({"error": perr}, 500)
+                    return
+                ok, werr = write_config_yaml(self._get_manager()._config_path, new_raw)
+                if ok:
+                    self._send_json({"ok": True, "applied": list(updates.keys())})
+                else:
+                    self._send_json({"error": werr}, 500)
             elif path.startswith('/api/plugins/') and path.endswith('/toggle'):
                 name = path.split('/')[3]
                 ok, msg, now = self._get_manager().toggle_plugin(name)
@@ -859,6 +1207,14 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                     self._send_json({"ok": True, "message": msg, "disabled": now})
                 else:
                     self._send_json({"error": msg}, 500)
+            elif path.startswith('/api/plugins/') and path.endswith('/config'):
+                name = path.split('/')[3]
+                body = self._json_body()
+                ok, err = self._get_manager().set_plugin_config(name, body.get('config') or {})
+                if ok:
+                    self._send_json({"ok": True})
+                else:
+                    self._send_json({"error": err}, 500)
             else:
                 self._send_json({"error": "not found"}, 404)
         except Exception as e:
@@ -908,7 +1264,12 @@ def start_web_server(base_config, config_path, output_dir, port=8050, host='0.0.
     except Exception:
         pass
 
-    server = ZSansWebServer((host, port), ZSansWebHandler, manager, "0.0.5", lang=lang)
+    try:
+        from main import VERSION as _zs_version
+        zs_version = _zs_version
+    except Exception:
+        zs_version = "0.0.6"
+    server = ZSansWebServer((host, port), ZSansWebHandler, manager, zs_version, lang=lang)
     logger.info("Z-Sans web console started on http://%s:%d", host, port)
     try:
         server.serve_forever()

@@ -109,6 +109,32 @@ Legacy constants are also supported: `PLUGIN_NAME` / `PLUGIN_VERSION` / `PLUGIN_
 
 `__plugin__` is accepted as an alias of `__manifest__`.
 
+**Web interface fields (optional, plugin web UI / config form)**:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `webui` | string | Entry HTML of the plugin's web page (relative to the plugin dir), e.g. `webui.html`. For directory plugins it is auto-detected from `webui.html` / `webui.htm` / `web/index.html`. Declaring it adds an **Enter** button on the Plugins page, rendered in a sandboxed iframe |
+| `schema` | dict | JSON-schema style form structure; the Web console auto-generates a form from it for plugin parameters, see [6.5](#65-plugin-web-ui-and-config-form) |
+
+Legacy constants for these: `PLUGIN_WEBUI` / `PLUGIN_SCHEMA`.
+
+```python
+__manifest__ = {
+    "name": "shodan_scan",
+    "version": "0.1.0",
+    "description": "Enrich IP asset fingerprints via Shodan",
+    "author": "your name",
+    "webui": "webui.html",                    # entry page inside the plugin dir
+    "schema": {                                # form structure, see 6.5
+        "type": "object",
+        "properties": {
+            "shodan_api_key": {"type": "string", "title": "Shodan API Key"},
+            "enabled": {"type": "boolean", "title": "Enabled", "default": True},
+        },
+    },
+}
+```
+
 **Mutual exclusion**: declare in the manifest that two plugins must not run
 together (patterns support `*` / `?` fnmatch wildcards):
 
@@ -276,6 +302,88 @@ def on_asset_scanned(asset, new_assets):
 
 Any other plugin that registers `on_port_reported` will receive it; custom events never disturb the engine's built-in flow.
 
+### 6.5 Plugin Web UI & Config Form
+
+Besides subscribing to events, a plugin can offer a standalone web page (`webui`)
+and a config form (`schema`) in the Web console. Both are optional and can be
+declared independently. Declaring either one adds an **Enter** button on the
+Plugins page.
+
+**Web UI `webui`**: declare `webui` in `__manifest__` (an entry file relative to
+the plugin dir; directory plugins can also just drop a `webui.html` /
+`web/index.html` that is auto-detected). The Web console loads
+`/api/plugins/<name>/webui` in a sandboxed iframe; sibling JS/CSS/JSON assets are
+served via relative paths (path traversal is guarded). Good for visualization or
+interactive operation pages:
+
+```text
+plugins/
+└── my_dashboard/
+    ├── plugin.py          # entry
+    ├── webui.html         # auto-detected / declared in __manifest__
+    └── app.js             # referenced relatively by webui.html, served automatically
+```
+
+**Config form `schema`**: declare a JSON-schema style object and the Web console
+renders it as a form. On submit it is saved to a dedicated plugin config
+directory `output/plugin_config/<name>.yaml` (**not** written into the main
+`breeding-config.yaml`). Read/write via `/api/plugins/<name>/config`
+(GET to load, POST to save). Reading it from a plugin:
+
+```python
+# plugin.py
+import yaml, os
+
+def _plugin_cfg(engine):
+    # plugin parameters saved by the web form
+    path = os.path.join(engine.output_handler.output_dir, "plugin_config",
+                        "my_dashboard.yaml")
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    return {}
+```
+
+**Field types supported by the schema form**:
+
+| `properties[k].type` | Widget | Saved as |
+|----------------------|--------|----------|
+| `boolean` | toggle switch | bool |
+| `select` (or with `enum`) | dropdown | selected value |
+| `number` / `integer` | number input | number |
+| `textarea` | multiline text box | string |
+| `array` (or `string` with `items`) | comma-separated input | array (split on save) |
+| default (other string) | single-line text box | string |
+
+Common keys: `title` (label), `description` (help text), `default` (default
+value), `enum` + `enumLabels` (dropdown options and their display names).
+
+```python
+__manifest__ = {
+    "name": "notifier",
+    "version": "0.1.0",
+    "description": "Push scan result alerts",
+    "author": "you",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "webhook_url": {"type": "string", "title": "Webhook URL",
+                            "description": "Webhook URL for alerts"},
+            "channels": {"type": "array", "title": "Notification channels",
+                         "items": {"type": "string"}, "default": ["email"]},
+            "level": {"type": "select", "title": "Alert level", "default": "warn",
+                      "enum": ["info", "warn", "critical"],
+                      "enumLabels": {"info": "Info", "warn": "Warning", "critical": "Critical"}},
+            "enabled": {"type": "boolean", "title": "Enabled", "default": True},
+        },
+    },
+}
+```
+
+> The form is just a convenient channel to persist plugin parameters to a
+> dedicated file; the plugin is free to choose where/how to read them. The web
+> form is fully decoupled from plugin events — nothing is auto-injected.
+
 ---
 
 ## 7. Concurrency & Reliability
@@ -296,7 +404,7 @@ Any other plugin that registers `on_port_reported` will receive it; custom event
 |---------|---------|
 | `python main.py --list-plugins` | List plugins: version, handler count, kind, status, subscribed events |
 | `python main.py --plugin-info <name>` | Show full info for one plugin (incl. directory files/doc and its `plugin_help()`) |
-| `python main.py --web` | Web console -> **Plugins** page lists plugins and can enable/disable them (`/api/plugins`) |
+| `python main.py --web` | Web console -> **Plugins** page lists plugins and can enable/disable them, open their web UI, and edit their config form (`/api/plugins`) |
 | Config file | Control loading behavior (below) |
 
 ```yaml
@@ -328,6 +436,8 @@ A directory plugin's folder is prepended to `sys.path` when it is imported, so
 it can `import` sibling helpers, configs and resources. `--plugin-info`
 displays the folder's file list and a summary of its `README.md` / `说明.md`.
 An entry file is required — resource-only folders are not treated as plugins.
+A directory containing `webui.html` / `web/index.html` is automatically treated
+as having a web UI (see 6.5) — no need to redeclare it in the manifest.
 
 ### 8.4 Conflicts & mutual exclusion
 

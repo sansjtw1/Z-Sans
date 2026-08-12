@@ -164,6 +164,9 @@ python main.py --web --port 9000
 - **插件管理** — 无需重启即可启用 / 禁用插件
 - **项目对比** — 对比两次扫描，找出仅存在于其中一方的资产
 
+![web1](images/web1.png)
+![web2](images/web2.png)
+
 ## 💻 配置说明
 
 配置文件 `breeding-config.yaml` 包含以下主要部分：
@@ -221,7 +224,7 @@ resource_limits:
 - *_graphml — GraphML 格式的关系图
 - *_report.html — 交互式报告，包含概览、拓扑、活跃资产、已排除资产及指标等标签页（支持筛选、搜索以及拓扑图的拖拽与缩放）
 
-![HTML-output](images/output1.png)
+![HTML-output](images/output2.png)
 
 ## 📃 免责声明
 ​​重要提示：​​ 使用Z-Sans前请务必阅读并理解以下免责声明：

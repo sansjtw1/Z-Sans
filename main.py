@@ -93,7 +93,7 @@ def configure_logging():
 
 logger = configure_logging()
 
-VERSION = "0.0.6"
+VERSION = "0.0.7"
 DEFAULT_CONFIG_PATH = "breeding-config.yaml"
 PLUGINS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plugins')
 
@@ -955,12 +955,16 @@ def _plugin_meta(module, fallback_name):
             "version": str(meta.get('version') or '0.0.0'),
             "description": str(meta.get('description') or ''),
             "author": str(meta.get('author') or ''),
+            "webui": str(meta.get('webui') or ''),
+            "schema": meta.get('schema'),
         }
     return {
         "name": str(getattr(module, 'PLUGIN_NAME', fallback_name)),
         "version": str(getattr(module, 'PLUGIN_VERSION', '0.0.0')),
         "description": str(getattr(module, 'PLUGIN_DESCRIPTION', '')),
         "author": str(getattr(module, 'PLUGIN_AUTHOR', '')),
+        "webui": str(getattr(module, 'PLUGIN_WEBUI', '')),
+        "schema": getattr(module, 'PLUGIN_SCHEMA', None),
     }
 
 
@@ -1005,6 +1009,8 @@ def _prepare_plugin(entry_path, fallback_name, kind='file'):
         "error": None,
         "module": None,
         "conflicts": [],
+        "webui": "",
+        "schema": None,
     }
     if kind == 'dir':
         folder = os.path.dirname(entry_path)
@@ -1012,6 +1018,11 @@ def _prepare_plugin(entry_path, fallback_name, kind='file'):
         info["entry"] = entry_path
         info["files"] = [f for f in sorted(os.listdir(folder))
                          if not f.startswith(('__', '.')) and not f.endswith('.pyc')]
+        # 目录插件自动探测前端资源: webui.html 或 web/index.html
+        for cand in ("webui.html", "webui.htm", os.path.join("web", "index.html"), os.path.join("web", "index.htm")):
+            if os.path.isfile(os.path.join(folder, cand)):
+                info.setdefault("webui", cand)
+                break
         info["doc"] = _read_plugin_doc(folder)
         module_name = "zsans_plugin_" + os.path.basename(folder)
     else:

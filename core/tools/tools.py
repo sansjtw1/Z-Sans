@@ -163,7 +163,7 @@ class ToolOrchestrator:
         for tool, path in self.tool_paths.items():
             if path is None:
                 tools_to_remove.append(tool)
-                logger.warning(_("Tool {tool} path is empty, ignoring configuration").format(tool=tool))
+                logger.debug(_("Tool {tool} path is empty, ignoring configuration").format(tool=tool))
             elif not os.path.isabs(path):
                 self.tool_paths[tool] = os.path.abspath(path)
         

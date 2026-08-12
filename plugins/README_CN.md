@@ -109,6 +109,32 @@ __manifest__ = {
 
 `__plugin__` 已作为 `__manifest__` 的别名被支持。
 
+**Web 界面字段(可选,插件网页配置)**:
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `webui` | string | 插件网页入口文件(相对插件目录),如 `webui.html`。目录插件留空时自动探测 `webui.html` / `webui.htm` / `web/index.html`。声明后 Web 控制台插件页出现"进入"按钮,在 iframe 中展示 |
+| `schema` | dict | JSON-schema 风格的表单配置;Web 控制台据此自动生成表单,可配置插件参数,见[六.5](#65-插件网页界面与配置表单) |
+
+对应旧常量:`PLUGIN_WEBUI` / `PLUGIN_SCHEMA`。
+
+```python
+__manifest__ = {
+    "name": "shodan_scan",
+    "version": "0.1.0",
+    "description": "通过 Shodan 补充 IP 资产指纹",
+    "author": "你的名字",
+    "webui": "webui.html",                    # 插件目录下的入口页面
+    "schema": {                                # 表单结构,详细见 6.5
+        "type": "object",
+        "properties": {
+            "shodan_api_key": {"type": "string", "title": "Shodan API Key"},
+            "enabled": {"type": "boolean", "title": "启用", "default": True},
+        },
+    },
+}
+```
+
 **互斥声明**:在清单中声明两个插件不能同时加载(模式支持 `*` / `?` 通配):
 
 ```python
@@ -274,6 +300,83 @@ def on_asset_scanned(asset, new_assets):
 
 其它插件注册 `on_port_reported` 即可收到;自定义事件不会干扰引擎内置流程。
 
+### 6.5 插件网页界面与配置表单
+
+插件除了订阅事件,还能在 Web 控制台里提供一个独立网页界面(`webui`)和一个
+配置表单(`schema`)。两者都可选,也可只声明其中一个。声明后,插件页上会出现
+"进入"按钮。
+
+**网页界面 `webui`**:在 `__manifest__` 里声明 `webui`(相对插件目录的入口文件,
+目录插件也可直接放 `webui.html` / `web/index.html` 自动探测)。Web 控制台用
+sandbox iframe 加载 `/api/plugins/<name>/webui`,同目录的 JS/CSS/JSON 等资源
+按相对路径下发(有路径穿越防护)。适合做可视化、交互式运维页面:
+
+```text
+plugins/
+└── my_dashboard/
+    ├── plugin.py          # 入口
+    ├── webui.html         # 自动探测 / __manifest__ 声明
+    └── app.js             # 被 webui.html 相对引用,自动可访问
+```
+
+**配置表单 `schema`**:声明一个 JSON-schema 风格的对象,Web 控制台自动渲染成
+表单。提交后保存在独立的插件配置目录 `output/plugin_config/<name>.yaml`
+(**不写入主配置 `breeding-config.yaml`**),读取用
+`/api/plugins/<name>/config`(GET 取、POST 存)。插件侧读取示例:
+
+```python
+# plugin.py
+import yaml, os
+
+def _plugin_cfg(engine):
+    # 由 Web 表单保存的插件参数
+    path = os.path.join(engine.output_handler.output_dir, "plugin_config",
+                        "my_dashboard.yaml")
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    return {}
+```
+
+**schema 支持的字段类型**:
+
+| `properties[k].type` | 表单控件 | 保存类型 |
+|----------------------|----------|----------|
+| `boolean` | 开关 | bool |
+| `select`(或带 `enum`) | 下拉框 | 选中值 |
+| `number` / `integer` | 数字输入 | 数字 |
+| `textarea` | 多行文本框 | string |
+| `array`(或 `string` 带 `items`) | 逗号分隔输入 | 数组(保存时拆分为列表) |
+| 默认(其它 string) | 单行文本框 | string |
+
+公共键:`title`(标签)、`description`(说明)、`default`(默认值)、`enum` +
+`enumLabels`(下拉选项及其显示名)。
+
+```python
+__manifest__ = {
+    "name": "notifier",
+    "version": "0.1.0",
+    "description": "扫描结果告警推送",
+    "author": "你",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "webhook_url": {"type": "string", "title": "Webhook 地址",
+                            "description": "推送告警的 Webhook URL"},
+            "channels": {"type": "array", "title": "通知渠道",
+                         "items": {"type": "string"}, "default": ["email"]},
+            "level": {"type": "select", "title": "告警级别", "default": "warn",
+                      "enum": ["info", "warn", "critical"],
+                      "enumLabels": {"info": "信息", "warn": "警告", "critical": "严重"}},
+            "enabled": {"type": "boolean", "title": "启用", "default": True},
+        },
+    },
+}
+```
+
+> 表单只是"把插件参数持久化到独立文件"的便捷通道,插件仍可自由选择
+> 读取位置与方式;Web 表单与插件事件完全解耦,不做任何自动注入。
+
 ---
 
 ## 七、多线程与可靠性
@@ -294,7 +397,7 @@ def on_asset_scanned(asset, new_assets):
 |------|------|
 | `python main.py --list-plugins` | 列出插件:版本、处理器数、类型、状态、订阅事件 |
 | `python main.py --plugin-info <name>` | 查看某个插件完整信息(含目录插件文件/文档及其 `plugin_help()`) |
-| `python main.py --web` | Web 控制台 -> **插件**页面列出插件并可启停(`/api/plugins`) |
+| `python main.py --web` | Web 控制台 -> **插件**页面列出插件并可启停、进入插件网页界面、编辑配置表单(`/api/plugins`) |
 | 配置文件 | 控制加载行为(见下) |
 
 ```yaml
@@ -322,7 +425,9 @@ def register_cli(parser):
 
 目录插件导入时其所在目录会前置进 `sys.path`,可自由 `import` 同目录的辅助
 模块、配置与资源。`--plugin-info` 会展示目录内文件清单及 `README.md` /
-`说明.md` 的摘要。必须含入口文件——纯资源目录不算插件。
+`说明.md` 的摘要。必须含入口文件——纯资源目录不算插件。目录内含
+`webui.html` / `web/index.html` 时会自动作为插件的 Web 界面(见 6.5),
+无需在清单中重复声明。
 
 ### 8.4 冲突与互斥
 

@@ -150,6 +150,9 @@ Features:
 - **Plugin manager** — enable / disable plugins without restarting
 - **Project compare** — diff two runs to find assets only present in either
 
+![web1](images/web1.png)
+![web2](images/web2.png)
+
 ## 💻 Configuration
 
 Main sections of `breeding-config.yaml`:
@@ -202,6 +205,8 @@ Each scan writes to a timestamped subdirectory under `output/`, containing:
 - `*_assets.csv` / `*_relations.csv` — assets and relations (for Excel-friendly)
 - `*_graphml` — GraphML relationship graph
 - `*_report.html` — interactive report with Overview, Topology, Active Assets, Eliminated, and Metrics tabs (filters, search and topology drag/zoom)
+
+![html-output](images/output2.png)
 
 ## 📃 Disclaimer
 

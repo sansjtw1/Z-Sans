@@ -824,7 +824,7 @@ class URLBreeder(BreederBase):
                         line = line.strip()
                         if not line or line.startswith('#') or ':' not in line:
                             continue
-                        key, _, val = line.partition(':')
+                        key, _sep, val = line.partition(':')
                         key = key.strip().lower()
                         val = val.strip()
                         if not val:
