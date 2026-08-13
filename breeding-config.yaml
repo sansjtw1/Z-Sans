@@ -115,17 +115,15 @@ language:
 # Exclusion rules
 exclusions:
   domains:             # Excluded domains
-  - example.com
   - test.local
   ips:                 # Excluded IPs
   - 127.0.0.1
   - 0.0.0.0
   urls:                # Excluded URL keywords
-  - login
-  - logout
+#  - logout
   ports: []           # Excluded ports
   patterns:           # Exclusion regex patterns
-  - \.(css|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot)$
+  - \.(svg|woff|woff2|ttf|eot)$
 
 # HTTP request configuration
 http:
