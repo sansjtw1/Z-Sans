@@ -2,6 +2,8 @@
 
 > A plugin authoring guide for security researchers / developers. After reading it you will be able to write plugins that hook into Shodan, vulnerability scanning, Webhook notifications, custom reporting, and more.
 
+> 📖 **Online documentation**: this guide and the full Z-Sans documentation (User Guide, CLI Reference, Configuration Reference, Web Console, Events, Architecture, and more) are available at [https://sansjtw1.github.io/Z-Sans/docs/](https://sansjtw1.github.io/Z-Sans/docs/), with **English** and **简体中文** versions.
+
 ---
 
 ## Table of Contents

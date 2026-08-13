@@ -2,6 +2,8 @@
 
 > 面向安全研究员 / 开发者的插件编写指南。读完本文,你将能写出接入 Shodan、漏洞扫描、Webhook 通知、自定义报告等任意功能的插件。
 
+> 📖 **在线文档**：本文档及完整的 Z-Sans 中英文文档（用户指南、CLI 参考、配置参考、Web 控制台、事件参考、架构说明等）见 [https://sansjtw1.github.io/Z-Sans/docs/](https://sansjtw1.github.io/Z-Sans/docs/)，支持 **English** 与 **简体中文** 两种语言。
+
 ---
 
 ## 目录

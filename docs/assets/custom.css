@@ -1,0 +1,209 @@
+/* ============================================================
+   Z-Sans 文档站自定义样式（覆盖 shadcn 主题默认）
+   通过 mkdocs extra_css 加载，位于主题 base.css 之后
+   ============================================================ */
+
+/* ---------- 1. 中文字体栈 ---------- */
+:root {
+    --font-sans: "Geist", "Noto Sans SC", "Noto Sans CJK SC",
+        "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui,
+        sans-serif;
+    --font-mono: "Geist Mono", "JetBrains Mono", "Noto Sans Mono CJK SC",
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+    --default-font-family: var(--font-sans);
+    --default-mono-font-family: var(--font-mono);
+}/* ---------- 2. 阅读排版优化 ---------- */
+.typography {
+    line-height: 1.75;
+}
+.typography h1 {
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+.typography h2 {
+    font-weight: 600;
+    margin-top: 2rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+.typography p {
+    margin: 1rem 0;
+    color: color-mix(in oklab, var(--foreground) 88%, transparent);
+}
+.typography a {
+    text-decoration: none;
+}
+.typography a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* ---------- 3. 表格美化 ---------- */
+.typography table {
+    font-size: 0.9rem;
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.25rem 0;
+    display: table;
+    overflow-x: auto;
+}
+.typography thead th {
+    background: color-mix(in oklab, var(--foreground) 5%, transparent);
+    font-weight: 600;
+    white-space: nowrap;
+}
+.typography th,
+.typography td {
+    padding: 0.55rem 0.9rem;
+    border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
+    vertical-align: top;
+}
+.typography tbody tr:nth-child(even) {
+    background: color-mix(in oklab, var(--foreground) 3%, transparent);
+}
+.typography tbody tr:hover {
+    background: color-mix(in oklab, var(--foreground) 7%, transparent);
+}
+
+/* ---------- 4. 代码块美化 ---------- */
+.typography pre {
+    border-radius: 0.5rem;
+    border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
+    box-shadow: 0 1px 2px color-mix(in oklab, var(--foreground) 8%, transparent);
+    padding: 1rem 1.15rem;
+    font-size: 0.85rem;
+    overflow-x: auto;
+    white-space: pre;
+}
+.typography code {
+    font-size: 0.85em;
+    border-radius: 0.3rem;
+}
+
+/* ---------- 5. 告警/提示块美化 ---------- */
+.typography .admonition {
+    border-radius: 0.5rem;
+    border-left-width: 3px;
+    box-shadow: 0 1px 3px color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+.typography .admonition-title {
+    font-weight: 600;
+}
+
+/* ---------- 6. 顶栏 ---------- */
+header {
+    backdrop-filter: blur(8px);
+    background: color-mix(in oklab, var(--background) 88%, transparent);
+}
+header nav a[data-slot="button"] {
+    font-size: 0.875rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.45rem;
+}
+
+/* ---------- 7. 内容宽度 ---------- */
+article {
+    max-width: 50rem;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+}
+
+/* ---------- 7.5 品牌配色体系 ---------- */
+/* 亮色主题：温暖米白底 + 深橙主色
+   注：--color-* 由 base.css 在 :root 上定义为 var(--*)，为让引用跟随，
+   必须在 :root 层面覆盖基础变量（后加载的同层规则会赢） */
+:root {
+    --background: oklch(98.2% 0.006 85);
+    --foreground: oklch(21% 0.02 60);
+    --card: oklch(99.5% 0.003 85);
+    --card-foreground: oklch(21% 0.02 60);
+    --popover: oklch(99.5% 0.003 85);
+    --popover-foreground: oklch(21% 0.02 60);
+    --primary: oklch(52% 0.19 30);
+    --primary-foreground: oklch(99% 0.005 85);
+    --secondary: oklch(94.5% 0.025 75);
+    --secondary-foreground: oklch(30% 0.05 60);
+    --muted: oklch(95% 0.012 80);
+    --muted-foreground: oklch(45% 0.03 60);
+    --accent: oklch(90% 0.05 70);
+    --accent-foreground: oklch(35% 0.08 30);
+    --destructive: oklch(55% 0.2 27);
+    --border: oklch(88% 0.02 75);
+    --input: oklch(88% 0.02 75);
+    --ring: oklch(52% 0.19 30);
+    --sidebar: oklch(97% 0.008 85);
+    --sidebar-foreground: oklch(30% 0.03 60);
+    --sidebar-accent: oklch(90% 0.05 70);
+    --sidebar-accent-foreground: oklch(35% 0.08 30);
+    --sidebar-border: oklch(90% 0.02 75);
+    --sidebar-ring: oklch(52% 0.19 30);
+    --surface: oklch(97% 0.008 85);
+    --code: oklch(95% 0.012 80);
+    --code-foreground: oklch(35% 0.06 30);
+    --code-highlight: oklch(90% 0.05 70);
+    --code-number: oklch(55% 0.18 30);
+    --warning: oklch(55% 0.2 27);
+}
+
+/* 亮色兼容选择器（兜底） */
+.theme-default {
+    --background: oklch(98.2% 0.006 85);
+    --foreground: oklch(21% 0.02 60);
+}
+
+/* 暗色主题：深蓝黑底 + 亮橙点缀 */
+html.dark,
+.theme-dark {
+    --background: oklch(17% 0.02 260);
+    --foreground: oklch(92% 0.01 85);
+    --card: oklch(21% 0.02 260);
+    --card-foreground: oklch(92% 0.01 85);
+    --popover: oklch(21% 0.02 260);
+    --popover-foreground: oklch(92% 0.01 85);
+    --primary: oklch(68% 0.17 45);
+    --primary-foreground: oklch(15% 0.02 260);
+    --secondary: oklch(28% 0.025 260);
+    --secondary-foreground: oklch(92% 0.01 85);
+    --muted: oklch(26% 0.02 260);
+    --muted-foreground: oklch(65% 0.02 85);
+    --accent: oklch(32% 0.06 45);
+    --accent-foreground: oklch(94% 0.04 45);
+    --destructive: oklch(60% 0.2 27);
+    --border: oklch(30% 0.02 260);
+    --input: oklch(30% 0.02 260);
+    --ring: oklch(68% 0.17 45);
+    --sidebar: oklch(20% 0.02 260);
+    --sidebar-foreground: oklch(85% 0.01 85);
+    --sidebar-accent: oklch(30% 0.06 45);
+    --sidebar-accent-foreground: oklch(94% 0.04 45);
+    --sidebar-border: oklch(30% 0.02 260);
+    --sidebar-ring: oklch(68% 0.17 45);
+}
+
+/* ---------- 8. Mermaid 图 ---------- */
+.mermaid-block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 1.2rem 0 1.5rem;
+    padding: 1rem 0.5rem;
+    overflow-x: auto;
+    background: var(--card);
+    border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+    border-radius: 0.75rem;
+}
+
+.mermaid-block svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.mermaid-block p {
+    margin: 0;
+}
+
+/* ---------- 9. 页脚 ---------- */
+footer {
+    border-top: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+}

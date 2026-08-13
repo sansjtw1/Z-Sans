@@ -4,14 +4,16 @@
   </a>
   <h3 align="center">Z-Sans</h3>
   <p align="center">
-    🔥 “基于资产繁殖引擎的自动化资产收集系统”
+    🔥 “基于资产繁殖引擎的轻量级自动化资产收集系统”
     <br />
     <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg"/></a>
     <a href="https://www.python.org/downloads/release/python-390/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9+-blue.svg"/></a>
     <a href="https://github.com/sansjtw1/Z-Sans/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/sansjtw1/Z-Sans"/></a>
     <br>
-    <a href="README.md">README</a> | <a href="README_CN.md">中文文档</a> | <a href="CHANGELOG.md">更新日志</a>
+    <a href="README.md">README</a> | <a href="README_CN.md">中文文档</a> | <a href="https://sansjtw1.github.io/Z-Sans/docs/" target="_blank">在线文档</a>
   </p>
+
+> 📖 **在线文档**：完整的中英文用户与开发文档（用户指南、CLI 参考、配置参考、Web 控制台、插件开发、事件参考、架构说明等）见 [https://sansjtw1.github.io/Z-Sans/docs/](https://sansjtw1.github.io/Z-Sans/docs/)——支持 **English** 与 **简体中文** 两种语言。
 
 ## 🚀 项目简介
 
