@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <script>
+        /* const base_url = "https://sansjtw1.github.io/Z-Sans/docs/"; */
+        const base_url = (new URL("../../..", window.location)).href.replace(/\/+$/, ""); /* for search plugin notably */
+        /* const root_relative_url = "../../.."; */
+    </script>
+    <script integrity="sha384-m6cZ+Whl1ci89lidlu8DH4C+sZLNOYBvImtjUIhUK+iaNffXhqtbYgBVuuPfRsa0" src="../../../js/dark.js"></script>
+
+
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+
+    
+    
+
+
+<title>Output & Reports</title>
+
+
+
+
+
+
+
+<meta name="author" content="Z-Sans">
+
+
+
+<link rel="canonical" href="https://sansjtw1.github.io/Z-Sans/docs/zh-CN/usage/output/">
+
+
+<!-- Open Graph (Facebook, LinkedIn) -->
+
+<meta property="og:title" content="Output & Reports">
+
+
+
+
+
+<meta property="og:url" content="https://sansjtw1.github.io/Z-Sans/docs/zh-CN/usage/output/">
+
+
+
+
+
+
+<!-- Twitter Card -->
+
+<meta name="twitter:title" content="Output & Reports">
+
+
+
+
+
+
+<!-- JSON-LD Structured Data -->
+
+
+
+    
+    <link href="../../../assets/logo.png" rel="icon" />
+
+    <link href="../../../css/base.css" rel="stylesheet" />
+    <link href="../../../css/geist.css" rel="stylesheet" />
+
+    
+
+    <style>
+        :root {
+            --theme-accent: oklch(64.5% 0.246 16.439);
+        }
+    </style>
+    <link href="../../../assets/custom.css" rel="stylesheet" />
+
+    
+
+    <script integrity="sha384-V2jkXRy811qODUbfkLlkVJYBbf4h6XHAEjcU6ReASBPrJvTrlYh4GrI4t6GCju6n"
+        src="../../../js/callbacks.js"></script>
+
+    
+
+    
+
+    
+
+    
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("a.headerlink").forEach(function (link) {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+
+                // Build the full URL with the anchor fragment
+                const url = window.location.origin + window.location.pathname + this.getAttribute("href");
+
+                navigator.clipboard.writeText(url).then(function () {
+                    // Optional: brief visual feedback
+                });
+            });
+        });
+    });
+</script>
+    
+
+    
+    
+</head>
+
+<body
+    class="text-foreground group/body overscroll-none font-sans antialiased [--footer-height:calc(var(--spacing)*14)] [--header-height:calc(var(--spacing)*14)] xl:[--footer-height:calc(var(--spacing)*24)] theme-default">
+    <div class="bg-background relative z-10 flex min-h-svh flex-col" id="inner-body">
+        <header class="bg-background sticky top-0 z-50 w-full" view-transition-name="header">
+    <div class="container-wrapper 3xl:fixed:px-0 px-6">
+        <div class="3xl:fixed:container flex h-(--header-height) items-center gap-2 **:data-[slot=separator]:!h-4">
+            <button id="menu-button" data-slot="popover-trigger" onclick="onMobileMenuButtonClick(event)"
+                class="group whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground px-4 py-2 has-[&gt;svg]:px-3 extend-touch-target h-8 touch-manipulation items-center justify-start gap-2.5 !p-0 hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 active:bg-transparent dark:hover:bg-transparent flex lg:hidden"
+                type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="radix-«Rmplb»"
+                data-state="closed">
+                <div class="relative flex h-8 w-4 items-center justify-center">
+                    <div class="relative size-4">
+                        <!-- 16px x 16px -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="0" x2="16" y1="5" y2="5"
+                                class="group-data-[state=open]:translate-y-[2.25px] group-data-[state=open]:-translate-x-[2.25px] group-data-[state=open]:rotate-45 transition-all duration-300 origin-center" />
+                            <line x1="0" x2="16" y1="11" y2="11"
+                                class="group-data-[state=open]:-translate-y-[2.25px] group-data-[state=open]:-translate-x-[2.25px] group-data-[state=open]:-rotate-45 transition-all duration-300 origin-center" />
+                        </svg>
+                    </div>
+
+                    <span class="sr-only">切换菜单</span>
+                </div>
+                <span class="flex h-8 items-center text-lg leading-none font-medium">菜单</span>
+            </button>
+            <a data-slot="button"
+                class="items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-5 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 hidden h-8 lg:flex"
+                href="https://sansjtw1.github.io/Z-Sans/docs/">
+                <span class="size-8 flex flex-row justify-center items-center">
+                    
+
+
+<img class="size-5" src="../../../assets/logo.png" alt="icon">
+
+
+
+                </span>
+
+                
+                <h1 class="pr-2">Z-Sans</h1>
+                
+            </a>
+            
+            <nav class="items-center gap-0.5 hidden lg:flex">
+    
+    
+    
+    <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
+        data-slot="button" href="../../quickstart/">
+        Quick Start
+    </a>
+    
+    
+    
+    
+    <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
+        data-slot="button" href="../../concepts/core-concepts/">
+        User Guide
+    </a>
+    
+    
+    
+    
+    <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
+        data-slot="button" href="../../development/plugins/">
+        Plugins
+    </a>
+    
+    
+    
+    
+    <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
+        data-slot="button" href="../../development/architecture/">
+        Development
+    </a>
+    
+    
+</nav>
+            
+            <div class="ml-auto flex items-center gap-2 md:flex-1 md:justify-end">
+                <div class="hidden w-full flex-1 md:flex md:w-auto md:flex-none">
+                    <div class="hidden w-full flex-1 md:flex md:w-auto md:flex-none">
+    <button onclick="onSearchBarClick(event)" data-slot="dialog-trigger" data-variant="outline" data-size="default"
+        class="inline-flex shrink-0 items-center gap-2 text-sm whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 [&amp;_svg:not([class*='size-'])]:size-4 border bg-background hover:text-accent-foreground dark:border-input dark:hover:bg-input/50 px-4 py-2 has-[&gt;svg]:px-3 relative h-8 w-full justify-start rounded-lg pl-3 font-normal text-foreground shadow-none hover:bg-muted/50 sm:pr-12 md:w-48 lg:w-56 xl:w-64 dark:bg-card"
+        type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="radix-_r_1_" data-state="closed">
+        <span class="hidden lg:inline-flex">搜索文档...</span>
+        <span class="inline-flex lg:hidden">搜索...</span>
+    </button>
+</div>
+<dialog id="search-dialog" onclick="onSearchDialogClick(event)"
+    class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background rounded-lg shadow-lg border overflow-hidden p-0">
+    <div class="w-lg gap-4">
+        <div class="flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground">
+            <div data-slot="command-input-wrapper" class="flex h-9 items-center gap-2 border-b px-3"><svg
+                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-search size-4 shrink-0 opacity-50">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.3-4.3"></path>
+                </svg>
+                <input data-slot="command-input"
+                    class="placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="搜索文档..." cmdk-input="" autocomplete="off" autocorrect="off"
+                    spellcheck="false" aria-autocomplete="list" role="combobox" aria-expanded="true"
+                    aria-controls="radix-«r1t6»" aria-labelledby="radix-«r1t7»" id="radix-«r1t8»" type="text" value=""
+                    aria-activedescendant="radix-«r1th»" oninput="onInputHandler(event)">
+            </div>
+        </div>
+        <div id="mkdocs-search-results">
+            <!-- search results go there -->
+        </div>
+    </div>
+</dialog>
+<script>
+    document.removeEventListener("keydown", searchShortcutHandler);
+    document.addEventListener("keydown", searchShortcutHandler);
+</script>
+                </div>
+                
+                <div data-orientation="vertical" role="none" data-slot="separator"
+                    class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px ml-2 hidden lg:block">
+                </div>
+                <a target="_blank" rel="noreferrer" data-slot="button"
+                    class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 h-8 shadow-none"
+                    href="https://github.com/sansjtw1/Z-Sans">
+                    <svg viewBox="0 0 438.549 438.549">
+                        <path fill="currentColor"
+                            d="M409.132 114.573c-19.608-33.596-46.205-60.194-79.798-79.8-33.598-19.607-70.277-29.408-110.063-29.408-39.781 0-76.472 9.804-110.063 29.408-33.596 19.605-60.192 46.204-79.8 79.8C9.803 148.168 0 184.854 0 224.63c0 47.78 13.94 90.745 41.827 128.906 27.884 38.164 63.906 64.572 108.063 79.227 5.14.954 8.945.283 11.419-1.996 2.475-2.282 3.711-5.14 3.711-8.562 0-.571-.049-5.708-.144-15.417a2549.81 2549.81 0 01-.144-25.406l-6.567 1.136c-4.187.767-9.469 1.092-15.846 1-6.374-.089-12.991-.757-19.842-1.999-6.854-1.231-13.229-4.086-19.13-8.559-5.898-4.473-10.085-10.328-12.56-17.556l-2.855-6.57c-1.903-4.374-4.899-9.233-8.992-14.559-4.093-5.331-8.232-8.945-12.419-10.848l-1.999-1.431c-1.332-.951-2.568-2.098-3.711-3.429-1.142-1.331-1.997-2.663-2.568-3.997-.572-1.335-.098-2.43 1.427-3.289 1.525-.859 4.281-1.276 8.28-1.276l5.708.853c3.807.763 8.516 3.042 14.133 6.851 5.614 3.806 10.229 8.754 13.846 14.842 4.38 7.806 9.657 13.754 15.846 17.847 6.184 4.093 12.419 6.136 18.699 6.136 6.28 0 11.704-.476 16.274-1.423 4.565-.952 8.848-2.383 12.847-4.285 1.713-12.758 6.377-22.559 13.988-29.41-10.848-1.14-20.601-2.857-29.264-5.14-8.658-2.286-17.605-5.996-26.835-11.14-9.235-5.137-16.896-11.516-22.985-19.126-6.09-7.614-11.088-17.61-14.987-29.979-3.901-12.374-5.852-26.648-5.852-42.826 0-23.035 7.52-42.637 22.557-58.817-7.044-17.318-6.379-36.732 1.997-58.24 5.52-1.715 13.706-.428 24.554 3.853 10.85 4.283 18.794 7.952 23.84 10.994 5.046 3.041 9.089 5.618 12.135 7.708 17.705-4.947 35.976-7.421 54.818-7.421s37.117 2.474 54.823 7.421l10.849-6.849c7.419-4.57 16.18-8.758 26.262-12.565 10.088-3.805 17.802-4.853 23.134-3.138 8.562 21.509 9.325 40.922 2.279 58.24 15.036 16.18 22.559 35.787 22.559 58.817 0 16.178-1.958 30.497-5.853 42.966-3.9 12.471-8.941 22.457-15.125 29.979-6.191 7.521-13.901 13.85-23.131 18.986-9.232 5.14-18.182 8.85-26.84 11.136-8.662 2.286-18.415 4.004-29.263 5.146 9.894 8.562 14.842 22.077 14.842 40.539v60.237c0 3.422 1.19 6.279 3.572 8.562 2.379 2.279 6.136 2.95 11.276 1.995 44.163-14.653 80.185-41.062 108.068-79.226 27.88-38.161 41.825-81.126 41.825-128.906-.01-39.771-9.818-76.454-29.414-110.049z">
+                        </path>
+                    </svg>
+                    
+                </a>
+                
+                <div data-orientation="vertical" role="none" data-slot="separator"
+                    class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px 3xl:flex hidden">
+                </div>
+                
+                <button data-slot="button"
+                    class="items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 size-8 3xl:flex hidden"
+                    title="切换布局" onclick="toggleLayout(event)">
+                    <span class="sr-only">切换布局</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-gallery-horizontal">
+                        <path d="M2 3v18"></path>
+                        <rect width="12" height="18" x="6" y="3" rx="2"></rect>
+                        <path d="M22 3v18"></path>
+                    </svg>
+                </button>
+                
+                
+                <div data-orientation="vertical" role="none" data-slot="separator"
+                    class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px">
+                </div>
+                <div class="relative inline-flex h-8 items-center">
+                    <select id="language-select"
+                        class="h-8 cursor-pointer appearance-none rounded-md border border-border bg-transparent pr-7 pl-3 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none"
+                        onchange="(function(e){ var n=e.options[e.selectedIndex].getAttribute('data-href'); if(n) location.href=n; })(this)">
+                        
+                        
+                        
+                        <option class="bg-background text-foreground" value="en"
+                            data-href="https://sansjtw1.github.io/Z-Sans/docs/"
+                            >English</option>
+                        
+                        
+                        <option class="bg-background text-foreground" value="zh-CN"
+                            data-href="https://sansjtw1.github.io/Z-Sans/docs/zh-CN/"
+                            selected>简体中文</option>
+                        
+                    </select>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="pointer-events-none absolute right-2 size-3.5 text-muted-foreground">
+                        <path d="m6 9 6 6 6-6"></path>
+                    </svg>
+                </div>
+                <div data-orientation="vertical" role="none" data-slot="separator"
+                    class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px">
+                </div>
+                <button data-slot="button"
+                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 group/toggle extend-touch-target size-8"
+                    title="切换主题" onclick="onThemeSwitch(event)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="size-4.5">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                        <path d="M12 3l0 18"></path>
+                        <path d="M12 9l4.65 -4.65"></path>
+                        <path d="M12 14.3l7.37 -7.37"></path>
+                        <path d="M12 19.6l8.85 -8.85"></path>
+                    </svg>
+                    <span class="sr-only">切换主题</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+        <main class="flex flex-1 flex-col">
+            <div class="container-wrapper flex flex-1 flex-col px-2">
+                <div class="group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex w-full 3xl:fixed:container 3xl:fixed:px-3 min-h-min flex-1 items-start px-0 [--sidebar-width:220px] [--top-spacing:0] lg:grid lg:grid-cols-[var(--sidebar-width)_minmax(0,1fr)] lg:[--sidebar-width:240px] lg:[--top-spacing:calc(var(--spacing)*4)]"
+                    data-slot="sidebar-wrapper"
+                    style="--sidebar-width:calc(var(--spacing) * 72);--sidebar-width-icon:3rem;">
+                    <div class="w-(--sidebar-width) flex-col text-sidebar-foreground sticky top-[calc(var(--header-height)+0.6rem)] z-30 hidden h-[calc(100svh-10rem)] overscroll-none bg-transparent [--sidebar-menu-width:--spacing(56)] lg:flex"
+                        data-slot="sidebar">
+                        <div class="h-9"></div>
+                        <div
+                            class="absolute top-8 z-10 h-8 w-(--sidebar-menu-width) shrink-0 bg-gradient-to-b from-background via-background/80 to-background/50 blur-xs">
+                        </div>
+                        <div
+                            class="absolute top-12 right-2 bottom-0 hidden h-full w-px bg-gradient-to-b from-transparent via-border to-transparent lg:flex">
+                        </div>
+                        <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden mx-auto no-scrollbar w-(--sidebar-menu-width) overflow-x-hidden px-2"
+                            data-sidebar="content" data-slot="sidebar-content" view-transition-name="sidebar">
+                            
+
+
+
+
+
+
+
+
+
+
+
+<div data-slot="sidebar-group" data-sidebar="group" class="relative flex w-full min-w-0 flex-col p-2 pt-6">
+    <div data-slot="sidebar-group-content" data-sidebar="group-content" class="w-full text-sm">
+        <ul data-slot="sidebar-menu" data-sidebar="menu" class="flex w-full min-w-0 flex-col gap-0.5">
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../../concepts/core-concepts/"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Core Concepts
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../cli/"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        CLI Reference
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../configuration/"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Configuration Reference
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="true" data-sidebar="menu-button"
+        data-size="default" href="./"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Output & Reports
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../web-console/"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Web Console
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../watch-mode/"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Watch Mode
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../resume/"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Resume
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+        </ul>
+    </div>
+</div>
+
+
+
+
+
+
+<div
+    class="sticky -bottom-1 z-10 h-16 shrink-0 bg-gradient-to-t from-background via-background/80 to-background/50 blur-xs">
+</div>
+
+                        </div>
+                    </div>
+                    <div class="h-full w-full">
+                        <div class="flex items-stretch text-[1.05rem] sm:text-[15px] xl:w-full" data-slot="docs">
+
+                            <div class="flex min-w-0 flex-1 flex-col">
+                                <div class="h-(--top-spacing) shrink-0"></div>
+                                
+                                
+                                <article class="w-full" view-transition-name="page">
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2">
+      <div id="page-header" class="flex items-start justify-between">
+        <h1 class="scroll-m-20 text-4xl font-semibold tracking-tight sm:text-3xl xl:text-4xl">
+          Output & Reports
+        </h1>
+
+        <div class="flex items-center gap-2 pt-1.5">
+          
+          <button
+    onclick="fetch(`../../..`).then((r) => r.text()).then((text) => navigator.clipboard.write([new ClipboardItem({ 'text/plain': text })]))"
+    data-slot="button" class="secondary cursor-pointer">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tabler-icon tabler-icon-copy ">
+        <path
+            d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z">
+        </path>
+        <path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"></path>
+    </svg>
+    <span class="max-md:hidden">复制本页</span>
+</button>
+          
+          
+          <a data-slot="button" id="previous-button"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 extend-touch-target size-8 shadow-none md:size-7"
+            href="../configuration/">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="tabler-icon tabler-icon-arrow-left">
+              <path d="M5 12l14 0"></path>
+              <path d="M5 12l6 6"></path>
+              <path d="M5 12l6 -6"></path>
+            </svg>
+            <span class="sr-only">上一页</span>
+          </a>
+          
+          
+          <a data-slot="button" id="next-button"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 extend-touch-target size-8 shadow-none md:size-7"
+            href="../web-console/">
+            <span class="sr-only">下一页</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="tabler-icon tabler-icon-arrow-right">
+              <path d="M5 12l14 0"></path>
+              <path d="M13 18l6 -6"></path>
+              <path d="M13 6l6 6"></path>
+            </svg>
+          </a>
+          
+        </div>
+      </div>
+      
+    </div>
+    <div class="flex justify-end items-center">
+      
+      
+    </div>
+  </div>
+  <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
+    <p>每次扫描完成，Z-Sans 会在输出目录下生成一个带时间戳的项目目录，内含完整的资产图与交互式报告。</p>
+<h2 id="_1">目录结构<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>output/                            # 根目录（配置 output.dir / -o）
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>└── 20260812_231800/               # 时间戳子目录 YYYYMMDD_HHMMSS
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    ├── zsans_20260812_231800.json          # 完整资产图
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    ├── zsans_20260812_231800_assets.csv    # 资产表
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    ├── zsans_20260812_231800_relations.csv # 关系表
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    ├── zsans_20260812_231800.graphml       # GraphML 拓扑
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    └── zsans_20260812_231800_report.html   # 交互式 HTML 报告
+</code></pre></div>
+<ul>
+<li><strong>前缀</strong>：默认 <code>zsans</code>，由配置 <code>output.output_prefix</code> 控制</li>
+<li><strong>时间戳</strong>：<code>%Y%m%d_%H%M%S</code>（本地时间）</li>
+<li><strong>目录创建时机</strong>：引擎 <code>start()</code> 时预创建并缓存；插件产物写入同一目录，可通过 <code>engine.output_handler.run_dir</code> 访问</li>
+</ul>
+<p>文件生成受 <code>output.formats</code> 各开关控制（<code>html</code> 映射为内部报告类型 <code>report</code>）。</p>
+<h2 id="json">JSON 资产图<a class="headerlink" href="#json" title="Permanent link">&para;</a></h2>
+<p><code>{prefix}_{timestamp}.json</code> — 全量资产图的机器可读格式，是 Web 控制台与项目对比的数据源。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;zs_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.0.7&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&quot;stats&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;nodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;edges&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">310</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">&quot;metrics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">&quot;assets_processed&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">&quot;new_assets_found&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">115</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="nt">&quot;depth_reached&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nt">&quot;errors&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="nt">&quot;seeds&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;domains&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;example.com&quot;</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;ips&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w"> </span><span class="nt">&quot;ip_ranges&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="nt">&quot;config_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;sha256 of config&gt;&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="nt">&quot;generated_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-08-12T23:18:00&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="nt">&quot;nodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="nt">&quot;uid&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;domain:example.com&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;domain&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example.com&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">      </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;manual&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">      </span><span class="nt">&quot;depth&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">      </span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scanned&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;domain&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example.com&quot;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">  </span><span class="p">],</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">  </span><span class="nt">&quot;edges&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;domain:example.com&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;target&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ip:93.184.216.34&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;relation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;resolved&quot;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="csv">CSV 资产表<a class="headerlink" href="#csv" title="Permanent link">&para;</a></h2>
+<p><code>{prefix}_{timestamp}_assets.csv</code> — 带 BOM（UTF-8-sig），Excel 直接打开无乱码。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ID</td>
+<td>资产唯一标识 <code>type:value</code></td>
+</tr>
+<tr>
+<td>Type</td>
+<td>domain / ip / url / port / js / cert</td>
+</tr>
+<tr>
+<td>Value</td>
+<td>资产值</td>
+</tr>
+<tr>
+<td>Depth</td>
+<td>发现深度</td>
+</tr>
+<tr>
+<td>Discovery Time</td>
+<td>发现时间 <code>%Y-%m-%d %H:%M:%S</code></td>
+</tr>
+<tr>
+<td>State</td>
+<td>new / scanning / scanned / eliminated / failed / excluded</td>
+</tr>
+<tr>
+<td>Title/Note</td>
+<td>url 资产取标题（受 max_length 截断）；port 资产取服务名</td>
+</tr>
+<tr>
+<td>Fingerprints</td>
+<td>url 资产逗号拼接的指纹列表</td>
+</tr>
+<tr>
+<td>CMS</td>
+<td>指纹识别出的 CMS</td>
+</tr>
+<tr>
+<td>Server</td>
+<td>服务端信息</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="csv_1">CSV 关系表<a class="headerlink" href="#csv_1" title="Permanent link">&para;</a></h2>
+<p><code>{prefix}_{timestamp}_relations.csv</code> — 3 列：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Source Asset ID</td>
+<td>源资产值（剥离 UID 前缀）</td>
+</tr>
+<tr>
+<td>Target Asset ID</td>
+<td>目标资产值</td>
+</tr>
+<tr>
+<td>Relation Type</td>
+<td>discovered / resolved / hosted</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="graphml">GraphML 拓扑<a class="headerlink" href="#graphml" title="Permanent link">&para;</a></h2>
+<p><code>{prefix}_{timestamp}.graphml</code> — 标准 GraphML 1.0 有向图，可用 Gephi、Cytoscape 等可视化。</p>
+<ul>
+<li>节点 id：资产 UID（<code>type:value</code>）</li>
+<li>节点属性 key：<code>type</code>、<code>value</code>、<code>depth</code>、<code>discovery_time</code>、<code>state</code>，以及 url 资产特有的 <code>title</code>、<code>fingerprints</code>、<code>cms</code>、<code>server</code></li>
+<li>边属性 key：<code>relation</code></li>
+</ul>
+<h2 id="html">HTML 报告（推荐查看）<a class="headerlink" href="#html" title="Permanent link">&para;</a></h2>
+<p><code>{prefix}_{timestamp}_report.html</code> — <strong>自包含</strong>交互式报告（内联 JS/CSS，无需外网），打开即用。</p>
+<h3 id="tab">概览 Tab<a class="headerlink" href="#tab" title="Permanent link">&para;</a></h3>
+<ul>
+<li>统计卡片：总资产、总关系、已处理、新发现、最大深度、耗时、种子数</li>
+<li>Seed 资产清单（域名 + IP）</li>
+<li>Top Hosts：按度数降序前 15</li>
+<li>资产类型分布：横向条形图 + 环形图</li>
+</ul>
+<h3 id="tab_1">拓扑 Tab<a class="headerlink" href="#tab_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>原生 Canvas 力导向拓扑图（无第三方图库）</li>
+<li>节点 &gt; 300 时按度数截断到 300</li>
+<li>节点按类型着色，半径随度数增大，缩放 &gt; 1.6 显示标签</li>
+<li>拖拽平移、滚轮 / 双指缩放（0.05~8x）、自适应 fit</li>
+</ul>
+<h3 id="tab_2">活跃资产 Tab<a class="headerlink" href="#tab_2" title="Permanent link">&para;</a></h3>
+<p>资产表格（Type/Value/Depth/Discovery Time/State/Title-Note/Fingerprints/CMS/Server）+ 实时筛选。</p>
+<h3 id="tab_3">排除资产 Tab<a class="headerlink" href="#tab_3" title="Permanent link">&para;</a></h3>
+<p>被排除资产的表格 + 原因；需配置 <code>output.keep_eliminated_assets: true</code>（默认开）才有数据。</p>
+<h3 id="tab_4">指标 Tab<a class="headerlink" href="#tab_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>engine.metrics</code> 全量 key-value</li>
+<li>端口分布（服务 / 数量）</li>
+<li>排除原因统计（原因 / 数量）</li>
+</ul>
+<h3 id="_2">筛选与搜索<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>搜索框：整行文本不区分大小写包含匹配</li>
+<li>三个下拉筛选器：Type、State、Depth</li>
+<li>计数实时更新：<code>Showing N assets (filtered)</code></li>
+</ul>
+<p>报告语言跟随 i18n 配置（zh 前缀 → <code>lang="zh-CN"</code>）。</p>
+<h2 id="html_1">原始 HTML 报告示例<a class="headerlink" href="#html_1" title="Permanent link">&para;</a></h2>
+<p><img alt="HTML 报告" src="../../../assets/output2.png" /></p>
+<h2 id="_3">检查点文件<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p><code>&lt;output_dir&gt;/checkpoint.json</code>（默认位置）用于<a href="../resume/">断点续扫</a>：</p>
+<ul>
+<li>触发保存：每处理 <code>checkpoint.interval</code>（默认 50）个资产、以及 <code>stop()</code> 时</li>
+<li>原子写入：先写 <code>.tmp</code> → <code>flush</code> + <code>fsync</code> → <code>os.replace</code>，防止中断损坏</li>
+<li>内容：种子、metrics、所有节点、边三元组、待处理队列</li>
+</ul>
+  </div>
+  
+  <script>
+    document.querySelectorAll('article h2, article h3').forEach((header) => {
+      toc.observer.observe(header);
+    });
+  </script>
+</article>
+                                <div class="mx-auto flex flex-wrap h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">
+    
+    <a data-slot="button"
+        class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 shadow-none"
+        href="../configuration/">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="tabler-icon tabler-icon-arrow-left ">
+            <path d="M5 12l14 0"></path>
+            <path d="M5 12l6 6"></path>
+            <path d="M5 12l6 -6"></path>
+        </svg>
+        <span class="max-[500px]:hidden">Configuration Reference</span>
+    </a>
+    
+    
+    <a data-slot="button"
+        class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 ml-auto shadow-none"
+        href="../web-console/">
+        <span class="max-[500px]:hidden">Web Console</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="tabler-icon tabler-icon-arrow-right ">
+            <path d="M5 12l14 0"></path>
+            <path d="M13 18l6 -6"></path>
+            <path d="M13 6l6 6"></path>
+        </svg>
+    </a>
+    
+</div>
+                                
+                                
+                            </div>
+                            
+                            <dialog id="bottom-sidebar" onclick="onBottomSidebarDialogClick(event)" class="bg-transparent"
+    style="position: fixed; left: 0px; top: 0px; transform: translate(0px, 58px); min-width: max-content; --radix-popper-transform-origin: 0% 0px; will-change: transform; z-index: 50; --radix-popper-available-width: 504px; --radix-popper-available-height: 857px; --radix-popper-anchor-width: 72.94999694824219px; --radix-popper-anchor-height: 32px;">
+    <div data-side="bottom" data-align="start" data-state="open" role="dialog" data-slot="popover-content"
+        class="text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 origin-(--radix-popover-content-transform-origin) border outline-hidden bg-background/90 no-scrollbar h-(--radix-popper-available-height) w-(--radix-popper-available-width) overflow-y-auto rounded-none border-none p-0 shadow-none backdrop-blur duration-100"
+        style="--radix-popover-content-transform-origin: var(--radix-popper-transform-origin); --radix-popover-content-available-width: var(--radix-popper-available-width); --radix-popover-content-available-height: var(--radix-popper-available-height); --radix-popover-trigger-width: var(--radix-popper-anchor-width); --radix-popover-trigger-height: var(--radix-popper-anchor-height);"
+        tabindex="-1">
+        <div class="flex flex-col gap-12 overflow-auto px-6 py-6">
+            
+            
+            
+
+            
+            <div class="flex flex-col gap-4">
+                <div class="text-muted-foreground text-sm font-medium">菜单</div>
+                <div class="flex flex-col gap-3">
+                    
+                    <a class="text-2xl font-medium" href="../../">
+                        
+                        Home
+                        
+                    </a>
+                    
+                    <a class="text-2xl font-medium" href="../../faq/">
+                        
+                        FAQ
+                        
+                    </a>
+                    
+                    <a class="text-2xl font-medium" href="../../changelog/">
+                        
+                        Changelog
+                        
+                    </a>
+                    
+                    <a class="text-2xl font-medium" href="../../disclaimer/">
+                        
+                        Disclaimer
+                        
+                    </a>
+                    
+                </div>
+            </div>
+            
+
+            
+            <div class="flex flex-col gap-8">
+                
+                <div class="flex flex-col gap-4">
+                    <div class="text-muted-foreground text-sm font-medium">Quick Start</div>
+                    
+                    <div class="flex flex-col gap-3">
+                        
+                        <a class="text-2xl font-medium" href="../../quickstart/">
+                            
+                            Quick Start
+                            
+                        </a>
+                        
+                    </div>
+                    
+                </div>
+                
+                <div class="flex flex-col gap-4">
+                    <div class="text-muted-foreground text-sm font-medium">User Guide</div>
+                    
+                    <div class="flex flex-col gap-3">
+                        
+                        <a class="text-2xl font-medium" href="../../concepts/core-concepts/">
+                            
+                            Core Concepts
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../cli/">
+                            
+                            CLI Reference
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../configuration/">
+                            
+                            Configuration Reference
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="./">
+                            
+                            Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../web-console/">
+                            
+                            Web Console
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../watch-mode/">
+                            
+                            Watch Mode
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../resume/">
+                            
+                            Resume
+                            
+                        </a>
+                        
+                    </div>
+                    
+                </div>
+                
+                <div class="flex flex-col gap-4">
+                    <div class="text-muted-foreground text-sm font-medium">Plugins</div>
+                    
+                    <div class="flex flex-col gap-3">
+                        
+                        <a class="text-2xl font-medium" href="../../development/plugins/">
+                            
+                            Plugin Development
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../../development/events/">
+                            
+                            Events Reference
+                            
+                        </a>
+                        
+                    </div>
+                    
+                </div>
+                
+                <div class="flex flex-col gap-4">
+                    <div class="text-muted-foreground text-sm font-medium">Development</div>
+                    
+                    <div class="flex flex-col gap-3">
+                        
+                        <a class="text-2xl font-medium" href="../../development/architecture/">
+                            
+                            Architecture Overview
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../../development/tools/">
+                            
+                            Tool Integration
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../../development/i18n/">
+                            
+                            Internationalization
+                            
+                        </a>
+                        
+                    </div>
+                    
+                </div>
+                
+            </div>
+            
+            
+
+        </div>
+    </div>
+</dialog>
+                            <div
+                                class="sticky top-[calc(var(--header-height)+1px)] ml-auto hidden h-[calc(100svh-var(--header-height)-var(--footer-height))] w-72 flex-col gap-4 overflow-hidden overscroll-none pb-8 xl:flex">
+                                <div class="h-(--top-spacing) shrink-0"></div>
+                                
+                                
+                                <div id="toc" view-transition-name="toc" class="no-scrollbar overflow-y-auto px-8">
+    <div class="flex flex-col gap-2 p-4 pt-0 text-sm">
+        <p class="text-muted-foreground bg-background sticky top-0 h-6 text-xs">本页目录</p>
+        
+        
+        
+        
+        <a href="#_1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#_1');">
+            目录结构
+        </a>
+        
+
+        
+        <a href="#json"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#json');">
+            JSON 资产图
+        </a>
+        
+
+        
+        <a href="#csv"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#csv');">
+            CSV 资产表
+        </a>
+        
+
+        
+        <a href="#csv_1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#csv_1');">
+            CSV 关系表
+        </a>
+        
+
+        
+        <a href="#graphml"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#graphml');">
+            GraphML 拓扑
+        </a>
+        
+
+        
+        <a href="#html"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#html');">
+            HTML 报告（推荐查看）
+        </a>
+        
+        
+        <a href="#tab"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#tab');">
+            概览 Tab
+        </a>
+        
+        <a href="#tab_1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#tab_1');">
+            拓扑 Tab
+        </a>
+        
+        <a href="#tab_2"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#tab_2');">
+            活跃资产 Tab
+        </a>
+        
+        <a href="#tab_3"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#tab_3');">
+            排除资产 Tab
+        </a>
+        
+        <a href="#tab_4"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#tab_4');">
+            指标 Tab
+        </a>
+        
+        <a href="#_2"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#_2');">
+            筛选与搜索
+        </a>
+        
+        
+
+        
+        <a href="#html_1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#html_1');">
+            原始 HTML 报告示例
+        </a>
+        
+
+        
+        <a href="#_3"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#_3');">
+            检查点文件
+        </a>
+        
+
+        
+        
+        
+        
+
+    </div>
+    <div class="h-12"></div>
+
+</div>
+                                
+                                
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer view-transition-name="footer"
+    class="group-has-[.section-soft]/body:bg-surface/40 3xl:fixed:bg-transparent dark:bg-transparent">
+    <div class="container-wrapper px-4 xl:px-6">
+        <div class="flex h-(--footer-height) items-center justify-between">
+            <div class="text-muted-foreground w-full text-center text-xs leading-loose sm:text-sm">
+                
+                Built by<!-- --> <span>Z-Sans</span> &mdash;
+                
+                由
+                <a href="https://github.com/asiffer/mkdocs-shadcn">shadcn theme</a> 提供技术支持 · <a href="https://github.com/asiffer">@asiffer</a>
+            </div>
+        </div>
+    </div>
+</footer>
+    </div>
+     
+
+<script src="../../../assets/mermaid.min.js"></script>
+
+     
+
+<script src="../../../assets/mermaid-init.js"></script>
+
+     
+
+<script src="../../../search/main.js"></script>
+
+
+    
+
+    <script integrity="sha384-JLNLRFGzvOp0up707XKgSnAjjt1w5BF/+lbeLQvlf6mNwf0m89IXFdpNAk4t6Hcs"
+        src="../../../js/copy-button.js"></script>
+    <script integrity="sha384-JBx6cBEiyhK1KPwZgBHiI6GDaAmvlOxMQFyWAZTEpW5Ifo5XQ2LBcJ61GVOumwF1"
+        src="../../../js/sidebar.js"></script>
+    <script integrity="sha384-fNURFMRt0p/HqXnQnV4+CT9dX1GiU5F0fC3pFbg7gfoANytoUMErSW7suWSBkSuF"
+        src="../../../js/slider.js"></script>
+    <script>updatePygmentsStylesheet();</script>
+    
+    
+    
+    <script type="speculationrules">
+{
+  "prerender": [
+    {
+      "where": {
+          "selector_matches": ["#next-button", "#previous-button"]
+      }
+    }
+  ]
+}
+</script>
+</body>
+
+</html>
