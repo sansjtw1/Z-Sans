@@ -571,8 +571,11 @@ class AssetGraph:
                 # 如果资产已存在，检查其状态
                 existing_asset = self.nodes[asset.uid]
                 
-                # 如果现有资产已经处理完成（scanned或eliminated），则不再处理
-                if existing_asset.state in ["scanned", "eliminated"]:
+                # 已终结状态（scanned/eliminated/excluded）不再处理，与
+                # PriorityBreedingQueue.add 的终结判断保持一致。此前 excluded
+                # 未在此拦截，被排除的资产(超深/超限/命中排除规则)会在再次被发现时
+                # 反复入队、重复处理并重复触发 on_asset_discovered。
+                if existing_asset.state in ["scanned", "eliminated", "excluded"]:
                     return False
                 
                 # 如果现有资产正在处理中（scanning），也不再处理

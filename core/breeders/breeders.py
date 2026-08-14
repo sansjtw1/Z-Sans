@@ -83,8 +83,11 @@ class BreederBase:
             return False
             
         if not self.engine.seed_domains:
-            logger.warning(_("Seed domains list is empty, defaulting to False"))
-            return False
+            # 没有种子域名时视为"不限制"而非"全部拒绝"，与 _is_in_seed_ip_range
+            # 空种子时放行的行为保持一致。否则 IP-only / URL-only 扫描时
+            # seed_domains 为空，restrict_to_seed_domains 会过滤掉所有发现的
+            # URL/域名，导致资产骤减。
+            return True
         
         if not domain or not isinstance(domain, str):
             logger.warning(_("Invalid domain format: {domain}").format(domain=domain))
