@@ -106,16 +106,18 @@ def init_http_config(config):
     global current_config
     with config_lock:
         current_config = config
+        # 空段落（`http:` 下无内容）会解析为 None，用 `or {}` 兜底
+        http_cfg = config.get('http') or {}
         # 更新超时设置
-        http_session.timeout = config.get('http', {}).get('timeout', DEFAULT_TIMEOUT)
+        http_session.timeout = http_cfg.get('timeout') or DEFAULT_TIMEOUT
         # 更新用户代理
-        user_agent = config.get('http', {}).get('user_agent', USER_AGENT)
+        user_agent = http_cfg.get('user_agent') or USER_AGENT
         http_session.headers.update({'User-Agent': user_agent})
         # 更新代理设置
-        proxy_url = config.get('http', {}).get('proxy')
+        proxy_url = http_cfg.get('proxy')
         set_http_proxy(proxy_url)
         # 更新SSL校验设置
-        http_session.verify = config.get('http', {}).get('verify_ssl', False)
+        http_session.verify = http_cfg.get('verify_ssl', False)
 
 # 获取当前HTTP配置
 
@@ -512,14 +514,14 @@ class PriorityBreedingQueue:
         if not self.queue:
             return None
         
-        # 从配置中获取资产类型优先级
-        asset_types_config = self.config.get("asset_types", {})
+        # 从配置中获取资产类型优先级（None 段落兜底为空 dict，避免崩溃）
+        asset_types_config = self.config.get("asset_types") or {}
         type_priority = {
-            ASSET_TYPE_DOMAIN: asset_types_config.get("domain", {}).get("priority", 5),
-            ASSET_TYPE_URL: asset_types_config.get("url", {}).get("priority", 4),
-            ASSET_TYPE_IP: asset_types_config.get("ip", {}).get("priority", 3),
-            ASSET_TYPE_PORT: asset_types_config.get("port", {}).get("priority", 2),
-            ASSET_TYPE_JS: asset_types_config.get("js", {}).get("priority", 1)
+            ASSET_TYPE_DOMAIN: (asset_types_config.get("domain") or {}).get("priority", 5),
+            ASSET_TYPE_URL: (asset_types_config.get("url") or {}).get("priority", 4),
+            ASSET_TYPE_IP: (asset_types_config.get("ip") or {}).get("priority", 3),
+            ASSET_TYPE_PORT: (asset_types_config.get("port") or {}).get("priority", 2),
+            ASSET_TYPE_JS: (asset_types_config.get("js") or {}).get("priority", 1)
         }
         
         highest = max(self.queue, key=lambda x: (type_priority.get(x.type, 0), -x.depth))

@@ -329,6 +329,23 @@ class BreedingEngine:
         return self._process_asset(asset)
     
     def _process_asset(self, asset):
+        # 统一兜底：前置检查（深度/开关/资源限制/排除规则）若因配置异常
+        # 抛错，绝不能让异常逃逸到线程池被静默吞掉——那会让资产无声丢失。
+        try:
+            return self._process_asset_inner(asset)
+        except Exception as e:
+            logger.error(_("Error processing asset {uid}: {error}").format(uid=asset.uid, error=str(e)))
+            import traceback
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Full traceback while processing asset %s:\n%s",
+                             asset.uid, traceback.format_exc())
+            asset.state = "failed"
+            with self._metrics_lock:
+                self.metrics["errors"] += 1
+            self.emit_hook("on_asset_failed", asset=asset, error=str(e))
+            return True
+
+    def _process_asset_inner(self, asset):
         max_depth = self.config.get("max_depth", 3)
         if asset.depth > max_depth:
             asset.state = "excluded"
@@ -338,7 +355,7 @@ class BreedingEngine:
             return True
         
         # 尊重 asset_types.<type>.enabled 开关（此前为死配置，从不生效）
-        asset_type_cfg = self.config.get('asset_types', {}).get(asset.type, {})
+        asset_type_cfg = (self.config.get('asset_types') or {}).get(asset.type) or {}
         if not asset_type_cfg.get('enabled', True):
             asset.state = "excluded"
             asset.properties["excluded_reason"] = _("Asset type {type} is disabled").format(type=asset.type)
@@ -396,8 +413,8 @@ class BreedingEngine:
             
             self.emit_hook("on_asset_scanned", asset=asset, new_assets=list(new_assets))
             
-            cp_cfg = self.config.get('checkpoint', {})
-            if cp_cfg.get('enabled', True) and (self.metrics["assets_processed"] % max(1, cp_cfg.get('interval', 50))) == 0:
+            cp_cfg = self.config.get('checkpoint') or {}
+            if cp_cfg.get('enabled', True) and (self.metrics["assets_processed"] % max(1, cp_cfg.get('interval') or 50)) == 0:
                 self.save_checkpoint()
             
             logger.info(_("Asset {uid} processed, found {count} new assets").format(uid=asset.uid, count=len(new_assets)))
@@ -416,8 +433,8 @@ class BreedingEngine:
             return True
     
     def _concurrent_breed(self):
-        workers = max(1, self.config.get("concurrency", {}).get("max_tasks", 1))
-        strategy = self.config.get("strategy", "priority_based")
+        workers = max(1, (self.config.get("concurrency") or {}).get("max_tasks") or 1)
+        strategy = self.config.get("strategy") or "priority_based"
         in_flight = 0
         futures = set()
         
@@ -465,7 +482,7 @@ class BreedingEngine:
             self.state = "completed"
     
     def _check_resource_limits(self, asset):
-        asset_type_config = self.config.get("asset_types", {}).get(asset.type, {})
+        asset_type_config = (self.config.get("asset_types") or {}).get(asset.type) or {}
         depth_limit = asset_type_config.get("depth_limit", self.config.get("max_depth", 3))
         if asset.depth > depth_limit:
             asset.properties["excluded_reason"] = _("Exceeds depth limit {limit}").format(limit=depth_limit)
@@ -473,21 +490,22 @@ class BreedingEngine:
         
         stats = self.asset_graph.stats()
         asset_types = stats.get("asset_types", {})
+        limits = self.config.get("resource_limits") or {}
         
         if asset.type == ASSET_TYPE_DOMAIN:
-            limit = self.config.get("resource_limits", {}).get("max_domains", 1000)
+            limit = limits.get("max_domains", 1000)
             current = asset_types.get(ASSET_TYPE_DOMAIN, 0)
         elif asset.type == ASSET_TYPE_IP:
-            limit = self.config.get("resource_limits", {}).get("max_ips", 1000)
+            limit = limits.get("max_ips", 1000)
             current = asset_types.get(ASSET_TYPE_IP, 0)
         elif asset.type == ASSET_TYPE_URL:
-            limit = self.config.get("resource_limits", {}).get("max_urls", 5000)
+            limit = limits.get("max_urls", 5000)
             current = asset_types.get(ASSET_TYPE_URL, 0)
         elif asset.type == ASSET_TYPE_PORT:
-            limit = self.config.get("resource_limits", {}).get("max_ports", 2000)
+            limit = limits.get("max_ports", 2000)
             current = asset_types.get(ASSET_TYPE_PORT, 0)
         elif asset.type == ASSET_TYPE_JS:
-            limit = self.config.get("resource_limits", {}).get("max_js", 1000)
+            limit = limits.get("max_js", 1000)
             current = asset_types.get(ASSET_TYPE_JS, 0)
         else:
             return True
@@ -498,40 +516,46 @@ class BreedingEngine:
         return True
     
     def _is_excluded(self, asset):
-        exclusions = self.config.get("exclusions", {})
+        # YAML 中 `exclusions:` / `urls:` 等空段落会解析为 None，
+        # .get(key, default) 对显式 None 不会落到默认值，必须用 `or` 兜底，
+        # 否则迭代 None 抛 TypeError，且该异常发生在 try 块之外，
+        # 会被线程池静默吞掉，导致资产无声丢失。
+        exclusions = self.config.get("exclusions") or {}
         
         if asset.type == ASSET_TYPE_DOMAIN:
-            excluded_domains = exclusions.get("domains", [])
+            excluded_domains = exclusions.get("domains") or []
             for excluded in excluded_domains:
                 if asset.value == excluded or asset.value.endswith(f".{excluded}"):
                     return True
         
         elif asset.type == ASSET_TYPE_IP:
-            excluded_ips = exclusions.get("ips", [])
+            excluded_ips = exclusions.get("ips") or []
             for excluded in excluded_ips:
                 if asset.value == excluded:
                     return True
         
         elif asset.type == ASSET_TYPE_URL:
-            excluded_urls = exclusions.get("urls", [])
+            excluded_urls = exclusions.get("urls") or []
             for excluded in excluded_urls:
                 if excluded in asset.value:
                     return True
         
-        excluded_patterns = exclusions.get("patterns", [])
+        excluded_patterns = exclusions.get("patterns") or []
         for pattern in excluded_patterns:
-            import re
-            if re.search(pattern, asset.value):
-                return True
+            try:
+                if re.search(pattern, asset.value):
+                    return True
+            except re.error as e:
+                logger.warning(_("Invalid exclusion pattern {pattern}: {error}").format(pattern=pattern, error=str(e)))
         
         return False
     
     # ---------- Checkpoint / resume ----------
     def _checkpoint_path(self):
-        cfg = self.config.get('checkpoint', {})
+        cfg = self.config.get('checkpoint') or {}
         if cfg.get('file'):
             return cfg['file']
-        outdir = self.config.get('output', {}).get('dir', 'output')
+        outdir = (self.config.get('output') or {}).get('dir') or 'output'
         return os.path.join(outdir, 'checkpoint.json')
     
     @staticmethod
@@ -560,7 +584,7 @@ class BreedingEngine:
         return asset
     
     def save_checkpoint(self, path=None):
-        if not self.config.get('checkpoint', {}).get('enabled', True):
+        if not (self.config.get('checkpoint') or {}).get('enabled', True):
             return None
         path = path or self._checkpoint_path()
         try:
@@ -651,8 +675,16 @@ def _deep_merge(base, override):
     修复浅层合并导致的部分配置覆盖会清空整棵默认子树的问题，
     例如用户只写 `asset_types: {domain: {priority: 5}}` 时，
     domain 下的 tools/depth_limit/enabled 等默认值得以保留。
+
+    None 值视为"未填写"而非显式清空：YAML 空段落（如只有注释的
+    `urls:`）会解析为 None，若直接覆盖会把整棵默认子树抹掉，
+    导致下游 .get 链拿到 None 而崩溃或行为漂移。清空请用空列表/空字典。
     """
     for k, v in override.items():
+        if v is None:
+            if k not in base:
+                base[k] = v
+            continue
         if isinstance(v, dict) and isinstance(base.get(k), dict):
             base[k] = _deep_merge(base[k], v)
         else:
@@ -660,30 +692,38 @@ def _deep_merge(base, override):
     return base
 
 
+def _normalize_config(config):
+    """把用户配置深合并进 DEFAULT_CONFIG，返回完整配置。
+
+    所有缺省键回填默认值，None 空段落保留默认，保证引擎内部
+    任何 .get 链都不会拿到 None。
+    """
+    from core.zsans_engine import DEFAULT_CONFIG
+    merged = copy.deepcopy(DEFAULT_CONFIG)
+    if isinstance(config, dict):
+        _deep_merge(merged, config)
+    return merged
+
+
 def load_config(config_path):
     from core.zsans_engine import DEFAULT_CONFIG
     
     if not os.path.exists(config_path):
         logger.warning(_("Config file {path} does not exist, using default configuration").format(path=config_path))
-        return DEFAULT_CONFIG
+        return copy.deepcopy(DEFAULT_CONFIG)
     
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
+            config = yaml.safe_load(f) or {}
         
-        merged_config = copy.deepcopy(DEFAULT_CONFIG)
-        for key, value in config.items():
-            if isinstance(value, dict) and key in merged_config and isinstance(merged_config[key], dict):
-                merged_config[key] = _deep_merge(merged_config[key], value)
-            else:
-                merged_config[key] = value
+        merged_config = _normalize_config(config)
         
         logger.debug(_("Loaded config file: {path}").format(path=config_path))
         return merged_config
     
     except Exception as e:
         logger.error(_("Failed to load config file {path}: {error}").format(path=config_path, error=str(e)))
-        return DEFAULT_CONFIG
+        return copy.deepcopy(DEFAULT_CONFIG)
 
 
 def create_default_config(config_path=DEFAULT_CONFIG_PATH):
@@ -1203,10 +1243,10 @@ def print_plugin_table(engine):
 
 
 def run_watch(config, domain_seeds, url_seeds):
-    mon = config.get('monitoring', {})
-    interval = int(mon.get('interval', 3600))
+    mon = config.get('monitoring') or {}
+    interval = int(mon.get('interval') or 3600)
     webhook_url = mon.get('webhook_url')
-    outdir = config.get('output', {}).get('dir', 'output')
+    outdir = (config.get('output') or {}).get('dir') or 'output'
     
     prev_uids = None
     first = True

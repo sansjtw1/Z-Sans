@@ -31,7 +31,7 @@ def setup_i18n(config_path):
         config = {}
 
     # 合并配置
-    language_config = config.get('language', {})
+    language_config = config.get('language') or {}
     default_language = language_config.get('default_language', default_config['language']['default_language'])
     supported_languages = language_config.get('supported_languages', default_config['language']['supported_languages'])
     locale_dir = language_config.get('locale_dir', default_config['language']['locale_dir'])

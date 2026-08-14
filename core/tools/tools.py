@@ -147,7 +147,7 @@ class ToolOrchestrator:
             _ensure_tempdir_global()
         except Exception:
             pass
-        self.concurrency = self.config.get('concurrency', {}).get('max_tasks', 5)
+        self.concurrency = (self.config.get('concurrency') or {}).get('max_tasks', 5)
         self.executor = ThreadPoolExecutor(max_workers=self.concurrency)
         self.running_tasks = {}
         self.lock = threading.Lock()
@@ -280,7 +280,7 @@ class ToolOrchestrator:
         subdomains = []
         
         try:
-            dnsx_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('dnsx', True)
+            dnsx_enabled = (((self.config.get('asset_types') or {}).get('domain') or {}).get('tools') or {}).get('dnsx', True)
             if not dnsx_enabled:
                 logger.info(_("DNSx resolution disabled"))
                 return subdomains
@@ -374,8 +374,7 @@ class ToolOrchestrator:
             
             # 端口范围可配置；默认覆盖常见 Web / 数据库 / 缓存 / 远程管理端口
             port_range = (
-                self.config.get('asset_types', {}).get('ip', {})
-                .get('tools', {}).get('port_range',
+                (((self.config.get('asset_types') or {}).get('ip') or {}).get('tools') or {}).get('port_range',
                                       '1-1024,3306,3389,5432,5900,6379,7001,8000-8500,8888,9000-9100,9200,27017,11211')
             )
             cmd = [PY_EXE, _script_path('port.py'), ip, '-p', port_range, '-q']
@@ -425,7 +424,7 @@ class ToolOrchestrator:
             
             cmd = [PY_EXE, _script_path('JSfinder.py'), '-u', url, '-ou', url_path, '-os', subdomain_path]
             logger.debug(_("Executing JSFinder command: {cmd}").format(cmd=' '.join(cmd)))
-            js_timeout = self.config.get('external_tools', {}).get('jsfinder_timeout', 30) or 30
+            js_timeout = (self.config.get('external_tools') or {}).get('jsfinder_timeout', 30) or 30
             process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=js_timeout, text=True, encoding='utf-8')
             if process.stdout:
                 # 仅记录前若干行，避免把整个JSFinder输出倾倒进日志
@@ -477,7 +476,7 @@ class ToolOrchestrator:
             # 不再解析 stdout —— stdout 中的 "Output N urls" / "Path:..." 等辅助行
             # 会被误判为子域名/URL，产生大量垃圾资产。
             
-            if self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True):
+            if (self.config.get('asset_scope') or {}).get('restrict_to_seed_domains', True):
                 seed_domains = []
                 if hasattr(self, 'engine') and hasattr(self.engine, 'seed_domains'):
                     seed_domains = self.engine.seed_domains
@@ -558,7 +557,7 @@ class ToolOrchestrator:
         
         try:
             from core.zsans_engine import http_session
-            timeout = self.config.get('http', {}).get('timeout', 15)
+            timeout = (self.config.get('http') or {}).get('timeout', 15)
             response = http_session.get(url, timeout=timeout)
             if response.status_code != 200:
                 logger.warning(_("Failed to get URL content, status code: {code}").format(code=response.status_code))
@@ -773,7 +772,7 @@ class ToolOrchestrator:
             break
 
     def run_ehole(self, url):
-        fingerprint_enabled = self.config.get('external_tools', {}).get('fingerprint', {}).get('enabled', False)
+        fingerprint_enabled = ((self.config.get('external_tools') or {}).get('fingerprint') or {}).get('enabled', False)
         if not fingerprint_enabled:
             logger.info(_("Fingerprinting feature not enabled, skipping EHole call"))
             return None
@@ -1024,7 +1023,7 @@ class ToolOrchestrator:
         fingerprints 并优先采用更完整的一侧。没有任何工具可用或功能未启用时
         返回 None，上层自动回退到内置标题提取。
         """
-        fp_cfg = self.config.get('external_tools', {}).get('fingerprint', {}) or {}
+        fp_cfg = (self.config.get('external_tools') or {}).get('fingerprint') or {} or {}
         if not fp_cfg.get('enabled', False):
             logger.info(_("Fingerprinting feature not enabled, skipping fingerprint call"))
             return None

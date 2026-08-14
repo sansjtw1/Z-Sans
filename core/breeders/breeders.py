@@ -26,7 +26,7 @@ HEADERS = {
 class BreederBase:
     def __init__(self, config=None, engine=None):
         self.config = config or {}
-        self.timeout = self.config.get('http', {}).get('timeout', self.config.get('timeout', 15))
+        self.timeout = (self.config.get('http') or {}).get('timeout', self.config.get('timeout', 15))
         self.engine = engine
     
     def execute(self, asset, tool_manager):
@@ -156,10 +156,10 @@ class DomainBreeder(BreederBase):
         domain = asset.value
         new_assets = []
         
-        restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+        restrict_to_seed_domains = (self.config.get('asset_scope') or {}).get('restrict_to_seed_domains', True)
         
         # include_subdomains: 关闭时跳过子域名枚举
-        include_subdomains = self.config.get('asset_scope', {}).get('include_subdomains', True)
+        include_subdomains = (self.config.get('asset_scope') or {}).get('include_subdomains', True)
         if not include_subdomains:
             logger.info(_("Subdomain discovery disabled by config, skipping"))
             subdomains = []
@@ -181,14 +181,14 @@ class DomainBreeder(BreederBase):
             new_assets.append(new_asset)
         
         # include_ip_ranges: 关闭时跳过域名的 IP 解析与 IP 资产生成
-        include_ip_ranges = self.config.get('asset_scope', {}).get('include_ip_ranges', True)
+        include_ip_ranges = (self.config.get('asset_scope') or {}).get('include_ip_ranges', True)
         if not include_ip_ranges:
             logger.info(_("IP range discovery disabled by config, skipping IP resolution"))
             ip_addresses = []
         else:
             ip_addresses = self._resolve_domain(domain)
         for ip in ip_addresses:
-            restrict_to_seed_ip_ranges = self.config.get('asset_scope', {}).get('restrict_to_seed_ip_ranges', True)
+            restrict_to_seed_ip_ranges = (self.config.get('asset_scope') or {}).get('restrict_to_seed_ip_ranges', True)
             if restrict_to_seed_ip_ranges and not self._is_in_seed_ip_range(ip):
                 logger.debug(_("Skipping IP outside seed range: {ip}").format(ip=ip))
                 continue
@@ -214,12 +214,12 @@ class DomainBreeder(BreederBase):
         return new_assets
             
     def _discover_subdomains(self, domain, tool_manager):
-        subfinder_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('subfinder', True)
+        subfinder_enabled = (((self.config.get('asset_types') or {}).get('domain') or {}).get('tools') or {}).get('subfinder', True)
         return self._collect_subdomains(domain, tool_manager, subfinder_enabled)
     
     def _collect_subdomains(self, domain, tool_manager, subfinder_enabled):
         subdomains = set()
-        free_subfinder_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('free_subfinder', True)
+        free_subfinder_enabled = (((self.config.get('asset_types') or {}).get('domain') or {}).get('tools') or {}).get('free_subfinder', True)
         
         if subfinder_enabled and tool_manager and hasattr(tool_manager, 'run_subfinder'):
             logger.info(_("Using subfinder tool to discover subdomains: {domain}").format(domain=domain))
@@ -240,7 +240,7 @@ class DomainBreeder(BreederBase):
                 logger.warning(_("Free-subfinder found no subdomains"))
         
         try:
-            crtsh_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('crtsh', True)
+            crtsh_enabled = (((self.config.get('asset_types') or {}).get('domain') or {}).get('tools') or {}).get('crtsh', True)
             
             if crtsh_enabled:
                 logger.info(_("Querying crt.sh for subdomains: {domain}").format(domain=domain))
@@ -256,7 +256,7 @@ class DomainBreeder(BreederBase):
 
         # 内置 DNS 暴力枚举：纯本地、无需外部工具，用常见子域词表探测 A 记录
         try:
-            dns_brute_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('dns_brute', True)
+            dns_brute_enabled = (((self.config.get('asset_types') or {}).get('domain') or {}).get('tools') or {}).get('dns_brute', True)
             if dns_brute_enabled:
                 logger.info(_("Running built-in DNS brute-force for subdomains: {domain}").format(domain=domain))
                 brute_subdomains = self._dns_brute_subdomains(domain)
@@ -429,7 +429,7 @@ class IPBreeder(BreederBase):
         ip = asset.value
         new_assets = []
         
-        restrict_to_seed_ip_ranges = self.config.get('asset_scope', {}).get('restrict_to_seed_ip_ranges', True)
+        restrict_to_seed_ip_ranges = (self.config.get('asset_scope') or {}).get('restrict_to_seed_ip_ranges', True)
         if restrict_to_seed_ip_ranges and not self._is_in_seed_ip_range(ip):
             logger.debug(_("Skipping IP outside seed range: {ip}").format(ip=ip))
             return []
@@ -445,7 +445,7 @@ class IPBreeder(BreederBase):
                 new_asset = URLAsset(url, source=asset.uid, depth=asset.depth+1)
                 new_assets.append(new_asset)
         
-        reverse_dns_enabled = self.config.get('asset_types', {}).get('ip', {}).get('tools', {}).get('reverse_dns', True)
+        reverse_dns_enabled = (((self.config.get('asset_types') or {}).get('ip') or {}).get('tools') or {}).get('reverse_dns', True)
         domains = []
         if reverse_dns_enabled:
             domains = self._reverse_dns(ip)
@@ -453,7 +453,7 @@ class IPBreeder(BreederBase):
         else:
             logger.info(_("Reverse DNS query disabled"))
         for domain in domains:
-            restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+            restrict_to_seed_domains = (self.config.get('asset_scope') or {}).get('restrict_to_seed_domains', True)
             if restrict_to_seed_domains:
                 is_related = self._is_related_to_seed_domain(domain)
                 logger.info(_("Reverse DNS domain relevance check: {domain}, related: {related}").format(domain=domain, related=is_related))
@@ -473,7 +473,7 @@ class IPBreeder(BreederBase):
     def _scan_ports(self, ip, tool_manager):
         open_ports = {}
         
-        naabu_enabled = self.config.get('asset_types', {}).get('ip', {}).get('tools', {}).get('naabu', True)
+        naabu_enabled = (((self.config.get('asset_types') or {}).get('ip') or {}).get('tools') or {}).get('naabu', True)
         
         used_external_scan = False
         if naabu_enabled and tool_manager and hasattr(tool_manager, 'run_naabu'):
@@ -588,8 +588,8 @@ class URLBreeder(BreederBase):
         
         self.redirect_targets = []
         
-        asset_type_config = self.config.get('asset_types', {}).get('url', {})
-        tools = asset_type_config.get('tools', {}) or {}
+        asset_type_config = (self.config.get('asset_types') or {}).get('url') or {}
+        tools = asset_type_config.get('tools') or {} or {}
         
         if tools.get('jsfinder', False) and tool_manager and hasattr(tool_manager, 'run_jsfinder'):
             logger.info(_("Using JSFinder tool for URL: {url}").format(url=url))
@@ -598,7 +598,7 @@ class URLBreeder(BreederBase):
             parsed_url = urlparse(url)
             domain = parsed_url.netloc
             
-            restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+            restrict_to_seed_domains = (self.config.get('asset_scope') or {}).get('restrict_to_seed_domains', True)
             related_urls_count = 0
             total_urls_count = len(jsfinder_urls)
             
@@ -680,7 +680,7 @@ class URLBreeder(BreederBase):
         
         html_content = self._fetch_url(url, tool_manager=tool_manager)
         
-        redirect_as_new_asset = self.config.get('http', {}).get('redirect_as_new_asset', True)
+        redirect_as_new_asset = (self.config.get('http') or {}).get('redirect_as_new_asset', True)
         if redirect_as_new_asset and hasattr(self, 'redirect_targets') and self.redirect_targets:
             for redirect_url in self.redirect_targets:
                 original_domain = urlparse(url).netloc
@@ -691,7 +691,7 @@ class URLBreeder(BreederBase):
                 new_assets.append(new_asset)
                 
                 if redirect_domain and redirect_domain != original_domain:
-                    restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+                    restrict_to_seed_domains = (self.config.get('asset_scope') or {}).get('restrict_to_seed_domains', True)
                     if not restrict_to_seed_domains or self._is_related_to_seed_domain(redirect_domain):
                         new_asset = DomainAsset(redirect_domain, source=asset.uid, depth=asset.depth+1)
                         new_asset.properties['redirect_from'] = url
@@ -755,7 +755,7 @@ class URLBreeder(BreederBase):
         if tools.get('link_extract', True):
             links = self._extract_links(html_content, url)
             for link in links:
-                restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+                restrict_to_seed_domains = (self.config.get('asset_scope') or {}).get('restrict_to_seed_domains', True)
                 
                 link_domain = urlparse(link).netloc
                 
@@ -787,7 +787,7 @@ class URLBreeder(BreederBase):
         if tools.get('link_extract', True):
             discovery_links = self._fetch_robots_sitemap(url)
             for dl in discovery_links:
-                restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+                restrict_to_seed_domains = (self.config.get('asset_scope') or {}).get('restrict_to_seed_domains', True)
                 dl_domain = urlparse(dl).netloc
                 if restrict_to_seed_domains and dl_domain and not self._is_related_to_seed_domain(dl_domain):
                     logger.debug(_("Skipping non-seed-related discovery link: {link}").format(link=dl))
@@ -849,9 +849,9 @@ class URLBreeder(BreederBase):
         
     def _fetch_url(self, url, tool_manager=None):
         try:
-            follow_redirects = self.config.get('http', {}).get('follow_redirects', True)
-            redirect_as_new_asset = self.config.get('http', {}).get('redirect_as_new_asset', True)
-            max_redirects = self.config.get('http', {}).get('max_redirects', 5)
+            follow_redirects = (self.config.get('http') or {}).get('follow_redirects', True)
+            redirect_as_new_asset = (self.config.get('http') or {}).get('redirect_as_new_asset', True)
+            max_redirects = (self.config.get('http') or {}).get('max_redirects', 5)
             
             logger.info(_("Processing URL: {url}").format(url=url))
             
@@ -894,9 +894,9 @@ class URLBreeder(BreederBase):
             
             if response.status_code == 200:
                 logger.debug(_("URL request successful: {url}, status: 200").format(url=url))
-                url_config = self.config.get('asset_types', {}).get('url', {})
+                url_config = (self.config.get('asset_types') or {}).get('url') or {}
                 
-                if url_config.get('tools', {}).get('fingerprint', False) and tool_manager and hasattr(tool_manager, 'run_fingerprint'):
+                if (url_config.get('tools') or {}).get('fingerprint', False) and tool_manager and hasattr(tool_manager, 'run_fingerprint'):
                     try:
                         cleaned_url = url.strip()
                         while '`' in cleaned_url or '"' in cleaned_url:
@@ -927,7 +927,7 @@ class URLBreeder(BreederBase):
                     except Exception as e:
                         logger.info(_("Fingerprinting failed: {url}, {error}").format(url=url, error=str(e)))
                 
-                title_extraction_config = url_config.get('title_extraction', {})
+                title_extraction_config = url_config.get('title_extraction') or {}
                 if title_extraction_config.get('enabled', True):
                     asset_uid = f"url:{url}"
                     title_already_extracted = False
@@ -1218,8 +1218,8 @@ class JSBreeder(BreederBase):
         js_url = asset.value
         new_assets = []
         
-        asset_type_config = self.config.get('asset_types', {}).get('js', {})
-        tools = asset_type_config.get('tools', {}) or {}
+        asset_type_config = (self.config.get('asset_types') or {}).get('js') or {}
+        tools = asset_type_config.get('tools') or {} or {}
         
         if tools.get('jsfinder', False) and tool_manager and hasattr(tool_manager, 'run_jsfinder'):
             logger.info(_("Using JSFinder tool for JS: {url}").format(url=js_url))
@@ -1228,7 +1228,7 @@ class JSBreeder(BreederBase):
             parsed_url = urlparse(js_url)
             domain = parsed_url.netloc
             
-            restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+            restrict_to_seed_domains = (self.config.get('asset_scope') or {}).get('restrict_to_seed_domains', True)
             related_count = 0
             total_count = 0
             
@@ -1352,7 +1352,7 @@ class JSBreeder(BreederBase):
         try:
             api_urls = self._extract_paths_from_js(js_content, js_url)
             for api_url in api_urls:
-                restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+                restrict_to_seed_domains = (self.config.get('asset_scope') or {}).get('restrict_to_seed_domains', True)
                 api_domain = urlparse(api_url).netloc
                 if restrict_to_seed_domains and api_domain and not self._is_related_to_seed_domain(api_domain):
                     logger.debug(_("Skipping non-seed-related API path: {url}").format(url=api_url))
@@ -1402,7 +1402,7 @@ class JSBreeder(BreederBase):
         
         matches = re.findall(pattern, js_content)
         
-        restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
+        restrict_to_seed_domains = (self.config.get('asset_scope') or {}).get('restrict_to_seed_domains', True)
         
         filtered_urls = []
         related_count = 0

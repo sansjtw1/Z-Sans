@@ -331,8 +331,13 @@ class ScanManager:
 
     @staticmethod
     def _merge_config(base, overrides):
-        """递归合并 overrides 到 base（dict 深合并）。"""
+        """递归合并 overrides 到 base（dict 深合并）。
+
+        None 视为"未填写"跳过，避免前端/配置中的空段落把默认子树抹掉。
+        """
         for k, v in overrides.items():
+            if v is None:
+                continue
             if isinstance(v, dict) and isinstance(base.get(k), dict):
                 ScanManager._merge_config(base[k], v)
             else:
@@ -1241,10 +1246,13 @@ def start_web_server(base_config, config_path, output_dir, port=8050, host='0.0.
     manager = ScanManager(base_config, config_path, output_dir)
 
     def _fresh_engine():
-        # 每次从配置文件重新读取，使插件启停等配置改动即时生效
+        # 每次从配置文件重新读取，使插件启停等配置改动即时生效。
+        # 原始 YAML 必须经 _normalize_config 合并默认值，否则用户省略的
+        # 段落（或空段落解析出的 None）会让引擎内部 .get 链拿到 None。
+        from main import _normalize_config
         fresh, _err = read_config_file(config_path)
-        cfg = fresh if fresh else base_config
-        return BreedingEngine(copy.deepcopy(cfg), register_signals=False)
+        cfg = _normalize_config(fresh if isinstance(fresh, dict) else {})
+        return BreedingEngine(cfg, register_signals=False)
 
     manager._new_engine = _fresh_engine
 

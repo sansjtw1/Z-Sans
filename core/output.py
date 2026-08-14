@@ -138,8 +138,8 @@ class OutputHandler:
                 server = ""
                 
                 if asset.type == "url":
-                    url_config = self.config.get('asset_types', {}).get('url', {})
-                    title_extraction_config = url_config.get('title_extraction', {})
+                    url_config = (self.config.get('asset_types') or {}).get('url') or {}
+                    title_extraction_config = url_config.get('title_extraction') or {}
                     
                     if "title" in asset.properties and title_extraction_config.get('enabled', True) and title_extraction_config.get('show_in_csv', True):
                         title = asset.properties["title"]
@@ -1437,8 +1437,8 @@ class OutputHandler:
 
     def _get_asset_note(self, asset):
         if asset.type == "url" and "title" in asset.properties:
-            url_config = self.config.get('asset_types', {}).get('url', {})
-            title_extraction_config = url_config.get('title_extraction', {})
+            url_config = (self.config.get('asset_types') or {}).get('url') or {}
+            title_extraction_config = url_config.get('title_extraction') or {}
             if title_extraction_config.get('enabled', True):
                 title = asset.properties["title"]
                 max_length = title_extraction_config.get('max_length', 50)
