@@ -153,9 +153,26 @@ class ScanManager:
         from main import BreedingEngine
 
         tid = self._new_task()
+        # 启动任务前重新读取配置文件，使 web 控制台里的配置修改即时生效
+        try:
+            from main import load_config
+            fresh = load_config(self._config_path)
+            if fresh:
+                with self._lock:
+                    self._base_config = fresh
+        except Exception as e:
+            logger.warning("Failed to reload config before scan: %s", e)
+
         config = copy.deepcopy(self._base_config)
         if overrides:
             self._merge_config(config, overrides)
+
+        # 多任务并发共用默认 checkpoint 路径会互相覆盖；web 端无 resume 入口，
+        # 未显式配置 checkpoint.file 时禁用，避免任务间互相破坏断点。
+        cp = config.get('checkpoint')
+        if not isinstance(cp, dict) or not cp.get('file'):
+            config['checkpoint'] = dict(cp or {})
+            config['checkpoint']['enabled'] = False
 
         # 输出目录: 任务级覆盖（兼容 dict 形式 {dir: ...} 或字符串形式）
         if overrides and overrides.get('output'):
@@ -820,6 +837,7 @@ def write_config_file(path, data):
 
 def list_plugins(engine_factory):
     """用独立引擎实例读取插件注册表(不启动扫描)。"""
+    engine = None
     try:
         engine = engine_factory()
         return [
@@ -840,6 +858,14 @@ def list_plugins(engine_factory):
     except Exception as e:
         logger.error("list_plugins failed: %s", e)
         return []
+    finally:
+        # 每次都会 new 一个 BreedingEngine（含 20 线程池），用完必须释放，
+        # 否则每次 GET /api/plugins 都会泄漏一个常驻线程池。
+        if engine is not None:
+            try:
+                engine.tool_orchestrator.shutdown()
+            except Exception:
+                pass
 
 
 # ─────────────────────────────────────────────
@@ -1234,7 +1260,7 @@ class ZSansWebServer(ThreadingHTTPServer):
         self.static_dir = static_dir or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web_static')
 
 
-def start_web_server(base_config, config_path, output_dir, port=8050, host='0.0.0.0'):
+def start_web_server(base_config, config_path, output_dir, port=8050, host='127.0.0.1'):
     """启动 web 控制台。阻塞运行。"""
     from main import BreedingEngine
 

@@ -51,7 +51,6 @@ adapter = HTTPAdapter(max_retries=retry_strategy)
 http_session.mount("http://", adapter)
 http_session.mount("https://", adapter)
 http_session.headers.update({'User-Agent': USER_AGENT})
-http_session.timeout = DEFAULT_TIMEOUT
 
 # 全局配置更新锁，确保线程安全
 config_lock = threading.RLock()
@@ -106,8 +105,6 @@ def init_http_config(config):
     global current_config
     with config_lock:
         current_config = config
-        # 更新超时设置
-        http_session.timeout = config.get('http', {}).get('timeout', DEFAULT_TIMEOUT)
         # 更新用户代理
         user_agent = config.get('http', {}).get('user_agent', USER_AGENT)
         http_session.headers.update({'User-Agent': user_agent})
@@ -342,6 +339,7 @@ class Asset:
         self.depth = depth
         self.state = "new"  # new, scanning, scanned, excluded, eliminated
         self.properties = {}
+        self.properties["discovery_time"] = time.time()
         self.uid = self._generate_uid()
 
     @staticmethod
@@ -462,7 +460,15 @@ class AssetFactory:
         elif asset_type == ASSET_TYPE_URL:
             return URLAsset(value, source, depth)
         elif asset_type == ASSET_TYPE_PORT:
-            return PortAsset(value, kwargs.get("port"), kwargs.get("service"), source, depth)
+            port = kwargs.get("port")
+            ip = value
+            if isinstance(value, str) and ':' in value:
+                ip, _, port_str = value.rpartition(':')
+                try:
+                    port = int(port_str)
+                except (ValueError, TypeError):
+                    port = kwargs.get("port")
+            return PortAsset(ip, port, kwargs.get("service"), source, depth)
         elif asset_type == ASSET_TYPE_JS:
             return JSAsset(value, source, depth)
         else:
@@ -562,6 +568,7 @@ class AssetGraph:
         self.nodes = {}  # uid -> asset
         self.edges = {}  # (source_uid, target_uid) -> relation
         self.lock = threading.Lock()
+        self.type_counts = {}  # asset_type -> count of unique assets
     
     def add_asset(self, asset):
         with self.lock:
@@ -580,10 +587,13 @@ class AssetGraph:
                 # 如果现有资产处于初始状态或失败状态，更新节点信息并允许重新处理
                 existing_asset.source = asset.source
                 existing_asset.depth = asset.depth
-                existing_asset.properties.update(asset.properties)
+                for _k, _v in asset.properties.items():
+                    if _k != "discovery_time":
+                        existing_asset.properties[_k] = _v
                 return True
             
             self.nodes[asset.uid] = asset
+            self.type_counts[asset.type] = self.type_counts.get(asset.type, 0) + 1
             return True
     
     def add_edge(self, source, target, relation):

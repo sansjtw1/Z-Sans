@@ -323,10 +323,10 @@ class DomainBreeder(BreederBase):
         def _probe(sub):
             full = f"{sub}.{domain}"
             try:
-                socket.setdefaulttimeout(timeout)
-                socket.getaddrinfo(full, None, socket.AF_INET)
-                return full
-            except (socket.gaierror, socket.error, OSError):
+                import dns.resolver
+                answers = dns.resolver.resolve(full, 'A', lifetime=timeout, raise_on_no_answer=True)
+                return full if answers else None
+            except Exception:
                 return None
 
         try:
@@ -377,6 +377,10 @@ class DomainBreeder(BreederBase):
                         sub = sub.strip().lower()
                         if sub and f".{domain}" in sub:
                             subdomains.add(sub)
+                            if len(subdomains) >= 2000:
+                                break
+                    if len(subdomains) >= 2000:
+                        break
         except Exception as e:
             logger.error(_("crt.sh query failed: {error}").format(error=str(e)))
         

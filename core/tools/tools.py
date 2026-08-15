@@ -300,13 +300,10 @@ class ToolOrchestrator:
             except UnicodeDecodeError:
                 output = process.stdout.decode('latin-1').strip()
             
-            if output:
-                subdomains.append(domain)
-                
-                if os.path.exists(_script_path('free-subfinder.py')):
-                    free_subdomains = self.run_free_subfinder(domain)
-                    if free_subdomains:
-                        subdomains.extend(free_subdomains)
+            if output and os.path.exists(_script_path('free-subfinder.py')):
+                free_subdomains = self.run_free_subfinder(domain)
+                if free_subdomains:
+                    subdomains.extend(free_subdomains)
         except subprocess.CalledProcessError as e:
             error_msg = e.stderr.decode('utf-8') if e.stderr else str(e)
             logger.error(_("Internal DNS resolver execution failed: {error}").format(error=error_msg))

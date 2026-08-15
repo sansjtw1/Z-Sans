@@ -93,7 +93,7 @@ def configure_logging():
 
 logger = configure_logging()
 
-VERSION = "0.0.7"
+VERSION = "0.0.8"
 DEFAULT_CONFIG_PATH = "breeding-config.yaml"
 PLUGINS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plugins')
 
@@ -348,28 +348,28 @@ class BreedingEngine:
         
         asset.state = "scanning"
         
-        if not self._check_resource_limits(asset):
-            logger.warning(_("Asset {uid} exceeds resource limits, skipping").format(uid=asset.uid))
-            asset.state = "excluded"
-            self.emit_hook("on_asset_excluded", asset=asset)
-            return True
-        
-        if self._is_excluded(asset):
-            logger.debug(_("Asset {uid} matches exclusion rules, skipping").format(uid=asset.uid))
-            asset.state = "excluded"
-            asset.properties["excluded_reason"] = _("Matches exclusion rules")
-            self.emit_hook("on_asset_excluded", asset=asset)
-            return True
-        
-        breeder = self.breeder_factory.get_breeder(asset.type, self.config, self)
-        if not breeder:
-            logger.warning(_("No suitable breeder found for asset type {type}, skipping").format(type=asset.type))
-            asset.state = "excluded"
-            asset.properties["excluded_reason"] = _("No breeder for type {type}").format(type=asset.type)
-            self.emit_hook("on_asset_excluded", asset=asset)
-            return True
-        
         try:
+            if not self._check_resource_limits(asset):
+                logger.warning(_("Asset {uid} exceeds resource limits, skipping").format(uid=asset.uid))
+                asset.state = "excluded"
+                self.emit_hook("on_asset_excluded", asset=asset)
+                return True
+            
+            if self._is_excluded(asset):
+                logger.debug(_("Asset {uid} matches exclusion rules, skipping").format(uid=asset.uid))
+                asset.state = "excluded"
+                asset.properties["excluded_reason"] = _("Matches exclusion rules")
+                self.emit_hook("on_asset_excluded", asset=asset)
+                return True
+            
+            breeder = self.breeder_factory.get_breeder(asset.type, self.config, self)
+            if not breeder:
+                logger.warning(_("No suitable breeder found for asset type {type}, skipping").format(type=asset.type))
+                asset.state = "excluded"
+                asset.properties["excluded_reason"] = _("No breeder for type {type}").format(type=asset.type)
+                self.emit_hook("on_asset_excluded", asset=asset)
+                return True
+            
             logger.debug(_("Start processing asset: {uid}").format(uid=asset.uid))
             new_assets = breeder.execute(asset, self.tool_orchestrator)
             
@@ -389,6 +389,11 @@ class BreedingEngine:
                 # 注意：边与事件不应依赖 queue.add 的返回值——同一资产被重复发现时
                 # 仍会走 add_asset=True / queue.add=False，此时边和事件同样要记录，
                 # 否则拓扑缺边、on_asset_discovered 丢失、统计虚高。
+                if self._type_capacity_reached(new_asset.type):
+                    new_asset.state = "excluded"
+                    new_asset.properties["excluded_reason"] = _("Exceeds {type} limit {limit}").format(
+                        type=new_asset.type, limit=self._type_limit(new_asset.type))
+                    continue
                 if self.asset_graph.add_asset(new_asset):
                     self.asset_graph.add_edge(asset, new_asset, "discovered")
                     self.emit_hook("on_asset_discovered", asset=new_asset, source=asset)
@@ -464,6 +469,27 @@ class BreedingEngine:
         if self.state == "running" and not self._stop_requested:
             self.state = "completed"
     
+    def _type_limit(self, asset_type):
+        limits = self.config.get("resource_limits", {})
+        if asset_type == ASSET_TYPE_DOMAIN:
+            return limits.get("max_domains", 1000)
+        elif asset_type == ASSET_TYPE_IP:
+            return limits.get("max_ips", 1000)
+        elif asset_type == ASSET_TYPE_URL:
+            return limits.get("max_urls", 5000)
+        elif asset_type == ASSET_TYPE_PORT:
+            return limits.get("max_ports", 2000)
+        elif asset_type == ASSET_TYPE_JS:
+            return limits.get("max_js", 1000)
+        return None
+
+    def _type_capacity_reached(self, asset_type):
+        limit = self._type_limit(asset_type)
+        if limit is None:
+            return False
+        with self.asset_graph.lock:
+            return self.asset_graph.type_counts.get(asset_type, 0) >= limit
+
     def _check_resource_limits(self, asset):
         asset_type_config = self.config.get("asset_types", {}).get(asset.type, {})
         depth_limit = asset_type_config.get("depth_limit", self.config.get("max_depth", 3))
@@ -471,27 +497,11 @@ class BreedingEngine:
             asset.properties["excluded_reason"] = _("Exceeds depth limit {limit}").format(limit=depth_limit)
             return False
         
-        stats = self.asset_graph.stats()
-        asset_types = stats.get("asset_types", {})
-        
-        if asset.type == ASSET_TYPE_DOMAIN:
-            limit = self.config.get("resource_limits", {}).get("max_domains", 1000)
-            current = asset_types.get(ASSET_TYPE_DOMAIN, 0)
-        elif asset.type == ASSET_TYPE_IP:
-            limit = self.config.get("resource_limits", {}).get("max_ips", 1000)
-            current = asset_types.get(ASSET_TYPE_IP, 0)
-        elif asset.type == ASSET_TYPE_URL:
-            limit = self.config.get("resource_limits", {}).get("max_urls", 5000)
-            current = asset_types.get(ASSET_TYPE_URL, 0)
-        elif asset.type == ASSET_TYPE_PORT:
-            limit = self.config.get("resource_limits", {}).get("max_ports", 2000)
-            current = asset_types.get(ASSET_TYPE_PORT, 0)
-        elif asset.type == ASSET_TYPE_JS:
-            limit = self.config.get("resource_limits", {}).get("max_js", 1000)
-            current = asset_types.get(ASSET_TYPE_JS, 0)
-        else:
+        limit = self._type_limit(asset.type)
+        if limit is None:
             return True
-        
+        with self.asset_graph.lock:
+            current = self.asset_graph.type_counts.get(asset.type, 0)
         if current >= limit:
             asset.properties["excluded_reason"] = _("Exceeds {type} limit {limit}").format(type=asset.type, limit=limit)
             return False
@@ -501,28 +511,30 @@ class BreedingEngine:
         exclusions = self.config.get("exclusions", {})
         
         if asset.type == ASSET_TYPE_DOMAIN:
-            excluded_domains = exclusions.get("domains", [])
+            excluded_domains = exclusions.get("domains") or []
             for excluded in excluded_domains:
                 if asset.value == excluded or asset.value.endswith(f".{excluded}"):
                     return True
         
         elif asset.type == ASSET_TYPE_IP:
-            excluded_ips = exclusions.get("ips", [])
+            excluded_ips = exclusions.get("ips") or []
             for excluded in excluded_ips:
                 if asset.value == excluded:
                     return True
         
         elif asset.type == ASSET_TYPE_URL:
-            excluded_urls = exclusions.get("urls", [])
+            excluded_urls = exclusions.get("urls") or []
             for excluded in excluded_urls:
                 if excluded in asset.value:
                     return True
         
-        excluded_patterns = exclusions.get("patterns", [])
+        excluded_patterns = exclusions.get("patterns") or []
         for pattern in excluded_patterns:
-            import re
-            if re.search(pattern, asset.value):
-                return True
+            try:
+                if re.search(pattern, asset.value):
+                    return True
+            except re.error:
+                logger.warning(_("Invalid exclusion pattern: {pattern}").format(pattern=pattern))
         
         return False
     
@@ -610,7 +622,18 @@ class BreedingEngine:
                     self.asset_graph.edges[(s, t)] = r
             for nd in data.get('queue', []):
                 asset = self._rebuild_asset(nd)
-                if asset.state in ('new', 'failed', 'scanning'):
+                if asset.state not in ('new', 'failed', 'scanning'):
+                    continue
+                # 复用图谱中的同一对象入队，避免队列对象与图谱节点状态分叉
+                with self.asset_graph.lock:
+                    node = self.asset_graph.nodes.get(asset.uid)
+                if node is not None:
+                    node.state = asset.state
+                    for _k, _v in asset.properties.items():
+                        if _k != 'discovery_time':
+                            node.properties[_k] = _v
+                    self.queue.add(node)
+                else:
                     self.queue.add(asset)
             logger.info(_("Checkpoint loaded: {path}, {nodes} nodes, {queue} queued").format(
                 path=path, nodes=len(self.asset_graph.nodes), queue=self.queue.size()))
@@ -1209,7 +1232,6 @@ def run_watch(config, domain_seeds, url_seeds):
     outdir = config.get('output', {}).get('dir', 'output')
     
     prev_uids = None
-    first = True
     global _stop_signaled
     _stop_signaled = False
     logger.info(_("Watch mode started, interval: {interval}s").format(interval=interval))
@@ -1232,8 +1254,6 @@ def run_watch(config, domain_seeds, url_seeds):
         if prev_uids is None:
             prev_uids = cur_uids
             logger.info(_("Baseline established: {count} assets").format(count=len(cur_uids)))
-            if first:
-                first = False
             if interval <= 0:
                 return 0
             time.sleep(interval)
@@ -1335,6 +1355,7 @@ def main():
     parser.add_argument("--plugin-info", metavar="NAME", help=_("Show detailed info about a plugin and exit"))
     parser.add_argument("--web", help=_("Start the web console"), action="store_true")
     parser.add_argument("--port", help=_("Web console port"), type=int, default=8050)
+    parser.add_argument("--host", help=_("Web console bind address (default: 127.0.0.1)"), default="127.0.0.1")
 
     # 已启用插件可通过 register_cli(parser) 向主解析器追加 CLI 参数。
     # 插件未加载(未配置 plugins.dir 或被禁用)时,其参数不会出现在 --help 中。
@@ -1373,6 +1394,9 @@ def main():
         
     if args.depth is not None:
         config["max_depth"] = args.depth
+        for _t, _cfg in config.get("asset_types", {}).items():
+            if isinstance(_cfg, dict):
+                _cfg["depth_limit"] = args.depth
         logger.info(_("Maximum scan depth set: {depth}").format(depth=args.depth))
 
     # Web 控制台模式：启动常驻服务，不执行命令行扫描
@@ -1380,7 +1404,7 @@ def main():
         from webapp import start_web_server
         output_dir = config.get('output', {}).get('dir', 'output') if isinstance(config.get('output'), dict) else 'output'
         try:
-            start_web_server(config, args.config, output_dir, port=args.port)
+            start_web_server(config, args.config, output_dir, port=args.port, host=args.host)
         except KeyboardInterrupt:
             logger.info(_("Web console stopped"))
         return 0
