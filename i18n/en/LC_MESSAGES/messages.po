@@ -1,2151 +1,62 @@
-# English translations for PROJECT.
-# Copyright (C) 2025 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
-#
 msgid ""
-msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-08-14 10:23+0800\n"
-"PO-Revision-Date: 2025-08-14 10:24+0800\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: en <LL@li.org>\n"
-"Language: en\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Generated-By: Babel 2.17.0\n"
+msgstr "Project-Id-Version: PROJECT VERSION\nReport-Msgid-Bugs-To: EMAIL@ADDRESS\nPOT-Creation-Date: 2025-08-14 10:23+0800\nPO-Revision-Date: 2025-08-14 10:24+0800\nLast-Translator: FULL NAME <EMAIL@ADDRESS>\nLanguage-Team: en <LL@li.org>\nLanguage: en\nMIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n != 1);\nGenerated-By: Babel 2.17.0\n"
 
-#: main.py:123
-#, python-brace-format
-msgid "Z-Sans Asset Breeding Engine v{VERSION} initialized"
-msgstr "Z-Sans Asset Breeding Engine v{VERSION} initialized"
-
-#: main.py:131
-msgid "Received stop signal, shutting down gracefully..."
-msgstr "Received stop signal, shutting down gracefully..."
-
-#: main.py:139
-#, python-brace-format
-msgid "Added seed asset: {uid}"
-msgstr "Added seed asset: {uid}"
-
-#: main.py:161
-#, python-brace-format
-msgid "Extracted domain from URL seed: {domain}"
-msgstr "Extracted domain from URL seed: {domain}"
-
-#: main.py:163
-#, python-brace-format
-msgid "Error extracting domain from URL: {error}"
-msgstr "Error extracting domain from URL: {error}"
-
-#: main.py:172
-#, python-brace-format
-msgid "Error recording IP range: {error}"
-msgstr "Error recording IP range: {error}"
-
-#: main.py:175
-#, python-brace-format
-msgid "Current seed domain list: {domains}"
-msgstr "Current seed domain list: {domains}"
-
-#: main.py:177
-msgid ""
-"Seed domain list is empty, this may cause domain relevance judgment errors"
-msgstr ""
-"Seed domain list is empty, this may cause domain relevance judgment errors"
-
-#: main.py:184
-#, python-brace-format
-msgid "Engine is in state {state}, cannot start"
-msgstr "Engine is in state {state}, cannot start"
-
-#: main.py:189
-msgid "Breeding engine started"
-msgstr "Breeding engine started"
-
-#: main.py:197
-msgid "Saving scan results before stopping engine..."
-msgstr "Saving scan results before stopping engine..."
-
-#: main.py:199
-#, python-brace-format
-msgid "Scan results saved: {files}"
-msgstr "Scan results saved: {files}"
-
-#: main.py:201
-#, python-brace-format
-msgid "Error saving scan results: {error}"
-msgstr "Error saving scan results: {error}"
-
-#: main.py:206
-msgid "Breeding engine stopped"
-msgstr "Breeding engine stopped"
-
-#: main.py:211
-msgid "Breeding engine paused"
-msgstr "Breeding engine paused"
-
-#: main.py:218
-msgid "Breeding engine resumed"
-msgstr "Breeding engine resumed"
-
-#: main.py:227
-msgid "Breeding queue is empty, breeding cycle completed"
-msgstr "Breeding queue is empty, breeding cycle completed"
-
-#: main.py:237
-#, python-brace-format
-msgid "Asset {uid} exceeds max depth {depth}, skipping"
-msgstr "Asset {uid} exceeds max depth {depth}, skipping"
-
-#: main.py:243
-#, python-brace-format
-msgid "Asset {uid} exceeds resource limits, skipping"
-msgstr "Asset {uid} exceeds resource limits, skipping"
-
-#: main.py:248
-#, python-brace-format
-msgid "Asset {uid} matches exclusion rules, skipping"
-msgstr "Asset {uid} matches exclusion rules, skipping"
-
-#: main.py:254
-#, python-brace-format
-msgid "No suitable breeder found for asset type {type}, skipping"
-msgstr "No suitable breeder found for asset type {type}, skipping"
-
-#: main.py:259
-#, python-brace-format
-msgid "Start processing asset: {uid}"
-msgstr "Start processing asset: {uid}"
-
-#: main.py:269
-#, python-brace-format
-msgid "Maintaining asset {uid} elimination status"
-msgstr "Maintaining asset {uid} elimination status"
-
-#: main.py:276
-#, python-brace-format
-msgid "Asset {uid} processed, found {count} new assets"
-msgstr "Asset {uid} processed, found {count} new assets"
-
-#: main.py:280
-#, python-brace-format
-msgid "Error processing asset {uid}: {error}"
-msgstr "Error processing asset {uid}: {error}"
-
-#: main.py:353
-msgid "Breeding engine completed all tasks, generating output..."
-msgstr "Breeding engine completed all tasks, generating output..."
-
-#: main.py:355
-#, python-brace-format
-msgid "Output generated: {files}"
-msgstr "Output generated: {files}"
-
-#: main.py:359
-msgid "Received user interrupt, stopping..."
-msgstr "Received user interrupt, stopping..."
-
-#: main.py:364
-#, python-brace-format
-msgid "Error running breeding engine: {error}"
-msgstr "Error running breeding engine: {error}"
-
-#: main.py:377
-#, python-brace-format
-msgid "Config file {path} does not exist, using default configuration"
-msgstr "Config file {path} does not exist, using default configuration"
-
-#: main.py:391
-#, python-brace-format
-msgid "Loaded config file: {path}"
-msgstr "Loaded config file: {path}"
-
-#: main.py:395
-#, python-brace-format
-msgid "Failed to load config file {path}: {error}"
-msgstr "Failed to load config file {path}: {error}"
-
-#: main.py:403
-#, python-brace-format
-msgid "Config file {path} already exists, skipping creation"
-msgstr "Config file {path} already exists, skipping creation"
-
-#: main.py:410
-#, python-brace-format
-msgid "Created default config file: {path}"
-msgstr "Created default config file: {path}"
-
-#: main.py:414
-#, python-brace-format
-msgid "Failed to create default config file: {error}"
-msgstr "Failed to create default config file: {error}"
-
-#: main.py:446
-#, python-brace-format
-msgid "Z-Sans Asset Breeding Engine v{VERSION} Help Information"
-msgstr "Z-Sans Asset Breeding Engine v{VERSION} Help Information"
-
-#: main.py:447
-msgid "Configuration file path"
-msgstr "Configuration file path"
-
-#: main.py:448
-msgid "Add domain seed"
-msgstr "Add domain seed"
-
-#: main.py:449
-msgid "Add IP seed"
-msgstr "Add IP seed"
-
-#: main.py:450
-msgid "Add URL seed"
-msgstr "Add URL seed"
-
-#: main.py:451
-msgid "Output directory"
-msgstr "Output directory"
-
-#: main.py:452
-msgid "Verbose output"
-msgstr "Verbose output"
-
-#: main.py:453
-msgid "Create default configuration file"
-msgstr "Create default configuration file"
-
-#: main.py:454
-msgid "Show version information"
-msgstr "Show version information"
-
-#: main.py:455
-msgid "Set maximum scan depth"
-msgstr "Set maximum scan depth"
-
-#: main.py:460
-#, python-brace-format
-msgid "Z-Sans Asset Breeding Engine v{VERSION}"
-msgstr "Z-Sans Asset Breeding Engine v{VERSION}"
-
-#: main.py:477
-#, python-brace-format
-msgid "Maximum scan depth set: {depth}"
-msgstr "Maximum scan depth set: {depth}"
-
-#: main.py:499
-msgid "No seed assets provided, unable to start breeding engine"
-msgstr "No seed assets provided, unable to start breeding engine"
-
-#: core/output.py:49
-#, python-brace-format
-msgid "Unsupported output format: {format}"
-msgstr "Unsupported output format: {format}"
-
-#: core/output.py:51
-#, python-brace-format
-msgid "Failed to export {format} format: {error}"
-msgstr "Failed to export {format} format: {error}"
-
-#: core/output.py:61
-#, python-brace-format
-msgid "Exported JSON asset graph: {filename}"
-msgstr "Exported JSON asset graph: {filename}"
-
-#: core/output.py:71
-msgid "ID"
-msgstr "ID"
-
-#: core/output.py:72
-msgid "Type"
-msgstr "Type"
-
-#: core/output.py:73
-msgid "Value"
-msgstr "Value"
-
-#: core/output.py:74
-msgid "Depth"
-msgstr "Depth"
-
-#: core/output.py:75
-msgid "Discovery Time"
-msgstr "Discovery Time"
-
-#: core/output.py:76
-msgid "State"
-msgstr "State"
-
-#: core/output.py:77
-msgid "Title/Note"
-msgstr "Title/Note"
-
-#: core/output.py:78
-msgid "Fingerprints"
-msgstr "Fingerprints"
-
-#: core/output.py:79
-msgid "CMS"
-msgstr "CMS"
-
-#: core/output.py:80
-msgid "Server"
-msgstr "Server"
-
-#: core/output.py:107 core/output.py:328
-msgid "Unknown Service"
-msgstr "Unknown Service"
-
-#: core/output.py:125
-msgid "Source Asset ID"
-msgstr "Source Asset ID"
-
-#: core/output.py:126
-msgid "Target Asset ID"
-msgstr "Target Asset ID"
-
-#: core/output.py:127
-msgid "Relation Type"
-msgstr "Relation Type"
-
-#: core/output.py:135
-#, python-brace-format
-msgid "Exported CSV asset list: {assets_file}, {relations_file}"
-msgstr "Exported CSV asset list: {assets_file}, {relations_file}"
-
-#: core/output.py:196
-#, python-brace-format
-msgid "Exported GraphML asset graph: {filename}"
-msgstr "Exported GraphML asset graph: {filename}"
-
-#: core/output.py:298
-#, python-brace-format
-msgid "Processing HTML report, total assets: {count}"
-msgstr "Processing HTML report, total assets: {count}"
-
-#: core/output.py:301
-#, python-brace-format
-msgid "Processing asset: {uid}, state: {state}"
-msgstr "Processing asset: {uid}, state: {state}"
-
-#: core/output.py:304
-#, python-brace-format
-msgid "Added to eliminated assets: {uid}"
-msgstr "Added to eliminated assets: {uid}"
-
-#: core/output.py:308
-#, python-brace-format
-msgid "Collected eliminated assets: {count}"
-msgstr "Collected eliminated assets: {count}"
-
-#: core/output.py:381
-#, python-brace-format
-msgid "Preparing to display eliminated assets, count: {count}"
-msgstr "Preparing to display eliminated assets, count: {count}"
-
-#: core/output.py:396
-#, python-brace-format
-msgid "Got elimination reason from eliminated_reason: {reason}"
-msgstr "Got elimination reason from eliminated_reason: {reason}"
-
-#: core/output.py:398
-#, python-brace-format
-msgid "HTTP status code: {code}"
-msgstr "HTTP status code: {code}"
-
-#: core/output.py:407
-msgid "Inaccessible URL"
-msgstr "Inaccessible URL"
-
-#: core/output.py:409
-msgid "Closed port"
-msgstr "Closed port"
-
-#: core/output.py:411
-msgid "Unresolvable domain"
-msgstr "Unresolvable domain"
-
-#: core/output.py:413
-msgid "Unreachable IP"
-msgstr "Unreachable IP"
-
-#: core/output.py:415
-#, python-brace-format
-msgid ""
-"Adding eliminated asset to HTML report: {type} - {value} - {state} - "
-"{reason}"
-msgstr ""
-"Adding eliminated asset to HTML report: {type} - {value} - {state} - "
-"{reason}"
-
-#: core/output.py:483
-#, python-brace-format
-msgid "Generated HTML report: {filename}"
-msgstr "Generated HTML report: {filename}"
-
-#: core/breeders/breeders.py:35
-msgid "Subclasses must implement this method"
-msgstr "Subclasses must implement this method"
-
-#: core/breeders/breeders.py:45
-#, python-brace-format
-msgid "Skipping system path: {path}"
-msgstr "Skipping system path: {path}"
-
-#: core/breeders/breeders.py:55
-#, python-brace-format
-msgid "Failed to process relative path: {path}, error: {error}"
-msgstr "Failed to process relative path: {path}, error: {error}"
-
-#: core/breeders/breeders.py:67
-msgid ""
-"Engine instance does not exist, defaulting to False to avoid adding "
-"unrelated domains"
-msgstr ""
-"Engine instance does not exist, defaulting to False to avoid adding "
-"unrelated domains"
-
-#: core/breeders/breeders.py:71
-msgid "Seed domains list attribute not found in engine, defaulting to False"
-msgstr "Seed domains list attribute not found in engine, defaulting to False"
-
-#: core/breeders/breeders.py:75
-msgid "Seed domains list is empty, defaulting to False"
-msgstr "Seed domains list is empty, defaulting to False"
-
-#: core/breeders/breeders.py:79
-#, python-brace-format
-msgid "Invalid domain format: {domain}"
-msgstr "Invalid domain format: {domain}"
-
-#: core/breeders/breeders.py:83
-#, python-brace-format
-msgid "Domain contains invalid characters: {domain}"
-msgstr "Domain contains invalid characters: {domain}"
-
-#: core/breeders/breeders.py:87
-#, python-brace-format
-msgid "Domain {domain} is a seed domain"
-msgstr "Domain {domain} is a seed domain"
-
-#: core/breeders/breeders.py:96
-#, python-brace-format
-msgid "Domain {domain} is a subdomain of seed domain {seed}"
-msgstr "Domain {domain} is a subdomain of seed domain {seed}"
-
-#: core/breeders/breeders.py:99
-#, python-brace-format
-msgid "Domain {domain} ends with .{seed} but is not a direct subdomain"
-msgstr "Domain {domain} ends with .{seed} but is not a direct subdomain"
-
-#: core/breeders/breeders.py:108
-#, python-brace-format
-msgid "Domain {domain} contains all parts of seed domain {seed}"
-msgstr "Domain {domain} contains all parts of seed domain {seed}"
-
-#: core/breeders/breeders.py:111
-#, python-brace-format
-msgid "Domain {domain} is not related to any seed domain"
-msgstr "Domain {domain} is not related to any seed domain"
-
-#: core/breeders/breeders.py:135
-#, python-brace-format
-msgid "IP range check error: {error}"
-msgstr "IP range check error: {error}"
-
-#: core/breeders/breeders.py:142
-#, python-brace-format
-msgid "Domain breeder received non-domain asset: {uid}"
-msgstr "Domain breeder received non-domain asset: {uid}"
-
-#: core/breeders/breeders.py:154
-#, python-brace-format
-msgid "Subdomain relevance check: {subdomain}, related: {related}"
-msgstr "Subdomain relevance check: {subdomain}, related: {related}"
-
-#: core/breeders/breeders.py:156 core/breeders/breeders.py:534
-#: core/breeders/breeders.py:948
-#, python-brace-format
-msgid "Skipping non-seed-related subdomain: {subdomain}"
-msgstr "Skipping non-seed-related subdomain: {subdomain}"
-
-#: core/breeders/breeders.py:239
-#, python-brace-format
-msgid "Skipping wildcard subdomain: {subdomain}"
-msgstr "Skipping wildcard subdomain: {subdomain}"
-
-#: core/breeders/breeders.py:159 core/breeders/breeders.py:540
-#, python-brace-format
-msgid "Adding seed-related subdomain: {subdomain}"
-msgstr "Adding seed-related subdomain: {subdomain}"
-
-#: core/breeders/breeders.py:161
-#, python-brace-format
-msgid "Domain scope restriction disabled, adding all subdomains: {subdomain}"
-msgstr "Domain scope restriction disabled, adding all subdomains: {subdomain}"
-
-#: core/breeders/breeders.py:170 core/breeders/breeders.py:302
-#, python-brace-format
-msgid "Skipping IP outside seed range: {ip}"
-msgstr "Skipping IP outside seed range: {ip}"
-
-#: core/breeders/breeders.py:180
-#, python-brace-format
-msgid "Skipping non-seed-related certificate domain: {domain}"
-msgstr "Skipping non-seed-related certificate domain: {domain}"
-
-#: core/breeders/breeders.py:200
-#, python-brace-format
-msgid "Using subfinder tool to discover subdomains: {domain}"
-msgstr "Using subfinder tool to discover subdomains: {domain}"
-
-#: core/breeders/breeders.py:203
-#, python-brace-format
-msgid "Subfinder found {count} subdomains"
-msgstr "Subfinder found {count} subdomains"
-
-#: core/breeders/breeders.py:206
-msgid "Subfinder found no subdomains"
-msgstr "Subfinder found no subdomains"
-
-#: core/breeders/breeders.py:209
-#, python-brace-format
-msgid "Using free-subfinder tool to discover subdomains: {domain}"
-msgstr "Using free-subfinder tool to discover subdomains: {domain}"
-
-#: core/breeders/breeders.py:212
-#, python-brace-format
-msgid "Free-subfinder found {count} subdomains"
-msgstr "Free-subfinder found {count} subdomains"
-
-#: core/breeders/breeders.py:215
-msgid "Free-subfinder found no subdomains"
-msgstr "Free-subfinder found no subdomains"
-
-#: core/breeders/breeders.py:221
-#, python-brace-format
-msgid "Querying crt.sh for subdomains: {domain}"
-msgstr "Querying crt.sh for subdomains: {domain}"
-
-#: core/breeders/breeders.py:224
-#, python-brace-format
-msgid "crt.sh found {count} subdomains"
-msgstr "crt.sh found {count} subdomains"
-
-#: core/breeders/breeders.py:227
-msgid "crt.sh query disabled"
-msgstr "crt.sh query disabled"
-
-#: core/breeders/breeders.py:230
-#, python-brace-format
-msgid "Subdomain discovery failed: {error}"
-msgstr "Subdomain discovery failed: {error}"
-
-#: core/breeders/breeders.py:249
-#, python-brace-format
-msgid "crt.sh query failed: {error}"
-msgstr "crt.sh query failed: {error}"
-
-#: core/breeders/breeders.py:262
-#, python-brace-format
-msgid "Domain resolution failed: {error}"
-msgstr "Domain resolution failed: {error}"
-
-#: core/breeders/breeders.py:286
-#, python-brace-format
-msgid "Certificate check failed: {error}"
-msgstr "Certificate check failed: {error}"
-
-#: core/breeders/breeders.py:294
-#, python-brace-format
-msgid "IP breeder received non-IP asset: {uid}"
-msgstr "IP breeder received non-IP asset: {uid}"
-
-#: core/breeders/breeders.py:320
-#, python-brace-format
-msgid "Reverse DNS for IP {ip} found {count} domains"
-msgstr "Reverse DNS for IP {ip} found {count} domains"
-
-#: core/breeders/breeders.py:322
-msgid "Reverse DNS query disabled"
-msgstr "Reverse DNS query disabled"
-
-#: core/breeders/breeders.py:327
-#, python-brace-format
-msgid "Reverse DNS domain relevance check: {domain}, related: {related}"
-msgstr "Reverse DNS domain relevance check: {domain}, related: {related}"
-
-#: core/breeders/breeders.py:329
-#, python-brace-format
-msgid "Skipping non-seed-related domain: {domain} from IP {ip}"
-msgstr "Skipping non-seed-related domain: {domain} from IP {ip}"
-
-#: core/breeders/breeders.py:332
-#, python-brace-format
-msgid "Adding seed-related domain: {domain} from IP {ip}"
-msgstr "Adding seed-related domain: {domain} from IP {ip}"
-
-#: core/breeders/breeders.py:334
-#, python-brace-format
-msgid "Domain scope restriction disabled, adding all domains: {domain}"
-msgstr "Domain scope restriction disabled, adding all domains: {domain}"
-
-#: core/breeders/breeders.py:362
-#, python-brace-format
-msgid "Port {port} scan failed: {error}"
-msgstr "Port {port} scan failed: {error}"
-
-#: core/breeders/breeders.py:376
-#, python-brace-format
-msgid "Port not open: {result}"
-msgstr "Port not open: {result}"
-
-#: core/breeders/breeders.py:386
-#, python-brace-format
-msgid "Asset marked as eliminated: {ip}:{port}, reason: {reason}"
-msgstr "Asset marked as eliminated: {ip}:{port}, reason: {reason}"
-
-#: core/breeders/breeders.py:421
-#, python-brace-format
-msgid "Starting reverse DNS for IP: {ip}"
-msgstr "Starting reverse DNS for IP: {ip}"
-
-#: core/breeders/breeders.py:425
-#, python-brace-format
-msgid "Reverse DNS successful: IP {ip} resolved to {hostname}"
-msgstr "Reverse DNS successful: IP {ip} resolved to {hostname}"
-
-#: core/breeders/breeders.py:428
-#, python-brace-format
-msgid "Reverse DNS failed: IP {ip}, error: {error}"
-msgstr "Reverse DNS failed: IP {ip}, error: {error}"
-
-#: core/breeders/breeders.py:439
-#, python-brace-format
-msgid "URL breeder received non-URL asset: {uid}"
-msgstr "URL breeder received non-URL asset: {uid}"
-
-#: core/breeders/breeders.py:443
-#, python-brace-format
-msgid "URL asset already processed, skipping: {uid}, state: {state}"
-msgstr "URL asset already processed, skipping: {uid}, state: {state}"
-
-#: core/breeders/breeders.py:457
-#, python-brace-format
-msgid "Using JSFinder tool for URL: {url}"
-msgstr "Using JSFinder tool for URL: {url}"
-
-#: core/breeders/breeders.py:470 core/breeders/breeders.py:879
-#, python-brace-format
-msgid "Skipping invalid URL: {url}"
-msgstr "Skipping invalid URL: {url}"
-
-#: core/breeders/breeders.py:478 core/breeders/breeders.py:887
-#: core/breeders/breeders.py:1050
-#, python-brace-format
-msgid "Skipping URL without domain: {url}"
-msgstr "Skipping URL without domain: {url}"
-
-#: core/breeders/breeders.py:482 core/breeders/breeders.py:891
-#: core/breeders/breeders.py:989
-#, python-brace-format
-msgid "Skipping non-HTTP URL: {url}"
-msgstr "Skipping non-HTTP URL: {url}"
-
-#: core/breeders/breeders.py:485 core/breeders/breeders.py:894
-#, python-brace-format
-msgid "URL parsing failed: {url}, error: {error}"
-msgstr "URL parsing failed: {url}, error: {error}"
-
-#: core/breeders/breeders.py:492 core/breeders/breeders.py:909
-#, python-brace-format
-msgid "Skipping non-seed-related domain: {domain}, URL: {url}"
-msgstr "Skipping non-seed-related domain: {domain}, URL: {url}"
-
-#: core/breeders/breeders.py:495 core/breeders/breeders.py:499
-#, python-brace-format
-msgid "Adding seed-related URL: {url}"
-msgstr "Adding seed-related URL: {url}"
-
-#: core/breeders/breeders.py:502
-#, python-brace-format
-msgid "Adding non-seed-related URL (restriction disabled): {url}"
-msgstr "Adding non-seed-related URL (restriction disabled): {url}"
-
-#: core/breeders/breeders.py:514 core/breeders/breeders.py:922
-#, python-brace-format
-msgid ""
-"JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
-msgstr ""
-"JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
-
-#: core/breeders/breeders.py:516
-#, python-brace-format
-msgid "JSFinder extracted {total} URLs from {url}, no domain restriction"
-msgstr "JSFinder extracted {total} URLs from {url}, no domain restriction"
-
-#: core/breeders/breeders.py:518
-#, python-brace-format
-msgid "JSFinder extracted {count} URLs from {url}"
-msgstr "JSFinder extracted {count} URLs from {url}"
-
-#: core/breeders/breeders.py:522
-#, python-brace-format
-msgid "Skipping invalid subdomain format: {subdomain}"
-msgstr "Skipping invalid subdomain format: {subdomain}"
-
-#: core/breeders/breeders.py:526
-#, python-brace-format
-msgid "Skipping non-domain string: {subdomain}"
-msgstr "Skipping non-domain string: {subdomain}"
-
-#: core/breeders/breeders.py:530
-#, python-brace-format
-msgid "Skipping invalid domain format: {subdomain}"
-msgstr "Skipping invalid domain format: {subdomain}"
-
-#: core/breeders/breeders.py:562
-#, python-brace-format
-msgid "Skipping non-seed-related redirect domain: {domain}"
-msgstr "Skipping non-seed-related redirect domain: {domain}"
-
-#: core/breeders/breeders.py:567 core/breeders/breeders.py:575
-msgid "Unable to fetch content"
-msgstr "Unable to fetch content"
-
-#: core/breeders/breeders.py:576
-#, python-brace-format
-msgid "Updated asset graph state to eliminated: {uid}, state: {state}"
-msgstr "Updated asset graph state to eliminated: {uid}, state: {state}"
-
-#: core/breeders/breeders.py:578 core/breeders/breeders.py:776
-#, python-brace-format
-msgid "Asset not found in graph: {uid}"
-msgstr "Asset not found in graph: {uid}"
-
-#: core/breeders/breeders.py:580
-#, python-brace-format
-msgid "Unable to access asset graph, cannot update state: {url}"
-msgstr "Unable to access asset graph, cannot update state: {url}"
-
-#: core/breeders/breeders.py:582
-#, python-brace-format
-msgid ""
-"URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
-msgstr ""
-"URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
-
-#: core/breeders/breeders.py:601
-#, python-brace-format
-msgid "URL link domain relevance: {domain}, related: {related}"
-msgstr "URL link domain relevance: {domain}, related: {related}"
-
-#: core/breeders/breeders.py:603
-#, python-brace-format
-msgid "Skipping non-seed-related link: {link}, domain: {domain}"
-msgstr "Skipping non-seed-related link: {link}, domain: {domain}"
-
-#: core/breeders/breeders.py:606
-#, python-brace-format
-msgid "Adding seed-related link: {link}, domain: {domain}"
-msgstr "Adding seed-related link: {link}, domain: {domain}"
-
-#: core/breeders/breeders.py:609
-#, python-brace-format
-msgid "Link has no domain part, possibly relative: {link}"
-msgstr "Link has no domain part, possibly relative: {link}"
-
-#: core/breeders/breeders.py:611
-#, python-brace-format
-msgid ""
-"Domain scope restriction disabled, adding all links: {link}, domain: "
-"{domain}"
-msgstr ""
-"Domain scope restriction disabled, adding all links: {link}, domain: "
-"{domain}"
-
-#: core/breeders/breeders.py:621
-#, python-brace-format
-msgid "Skipping non-seed-related domain asset: {domain}"
-msgstr "Skipping non-seed-related domain asset: {domain}"
-
-#: core/breeders/breeders.py:631
-#, python-brace-format
-msgid "Processing URL: {url}"
-msgstr "Processing URL: {url}"
-
-#: core/breeders/breeders.py:637
-#, python-brace-format
-msgid "URL asset exists in graph: {uid}, state: {state}"
-msgstr "URL asset exists in graph: {uid}, state: {state}"
-
-#: core/breeders/breeders.py:639
-#, python-brace-format
-msgid "URL asset not found in graph: {uid}"
-msgstr "URL asset not found in graph: {uid}"
-
-#: core/breeders/breeders.py:641
-#, python-brace-format
-msgid "Sending HTTP request: {url}"
-msgstr "Sending HTTP request: {url}"
-
-#: core/breeders/breeders.py:649
-#, python-brace-format
-msgid "HTTP request completed: {url}, status: {status}"
-msgstr "HTTP request completed: {url}, status: {status}"
-
-#: core/breeders/breeders.py:655
-#, python-brace-format
-msgid "Handling redirect: {from_} -> {to}"
-msgstr "Handling redirect: {from_} -> {to}"
-
-#: core/breeders/breeders.py:659
-#, python-brace-format
-msgid "URL request successful: {url}, status: 200"
-msgstr "URL request successful: {url}, status: 200"
-
-#: core/breeders/breeders.py:670
-#, python-brace-format
-msgid "Invalid URL format for fingerprinting: {url}"
-msgstr "Invalid URL format for fingerprinting: {url}"
-
-#: core/breeders/breeders.py:672
-#, python-brace-format
-msgid "Starting fingerprinting, original URL: {url}, cleaned URL: {cleaned}"
-msgstr "Starting fingerprinting, original URL: {url}, cleaned URL: {cleaned}"
-
-#: core/breeders/breeders.py:685
-#, python-brace-format
-msgid "Title extracted from EHole: {url}, title: {title}"
-msgstr "Title extracted from EHole: {url}, title: {title}"
-
-#: core/breeders/breeders.py:686
-#, python-brace-format
-msgid "URL fingerprint extracted: {url}, fingerprints: {fingerprints}"
-msgstr "URL fingerprint extracted: {url}, fingerprints: {fingerprints}"
-
-#: core/breeders/breeders.py:688
-#, python-brace-format
-msgid "Fingerprinting returned no results: {url}"
-msgstr "Fingerprinting returned no results: {url}"
-
-#: core/breeders/breeders.py:690
-#, python-brace-format
-msgid "Fingerprinting failed: {url}, {error}"
-msgstr "Fingerprinting failed: {url}, {error}"
-
-#: core/breeders/breeders.py:699
-#, python-brace-format
-msgid "Title already extracted from EHole, skipping BeautifulSoup: {url}"
-msgstr "Title already extracted from EHole, skipping BeautifulSoup: {url}"
-
-#: core/breeders/breeders.py:704 core/breeders/breeders.py:709
-msgid "No title"
-msgstr "No title"
-
-#: core/breeders/breeders.py:718
-#, python-brace-format
-msgid "Title extracted from BeautifulSoup: {url}, title: {title}"
-msgstr "Title extracted from BeautifulSoup: {url}, title: {title}"
-
-#: core/breeders/breeders.py:720
-#, python-brace-format
-msgid "Title extraction failed: {url}, {error}"
-msgstr "Title extraction failed: {url}, {error}"
-
-#: core/breeders/breeders.py:722
-#, python-brace-format
-msgid "Title extraction disabled for URL: {url}"
-msgstr "Title extraction disabled for URL: {url}"
-
-#: core/breeders/breeders.py:726
-#, python-brace-format
-msgid "URL request returned non-200 status: {url}, status: {status}"
-msgstr "URL request returned non-200 status: {url}, status: {status}"
-
-#: core/breeders/breeders.py:727 core/breeders/breeders.py:1005
-#, python-brace-format
-msgid "HTTP status code: {status}"
-msgstr "HTTP status code: {status}"
-
-#: core/breeders/breeders.py:735
-#, python-brace-format
-msgid ""
-"URL asset marked as eliminated: {url}, status: {status}, state: {state}"
-msgstr ""
-"URL asset marked as eliminated: {url}, status: {status}, state: {state}"
-
-#: core/breeders/breeders.py:737 core/breeders/breeders.py:774
-#, python-brace-format
-msgid "Rechecking asset state: {uid}, state: {state}"
-msgstr "Rechecking asset state: {uid}, state: {state}"
-
-#: core/breeders/breeders.py:739
-#, python-brace-format
-msgid "Asset not found in graph, cannot set state: {uid}"
-msgstr "Asset not found in graph, cannot set state: {uid}"
-
-#: core/breeders/breeders.py:741
-#, python-brace-format
-msgid "Unable to access asset graph, cannot set state: {url}"
-msgstr "Unable to access asset graph, cannot set state: {url}"
-
-#: core/breeders/breeders.py:743
-#, python-brace-format
-msgid "URL content fetch failed: {url}, {error}"
-msgstr "URL content fetch failed: {url}, {error}"
-
-#: core/breeders/breeders.py:744 core/breeders/breeders.py:1008
-#, python-brace-format
-msgid "Access failed: {error}"
-msgstr "Access failed: {error}"
-
-#: core/breeders/breeders.py:748
-#, python-brace-format
-msgid "Redirect detected: {from_} -> {to}"
-msgstr "Redirect detected: {from_} -> {to}"
-
-#: core/breeders/breeders.py:753
-#, python-brace-format
-msgid "Marking asset as eliminated: {url}, reason: {reason}"
-msgstr "Marking asset as eliminated: {url}, reason: {reason}"
-
-#: core/breeders/breeders.py:756
-#, python-brace-format
-msgid "Checking if asset exists in graph: {uid}"
-msgstr "Checking if asset exists in graph: {uid}"
-
-#: core/breeders/breeders.py:759
-#, python-brace-format
-msgid "Found asset: {uid}, current state: {state}"
-msgstr "Found asset: {uid}, current state: {state}"
-
-#: core/breeders/breeders.py:762
-#, python-brace-format
-msgid "Asset state updated to eliminated: {uid}, new state: {state}"
-msgstr "Asset state updated to eliminated: {uid}, new state: {state}"
-
-#: core/breeders/breeders.py:764
-msgid "HTTP status code:"
-msgstr "HTTP status code:"
-
-#: core/breeders/breeders.py:768
-#, python-brace-format
-msgid "Status code set for asset: {uid}, code: {code}"
-msgstr "Status code set for asset: {uid}, code: {code}"
-
-#: core/breeders/breeders.py:770
-#, python-brace-format
-msgid "Unable to extract status code from reason: {reason}"
-msgstr "Unable to extract status code from reason: {reason}"
-
-#: core/breeders/breeders.py:772
-#, python-brace-format
-msgid "Asset marked as eliminated: {url}, reason: {reason}, state: {state}"
-msgstr "Asset marked as eliminated: {url}, reason: {reason}, state: {state}"
-
-#: core/breeders/breeders.py:778
-#, python-brace-format
-msgid "Unable to access asset graph, cannot mark asset: {url}"
-msgstr "Unable to access asset graph, cannot mark asset: {url}"
-
-#: core/breeders/breeders.py:781
-#, python-brace-format
-msgid "Updating current asset state: {url}"
-msgstr "Updating current asset state: {url}"
-
-#: core/breeders/breeders.py:784
-#, python-brace-format
-msgid "Current asset state updated to eliminated: {url}, state: {state}"
-msgstr "Current asset state updated to eliminated: {url}, state: {state}"
-
-#: core/breeders/breeders.py:786
-#, python-brace-format
-msgid "No current URL asset being processed: {url}"
-msgstr "No current URL asset being processed: {url}"
-
-#: core/breeders/breeders.py:799
-#, python-brace-format
-msgid "JS file extracted from HTML: {url}"
-msgstr "JS file extracted from HTML: {url}"
-
-#: core/breeders/breeders.py:801
-#, python-brace-format
-msgid "JS extraction failed: {error}"
-msgstr "JS extraction failed: {error}"
-
-#: core/breeders/breeders.py:816
-#, python-brace-format
-msgid "Link extraction failed: {error}"
-msgstr "Link extraction failed: {error}"
-
-#: core/breeders/breeders.py:848
-#, python-brace-format
-msgid "JS breeder received non-JS asset: {uid}"
-msgstr "JS breeder received non-JS asset: {uid}"
-
-#: core/breeders/breeders.py:853
-msgid "Seed domains list is empty, all domains will be considered unrelated"
-msgstr "Seed domains list is empty, all domains will be considered unrelated"
-
-#: core/breeders/breeders.py:855 core/breeders/breeders.py:995
-#: core/breeders/breeders.py:1031
-#, python-brace-format
-msgid "Current seed domains: {domains}"
-msgstr "Current seed domains: {domains}"
-
-#: core/breeders/breeders.py:857
-msgid ""
-"Seed domains list attribute not found in engine, all domains will be "
-"considered unrelated"
-msgstr ""
-"Seed domains list attribute not found in engine, all domains will be "
-"considered unrelated"
-
-#: core/breeders/breeders.py:866
-#, python-brace-format
-msgid "Using JSFinder tool for JS: {url}"
-msgstr "Using JSFinder tool for JS: {url}"
-
-#: core/breeders/breeders.py:901 core/breeders/breeders.py:1066
-#, python-brace-format
-msgid "Domain {domain} is seed-related"
-msgstr "Domain {domain} is seed-related"
-
-#: core/breeders/breeders.py:906 core/breeders/breeders.py:984
-#, python-brace-format
-msgid "Adding seed-related URL asset: {url}"
-msgstr "Adding seed-related URL asset: {url}"
-
-#: core/breeders/breeders.py:916
-#, python-brace-format
-msgid "Domain {domain} is seed-related, adding URL asset: {url}"
-msgstr "Domain {domain} is seed-related, adding URL asset: {url}"
-
-#: core/breeders/breeders.py:918
-#, python-brace-format
-msgid ""
-"Domain {domain} not seed-related but added due to no restriction: {url}"
-msgstr ""
-"Domain {domain} not seed-related but added due to no restriction: {url}"
-
-#: core/breeders/breeders.py:924
-#, python-brace-format
-msgid "JSFinder extracted {total} URLs from {url}, {related} seed-related"
-msgstr "JSFinder extracted {total} URLs from {url}, {related} seed-related"
-
-#: core/breeders/breeders.py:931 core/tools/tools.py:268
-#, python-brace-format
-msgid "Skipping invalid subdomain: {subdomain}"
-msgstr "Skipping invalid subdomain: {subdomain}"
-
-#: core/breeders/breeders.py:935
-#, python-brace-format
-msgid "Skipping subdomain with invalid characters: {subdomain}"
-msgstr "Skipping subdomain with invalid characters: {subdomain}"
-
-#: core/breeders/breeders.py:939
-#, python-brace-format
-msgid "Skipping malformed subdomain: {subdomain}"
-msgstr "Skipping malformed subdomain: {subdomain}"
-
-#: core/breeders/breeders.py:951 core/breeders/breeders.py:955
-#, python-brace-format
-msgid "Subdomain {subdomain} is seed-related, adding as domain asset"
-msgstr "Subdomain {subdomain} is seed-related, adding as domain asset"
-
-#: core/breeders/breeders.py:958
-#, python-brace-format
-msgid "Subdomain {subdomain} not seed-related but added due to no restriction"
-msgstr ""
-"Subdomain {subdomain} not seed-related but added due to no restriction"
-
-#: core/breeders/breeders.py:965
-#, python-brace-format
-msgid ""
-"JSFinder extracted {related} seed-related subdomains from {url}, total: "
-"{total}"
-msgstr ""
-"JSFinder extracted {related} seed-related subdomains from {url}, total: "
-"{total}"
-
-#: core/breeders/breeders.py:967
-#, python-brace-format
-msgid ""
-"JSFinder extracted {count} subdomains from {url}, {related} seed-related"
-msgstr ""
-"JSFinder extracted {count} subdomains from {url}, {related} seed-related"
-
-#: core/breeders/breeders.py:974 core/breeders/breeders.py:1078
-#, python-brace-format
-msgid "Extracted {count} URLs from JS content (filtered)"
-msgstr "Extracted {count} URLs from JS content (filtered)"
-
-#: core/breeders/breeders.py:986
-#, python-brace-format
-msgid "URL processing failed: {url}, error: {error}"
-msgstr "URL processing failed: {url}, error: {error}"
-
-#: core/breeders/breeders.py:992
-#, python-brace-format
-msgid "JS asset {url} processed, found {count} new assets"
-msgstr "JS asset {url} processed, found {count} new assets"
-
-#: core/breeders/breeders.py:1007
-#, python-brace-format
-msgid "JS content fetch failed: {url}, {error}"
-msgstr "JS content fetch failed: {url}, {error}"
-
-#: core/breeders/breeders.py:1018
-#, python-brace-format
-msgid "Asset marked as eliminated: {url}, reason: {reason}"
-msgstr "Asset marked as eliminated: {url}, reason: {reason}"
-
-#: core/breeders/breeders.py:1033
-msgid "Seed domains list not found, domain relevance may be inaccurate"
-msgstr "Seed domains list not found, domain relevance may be inaccurate"
-
-#: core/breeders/breeders.py:1038
-#, python-brace-format
-msgid "Skipping possible JavaScript code URL: {url}"
-msgstr "Skipping possible JavaScript code URL: {url}"
-
-#: core/breeders/breeders.py:1042
-#, python-brace-format
-msgid "Preliminary extraction: {initial} URLs, cleaned: {cleaned} valid URLs"
-msgstr "Preliminary extraction: {initial} URLs, cleaned: {cleaned} valid URLs"
-
-#: core/breeders/breeders.py:1057
-#, python-brace-format
-msgid "Domain {domain} is seed-related, adding URL asset"
-msgstr "Domain {domain} is seed-related, adding URL asset"
-
-#: core/breeders/breeders.py:1061
-#, python-brace-format
-msgid "Domain {domain} not seed-related, skipping URL: {url}"
-msgstr "Domain {domain} not seed-related, skipping URL: {url}"
-
-#: core/breeders/breeders.py:1068
-#, python-brace-format
-msgid "Domain {domain} not seed-related but added due to no restriction"
-msgstr "Domain {domain} not seed-related but added due to no restriction"
-
-#: core/breeders/breeders.py:1070
-#, python-brace-format
-msgid "Pre-filtering: URL processing failed: {url}, error: {error}"
-msgstr "Pre-filtering: URL processing failed: {url}, error: {error}"
-
-#: core/breeders/breeders.py:1074
-#, python-brace-format
-msgid "Extracted {count} seed-related URLs from JS content"
-msgstr "Extracted {count} seed-related URLs from JS content"
-
-#: core/breeders/breeders.py:1076
-#, python-brace-format
-msgid "Extracted {related} seed-related URLs from JS content, total: {total}"
-msgstr "Extracted {related} seed-related URLs from JS content, total: {total}"
-
-#: core/breeders/breeders.py:1086
-#, python-brace-format
-msgid "Port breeder received non-port asset: {uid}"
-msgstr "Port breeder received non-port asset: {uid}"
-
-#: core/breeders/breeders.py:1117
-#, python-brace-format
-msgid "Unknown asset type: {type}, using base breeder"
-msgstr "Unknown asset type: {type}, using base breeder"
-
-#: core/tools/tools.py:32
-#, python-brace-format
-msgid "Loaded external tool path configuration: {paths}"
-msgstr "Loaded external tool path configuration: {paths}"
-
-#: core/tools/tools.py:34
-msgid "No external tool path configuration found, using default paths"
-msgstr "No external tool path configuration found, using default paths"
-
-#: core/tools/tools.py:40
-#, python-brace-format
-msgid "Tool {tool} path is empty, ignoring configuration"
-msgstr "Tool {tool} path is empty, ignoring configuration"
-
-#: core/tools/tools.py:49
-msgid "Subfinder tool not found, using internal method instead"
-msgstr "Subfinder tool not found, using internal method instead"
-
-#: core/tools/tools.py:63
-#, python-brace-format
-msgid "Using subfinder path from configuration: {path}"
-msgstr "Using subfinder path from configuration: {path}"
-
-#: core/tools/tools.py:66
-#, python-brace-format
-msgid "Using subfinder.exe from assets directory: {path}"
-msgstr "Using subfinder.exe from assets directory: {path}"
-
-#: core/tools/tools.py:69 core/tools/tools.py:83 core/tools/tools.py:517
-#, python-brace-format
-msgid "Executing command: {cmd}"
-msgstr "Executing command: {cmd}"
-
-#: core/tools/tools.py:74
-#, python-brace-format
-msgid "Using shell execution: {cmd}"
-msgstr "Using shell execution: {cmd}"
-
-#: core/tools/tools.py:79
-#, python-brace-format
-msgid "Failed to use {path}: {error}"
-msgstr "Failed to use {path}: {error}"
-
-#: core/tools/tools.py:81
-msgid "Trying subfinder from system PATH"
-msgstr "Trying subfinder from system PATH"
-
-#: core/tools/tools.py:87
-msgid "System PATH subfinder failed, using internal method instead"
-msgstr "System PATH subfinder failed, using internal method instead"
-
-#: core/tools/tools.py:100
-#, python-brace-format
-msgid "Subfinder execution failed: {error}"
-msgstr "Subfinder execution failed: {error}"
-
-#: core/tools/tools.py:103
-#, python-brace-format
-msgid "Subfinder call exception: {error}"
-msgstr "Subfinder call exception: {error}"
-
-#: core/tools/tools.py:109
-#, python-brace-format
-msgid "Using internal DNS resolver for {domain}"
-msgstr "Using internal DNS resolver for {domain}"
-
-#: core/tools/tools.py:115
-msgid "DNSx resolution disabled"
-msgstr "DNSx resolution disabled"
-
-#: core/tools/tools.py:119
-msgid "Internal DNS resolver dnsxs.py does not exist"
-msgstr "Internal DNS resolver dnsxs.py does not exist"
-
-#: core/tools/tools.py:142
-#, python-brace-format
-msgid "Internal DNS resolver execution failed: {error}"
-msgstr "Internal DNS resolver execution failed: {error}"
-
-#: core/tools/tools.py:144
-#, python-brace-format
-msgid "Internal DNS resolver call exception: {error}"
-msgstr "Internal DNS resolver call exception: {error}"
-
-#: core/tools/tools.py:151
-msgid "Naabu tool not found or invalid path, using internal method instead"
-msgstr "Naabu tool not found or invalid path, using internal method instead"
-
-#: core/tools/tools.py:160
-#, python-brace-format
-msgid "Executing naabu command: {cmd}"
-msgstr "Executing naabu command: {cmd}"
-
-#: core/tools/tools.py:175
-#, python-brace-format
-msgid "Naabu execution failed: {error}"
-msgstr "Naabu execution failed: {error}"
-
-#: core/tools/tools.py:178
-#, python-brace-format
-msgid "Naabu call exception: {error}"
-msgstr "Naabu call exception: {error}"
-
-#: core/tools/tools.py:184
-#, python-brace-format
-msgid "Using internal port scanner for {ip}"
-msgstr "Using internal port scanner for {ip}"
-
-#: core/tools/tools.py:188
-msgid "Internal port scanner port.py does not exist"
-msgstr "Internal port scanner port.py does not exist"
-
-#: core/tools/tools.py:206
-#, python-brace-format
-msgid "Internal port scanner execution failed: {error}"
-msgstr "Internal port scanner execution failed: {error}"
-
-#: core/tools/tools.py:208
-#, python-brace-format
-msgid "Internal port scanner call exception: {error}"
-msgstr "Internal port scanner call exception: {error}"
-
-#: core/tools/tools.py:214
-#, python-brace-format
-msgid "Invalid URL format: {url}"
-msgstr "Invalid URL format: {url}"
-
-#: core/tools/tools.py:218
-#, python-brace-format
-msgid "Skipping system path: {url}"
-msgstr "Skipping system path: {url}"
-
-#: core/tools/tools.py:223
-#, python-brace-format
-msgid "Normalized URL: {url}"
-msgstr "Normalized URL: {url}"
-
-#: core/tools/tools.py:226
-msgid "JSfinder.py not found, using internal method instead"
-msgstr "JSfinder.py not found, using internal method instead"
-
-#: core/tools/tools.py:229
-#, python-brace-format
-msgid "Starting JSFinder for URL: {url}"
-msgstr "Starting JSFinder for URL: {url}"
-
-#: core/tools/tools.py:240
-#, python-brace-format
-msgid "Executing JSFinder command: {cmd}"
-msgstr "Executing JSFinder command: {cmd}"
-
-#: core/tools/tools.py:243
-#, python-brace-format
-msgid ""
-"JSFinder output preview:\n"
-"{output}"
-msgstr ""
-"JSFinder output preview:\n"
-"{output}"
-
-#: core/tools/tools.py:245
-#, python-brace-format
-msgid ""
-"JSFinder error output:\n"
-"{error}"
-msgstr ""
-"JSFinder error output:\n"
-"{error}"
-
-#: core/tools/tools.py:247
-#, python-brace-format
-msgid "JSFinder execution completed, exit code: {code}"
-msgstr "JSFinder execution completed, exit code: {code}"
-
-#: core/tools/tools.py:255
-#, python-brace-format
-msgid "Skipping system path URL: {url}"
-msgstr "Skipping system path URL: {url}"
-
-#: core/tools/tools.py:258
-#, python-brace-format
-msgid "JSFinder found URL: {url}"
-msgstr "JSFinder found URL: {url}"
-
-#: core/tools/tools.py:260
-#, python-brace-format
-msgid "Failed to read JSFinder URL result file: {error}"
-msgstr "Failed to read JSFinder URL result file: {error}"
-
-#: core/tools/tools.py:271
-#, python-brace-format
-msgid "JSFinder found subdomain: {subdomain}"
-msgstr "JSFinder found subdomain: {subdomain}"
-
-#: core/tools/tools.py:273
-#, python-brace-format
-msgid "Failed to read JSFinder subdomain result file: {error}"
-msgstr "Failed to read JSFinder subdomain result file: {error}"
-
-#: core/tools/tools.py:279
-#, python-brace-format
-msgid "Failed to delete JSFinder temporary files: {error}"
-msgstr "Failed to delete JSFinder temporary files: {error}"
-
-#: core/tools/tools.py:300
-#, python-brace-format
-msgid "Extracted URL from command output: {url}"
-msgstr "Extracted URL from command output: {url}"
-
-#: core/tools/tools.py:305
-#, python-brace-format
-msgid "Extracted subdomain from command output: {subdomain}"
-msgstr "Extracted subdomain from command output: {subdomain}"
-
-#: core/tools/tools.py:311
-#, python-brace-format
-msgid "Using seed domains list from engine: {domains}"
-msgstr "Using seed domains list from engine: {domains}"
-
-#: core/tools/tools.py:320
-#, python-brace-format
-msgid "Extracted seed domain from URL {url}: {domain}"
-msgstr "Extracted seed domain from URL {url}: {domain}"
-
-#: core/tools/tools.py:322
-#, python-brace-format
-msgid "Failed to extract seed domain from URL: {error}"
-msgstr "Failed to extract seed domain from URL: {error}"
-
-#: core/tools/tools.py:338
-#, python-brace-format
-msgid "Keeping seed-related URL: {url}"
-msgstr "Keeping seed-related URL: {url}"
-
-#: core/tools/tools.py:340
-#, python-brace-format
-msgid "Filtering non-seed-related URL: {url}"
-msgstr "Filtering non-seed-related URL: {url}"
-
-#: core/tools/tools.py:342
-#, python-brace-format
-msgid "URL filtering error: {error}, URL: {url}"
-msgstr "URL filtering error: {error}, URL: {url}"
-
-#: core/tools/tools.py:354
-#, python-brace-format
-msgid "Keeping seed-related subdomain: {subdomain}"
-msgstr "Keeping seed-related subdomain: {subdomain}"
-
-#: core/tools/tools.py:356
-#, python-brace-format
-msgid "Filtering non-seed-related subdomain: {subdomain}"
-msgstr "Filtering non-seed-related subdomain: {subdomain}"
-
-#: core/tools/tools.py:358
-#, python-brace-format
-msgid "Before filtering: {url_count} URLs, {subdomain_count} subdomains"
-msgstr "Before filtering: {url_count} URLs, {subdomain_count} subdomains"
-
-#: core/tools/tools.py:361
-#, python-brace-format
-msgid "After filtering: {url_count} URLs, {subdomain_count} subdomains"
-msgstr "After filtering: {url_count} URLs, {subdomain_count} subdomains"
-
-#: core/tools/tools.py:363
-#, python-brace-format
-msgid ""
-"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from "
-"{url}"
-msgstr ""
-"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from "
-"{url}"
-
-#: core/tools/tools.py:365
-#, python-brace-format
-msgid "JSFinder execution failed: {error}"
-msgstr "JSFinder execution failed: {error}"
-
-#: core/tools/tools.py:366 core/tools/tools.py:373
-msgid "Trying internal method instead"
-msgstr "Trying internal method instead"
-
-#: core/tools/tools.py:369
-msgid "JSFinder execution timed out, trying internal method instead"
-msgstr "JSFinder execution timed out, trying internal method instead"
-
-#: core/tools/tools.py:372
-#, python-brace-format
-msgid "JSFinder call exception: {error}"
-msgstr "JSFinder call exception: {error}"
-
-#: core/tools/tools.py:389
-#, python-brace-format
-msgid "Failed to get URL content, status code: {code}"
-msgstr "Failed to get URL content, status code: {code}"
-
-#: core/tools/tools.py:437
-#, python-brace-format
-msgid ""
-"Internal JSFinder extracted {url_count} URLs and {subdomain_count} "
-"subdomains from {url}"
-msgstr ""
-"Internal JSFinder extracted {url_count} URLs and {subdomain_count} "
-"subdomains from {url}"
-
-#: core/tools/tools.py:439
-#, python-brace-format
-msgid "Internal JSFinder execution failed: {error}"
-msgstr "Internal JSFinder execution failed: {error}"
-
-#: core/tools/tools.py:445
-msgid "free-subfinder.py not found, using internal method instead"
-msgstr "free-subfinder.py not found, using internal method instead"
-
-#: core/tools/tools.py:452
-#, python-brace-format
-msgid "Adding original domain to subdomains list: {domain}"
-msgstr "Adding original domain to subdomains list: {domain}"
-
-#: core/tools/tools.py:470
-#, python-brace-format
-msgid "Added original domain from ww-prefix domain: {domain}"
-msgstr "Added original domain from ww-prefix domain: {domain}"
-
-#: core/tools/tools.py:472
-#, python-brace-format
-msgid "free-subfinder found {count} subdomains: {subdomains}"
-msgstr "free-subfinder found {count} subdomains: {subdomains}"
-
-#: core/tools/tools.py:474
-#, python-brace-format
-msgid "free-subfinder execution failed: {error}"
-msgstr "free-subfinder execution failed: {error}"
-
-#: core/tools/tools.py:476
-#, python-brace-format
-msgid "free-subfinder call exception: {error}"
-msgstr "free-subfinder call exception: {error}"
-
-#: core/tools/tools.py:483
-msgid "Fingerprinting feature not enabled, skipping EHole call"
-msgstr "Fingerprinting feature not enabled, skipping EHole call"
-
-#: core/tools/tools.py:487
-msgid "EHole tool not found, cannot perform fingerprinting"
-msgstr "EHole tool not found, cannot perform fingerprinting"
-
-#: core/tools/tools.py:493
-#, python-brace-format
-msgid "Invalid URL format: {url}, skipping fingerprinting"
-msgstr "Invalid URL format: {url}, skipping fingerprinting"
-
-#: core/tools/tools.py:496 core/tools/tools.py:526
-#, python-brace-format
-msgid "Cleaned URL: {url}"
-msgstr "Cleaned URL: {url}"
-
-#: core/tools/tools.py:514
-#, python-brace-format
-msgid "Using EHole path from configuration: {path}"
-msgstr "Using EHole path from configuration: {path}"
-
-#: core/tools/tools.py:525
-#, python-brace-format
-msgid "Original URL: {url}"
-msgstr "Original URL: {url}"
-
-#: core/tools/tools.py:527
-#, python-brace-format
-msgid "Final URL: {url}"
-msgstr "Final URL: {url}"
-
-#: core/tools/tools.py:529
-#, python-brace-format
-msgid "Using shell string execution: {cmd}"
-msgstr "Using shell string execution: {cmd}"
-
-#: core/tools/tools.py:535
-#, python-brace-format
-msgid "EHole raw output: {output}"
-msgstr "EHole raw output: {output}"
-
-#: core/tools/tools.py:541
-#, python-brace-format
-msgid "EHole output parsing: {parts}"
-msgstr "EHole output parsing: {parts}"
-
-#: core/tools/tools.py:555
-#, python-brace-format
-msgid "Title extracted from EHole: {title}"
-msgstr "Title extracted from EHole: {title}"
-
-#: core/tools/tools.py:557
-#, python-brace-format
-msgid "Fingerprint result: {result}"
-msgstr "Fingerprint result: {result}"
-
-#: core/tools/tools.py:562
-msgid "No exact match found, trying looser matching"
-msgstr "No exact match found, trying looser matching"
-
-#: core/tools/tools.py:566
-#, python-brace-format
-msgid "EHole loose match output parsing: {parts}"
-msgstr "EHole loose match output parsing: {parts}"
-
-#: core/tools/tools.py:580
-#, python-brace-format
-msgid "Title extracted from EHole loose match: {title}"
-msgstr "Title extracted from EHole loose match: {title}"
-
-#: core/tools/tools.py:582
-#, python-brace-format
-msgid "Fingerprint loose match result: {result}"
-msgstr "Fingerprint loose match result: {result}"
-
-#: core/tools/tools.py:589
-#, python-brace-format
-msgid "EHole execution failed: {error}"
-msgstr "EHole execution failed: {error}"
-
-#: core/tools/tools.py:592
-#, python-brace-format
-msgid "EHole error details: {error}"
-msgstr "EHole error details: {error}"
-
-#: core/tools/tools.py:595
-#, python-brace-format
-msgid "Possible URL format issue caused EHole failure: {url}"
-msgstr "Possible URL format issue caused EHole failure: {url}"
-
-#: core/tools/tools.py:599
-#, python-brace-format
-msgid "EHole call exception: {error}"
-msgstr "EHole call exception: {error}"
-
-#: core/tools/tools.py:601
-#, python-brace-format
-msgid "EHole exception details: {traceback}"
-msgstr "EHole exception details: {traceback}"
-
-#: core/tools/tools.py:608
-#, python-brace-format
-msgid "Found tool {tool} at configured path: {path}"
-msgstr "Found tool {tool} at configured path: {path}"
-
-#: core/tools/tools.py:613 core/tools/tools.py:619
-#, python-brace-format
-msgid "Found tool {tool} in assets directory: {path}"
-msgstr "Found tool {tool} in assets directory: {path}"
-
-#: core/tools/tools.py:627
-#, python-brace-format
-msgid "Found tool {tool} in system PATH"
-msgstr "Found tool {tool} in system PATH"
-
-#: core/tools/tools.py:630
-#, python-brace-format
-msgid "Tool {tool} not found"
-msgstr "Tool {tool} not found"
-
-#: core/tools/tools.py:640
-#, python-brace-format
-msgid "Reduced concurrency to {concurrency}"
-msgstr "Reduced concurrency to {concurrency}"
-
-#: core/tools/tools.py:650
-#, python-brace-format
-msgid "Increased concurrency to {concurrency}"
-msgstr "Increased concurrency to {concurrency}"
-
-#: core/tools/tools.py:672
-#, python-brace-format
-msgid "Task {func} completed, duration: {duration:.2f} seconds"
-msgstr "Task {func} completed, duration: {duration:.2f} seconds"
-
-#: core/tools/tools.py:686
-msgid "Tool manager shutdown"
-msgstr "Tool manager shutdown"
-
-#. Report UI strings (core/output.py)
-msgid "Z-Sans Asset Breeding Engine Report"
-msgstr "Z-Sans Asset Breeding Engine Report"
-
-#. Report UI strings (core/output.py)
-msgid "Z-Sans Asset Breeding Engine"
-msgstr "Z-Sans Asset Breeding Engine"
-
-#. Report UI strings (core/output.py)
-msgid "Scan Report &mdash; Generated:"
-msgstr "Scan Report &mdash; Generated:"
-
-#. Report UI strings (core/output.py)
-msgid "Overview"
-msgstr "Overview"
-
-#. Report UI strings (core/output.py)
-msgid "Active Assets"
-msgstr "Active Assets"
-
-#. Report UI strings (core/output.py)
-msgid "Eliminated"
-msgstr "Eliminated"
-
-#. Report UI strings (core/output.py)
-msgid "Metrics"
-msgstr "Metrics"
-
-#. Report UI strings (core/output.py)
-msgid "Total Assets"
-msgstr "Total Assets"
-
-#. Report UI strings (core/output.py)
-msgid "Relations"
-msgstr "Relations"
-
-#. Report UI strings (core/output.py)
-msgid "Processed"
-msgstr "Processed"
-
-#. Report UI strings (core/output.py)
-msgid "New Found"
-msgstr "New Found"
-
-#. Report UI strings (core/output.py)
-msgid "Max Depth"
-msgstr "Max Depth"
-
-#. Report UI strings (core/output.py)
-msgid "Asset Type Distribution"
-msgstr "Asset Type Distribution"
-
-#. Report UI strings (core/output.py)
-msgid "Search assets..."
-msgstr "Search assets..."
-
-#. Report UI strings (core/output.py)
-#, python-brace-format
-msgid "Showing {count} assets"
-msgstr "Showing {count} assets"
-
-#. Report UI strings (core/output.py)
-msgid "Title / Note"
-msgstr "Title / Note"
-
-#. Report UI strings (core/output.py)
-msgid "No active assets found"
-msgstr "No active assets found"
-
-#. Report UI strings (core/output.py)
-msgid "Eliminated Assets"
-msgstr "Eliminated Assets"
-
-#. Report UI strings (core/output.py)
-msgid "Search eliminated assets..."
-msgstr "Search eliminated assets..."
-
-#. Report UI strings (core/output.py)
-msgid ""
-"Eliminated assets are those that are not alive or responsive, including "
-"inaccessible ports, unreachable URLs, etc."
-msgstr ""
-"Eliminated assets are those that are not alive or responsive, including "
-"inaccessible ports, unreachable URLs, etc."
-
-#. Report UI strings (core/output.py)
-msgid "Reason"
-msgstr "Reason"
-
-#. Report UI strings (core/output.py)
-msgid "No eliminated assets found"
-msgstr "No eliminated assets found"
-
-#. Report UI strings (core/output.py)
-msgid ""
-"Eliminated assets display is disabled in configuration. Set "
-"<code>keep_eliminated_assets: true</code> to enable."
-msgstr ""
-"Eliminated assets display is disabled in configuration. Set "
-"<code>keep_eliminated_assets: true</code> to enable."
-
-#. Report UI strings (core/output.py)
-msgid "Execution Metrics"
-msgstr "Execution Metrics"
-
-#. Report UI strings (core/output.py)
-msgid "Metric"
-msgstr "Metric"
-
-#. Report UI strings (core/output.py)
 msgid "(filtered)"
 msgstr "(filtered)"
 
-#. Report UI strings (core/output.py)
-msgid "Z-Sans Asset Breeding Engine &mdash; Report generated at"
-msgstr "Z-Sans Asset Breeding Engine &mdash; Report generated at"
+msgid "Access failed: {error}"
+msgstr "Access failed: {error}"
 
-#. Report enrichment strings (core/output.py)
-msgid "Topology"
-msgstr "Topology"
+msgid "actions"
+msgstr "Actions"
 
-#. Report enrichment strings (core/output.py)
-msgid "Asset Topology"
-msgstr "Asset Topology"
+msgid "Active Assets"
+msgstr "Active Assets"
 
-#. Report enrichment strings (core/output.py)
-msgid "Duration"
-msgstr "Duration"
+msgid "Add domain seed"
+msgstr "Add domain seed"
 
-#. Report enrichment strings (core/output.py)
-msgid "Seed Assets"
-msgstr "Seed Assets"
+msgid "Add URL seed"
+msgstr "Add URL seed"
 
-#. Report enrichment strings (core/output.py)
-msgid "Domains"
-msgstr "Domains"
+msgid "Added original domain from ww-prefix domain: {domain}"
+msgstr "Added original domain from ww-prefix domain: {domain}"
 
-#. Report enrichment strings (core/output.py)
-msgid "IP Addresses"
-msgstr "IP Addresses"
+msgid "Added seed asset: {uid}"
+msgstr "Added seed asset: {uid}"
 
-#. Report enrichment strings (core/output.py)
-msgid "None"
-msgstr "None"
+msgid "Adding non-seed-related URL (restriction disabled): {url}"
+msgstr "Adding non-seed-related URL (restriction disabled): {url}"
 
-#. Report enrichment strings (core/output.py)
-msgid "Top Hosts"
-msgstr "Top Hosts"
+msgid "Adding original domain to subdomains list: {domain}"
+msgstr "Adding original domain to subdomains list: {domain}"
 
-#. Report enrichment strings (core/output.py)
-msgid "Connections"
-msgstr "Connections"
+msgid "Adding seed-related domain: {domain} from IP {ip}"
+msgstr "Adding seed-related domain: {domain} from IP {ip}"
 
-#. Report enrichment strings (core/output.py)
-msgid "No data"
-msgstr "No data"
+msgid "Adding seed-related link: {link}, domain: {domain}"
+msgstr "Adding seed-related link: {link}, domain: {domain}"
 
-#. Report enrichment strings (core/output.py)
-msgid "Port Distribution"
-msgstr "Port Distribution"
+msgid "Adding seed-related subdomain: {subdomain}"
+msgstr "Adding seed-related subdomain: {subdomain}"
 
-#. Report enrichment strings (core/output.py)
-msgid "Elimination Reasons"
-msgstr "Elimination Reasons"
+msgid "Adding seed-related URL asset: {url}"
+msgstr "Adding seed-related URL asset: {url}"
 
-#. Report enrichment strings (core/output.py)
-msgid "Service"
-msgstr "Service"
+msgid "Adding seed-related URL: {url}"
+msgstr "Adding seed-related URL: {url}"
 
-#. Report enrichment strings (core/output.py)
-msgid "Count"
-msgstr "Count"
-
-#. Report enrichment strings (core/output.py)
-#, python-brace-format
-msgid "Node count: {count}"
-msgstr "Node count: {count}"
-
-#. Report enrichment strings (core/output.py)
-#, python-brace-format
-msgid "Edge count: {count}"
-msgstr "Edge count: {count}"
-
-msgid "Checkpoint saved: {path}"
-msgstr "Checkpoint saved: {path}"
-
-msgid "Failed to save checkpoint {path}: {error}"
-msgstr "Failed to save checkpoint {path}: {error}"
-
-msgid "Checkpoint file not found: {path}"
-msgstr "Checkpoint file not found: {path}"
-
-msgid "Failed to load checkpoint {path}: {error}"
-msgstr "Failed to load checkpoint {path}: {error}"
-
-msgid "Checkpoint loaded: {path}, {nodes} nodes, {queue} queued"
-msgstr "Checkpoint loaded: {path}, {nodes} nodes, {queue} queued"
-
-msgid "Resuming scan from checkpoint, {nodes} assets, {queued} queued"
-msgstr "Resuming scan from checkpoint, {nodes} assets, {queued} queued"
-
-msgid "Watch mode started, interval: {interval}s"
-msgstr "Watch mode started, interval: {interval}s"
-
-msgid "Watch cycle starting..."
-msgstr "Watch cycle starting..."
-
-msgid "Baseline established: {count} assets"
-msgstr "Baseline established: {count} assets"
-
-msgid "Changes detected: +{added} added, -{removed} removed"
-msgstr "Changes detected: +{added} added, -{removed} removed"
-
-msgid "Changes saved: {path}"
-msgstr "Changes saved: {path}"
-
-msgid "Failed to save changes file: {error}"
-msgstr "Failed to save changes file: {error}"
-
-msgid "Webhook notified, status: {status}"
-msgstr "Webhook notified, status: {status}"
-
-msgid "Webhook notification failed: {error}"
-msgstr "Webhook notification failed: {error}"
-
-msgid "No changes detected"
-msgstr "No changes detected"
-
-msgid "Sleeping {seconds}s until next cycle"
-msgstr "Sleeping {seconds}s until next cycle"
-
-msgid "Stop signal received, exiting watch mode"
-msgstr "Stop signal received, exiting watch mode"
-
-msgid ""
-"Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
-msgstr ""
-"Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
-
-msgid "Proxy error detected for {url}. Check your proxy configuration."
-msgstr "Proxy error detected for {url}. Check your proxy configuration."
-
-msgid "Resume from last checkpoint"
-msgstr "Resume from last checkpoint"
-
-msgid "Run in watch mode, rescan periodically and report changes"
-msgstr "Run in watch mode, rescan periodically and report changes"
-
-msgid "Unknown"
-msgstr "Unknown"
-
-msgid "All types"
-msgstr "All types"
-
-msgid "All states"
-msgstr "All states"
+msgid "After filtering: {url_count} URLs, {subdomain_count} subdomains"
+msgstr "After filtering: {url_count} URLs, {subdomain_count} subdomains"
 
 msgid "All depths"
 msgstr "All depths"
 
-msgid "Hint: drag to pan, pin/scroll to zoom, builds auto-fit"
-msgstr "Hint: drag to pan, pin/scroll to zoom, builds auto-fit"
+msgid "All states"
+msgstr "All states"
 
-msgid "List plugins in the plugins directory and exit"
-msgstr "List plugins in the plugins directory and exit"
-
-msgid "Show detailed info about a plugin and exit"
-msgstr "Show detailed info about a plugin and exit"
-
-msgid "show this help message and exit"
-msgstr "show this help message and exit"
-
-msgid "Plugins directory: {dir}"
-msgstr "Plugins directory: {dir}"
-
-msgid "Registered {count} hook handlers from {source}"
-msgstr "Registered {count} hook handlers from {source}"
-
-msgid "No on_* hook handlers found in {source}"
-msgstr "No on_* hook handlers found in {source}"
-
-msgid "Failed to load plugin {file}: {error}"
-msgstr "Failed to load plugin {file}: {error}"
-
-msgid "Plugin {plugin} disabled by configuration"
-msgstr "Plugin {plugin} disabled by configuration"
-
-msgid "Event hook {event} failed: {error}"
-msgstr "Event hook {event} failed: {error}"
-
-msgid "Plugins directory not found: {dir}"
-msgstr "Plugins directory not found: {dir}"
-
-msgid "Plugin not found: {name}"
-msgstr "Plugin not found: {name}"
-
-msgid "usage: "
-msgstr "usage: "
-
-msgid "options"
-msgstr "options"
-
-msgid "positional arguments"
-msgstr "positional arguments"
-
-#, python-brace-format
-msgid "API path extraction failed: {error}"
-msgstr "API path extraction failed: {error}"
-
-#, python-brace-format
-msgid "API path regex failed: {error}"
-msgstr "API path regex failed: {error}"
-
-#, python-brace-format
-msgid "Captured endpoint hints for {url}: {hints}"
-msgstr "Captured endpoint hints for {url}: {hints}"
-
-msgid "DNS brute-force disabled"
-msgstr "DNS brute-force disabled"
-
-#, python-brace-format
-msgid "DNS brute-force failed: {error}"
-msgstr "DNS brute-force failed: {error}"
-
-#, python-brace-format
-msgid "DNS brute-force found {count} subdomains"
-msgstr "DNS brute-force found {count} subdomains"
-
-#, python-brace-format
-msgid "Discovery fetch failed for {candidate}: {error}"
-msgstr "Discovery fetch failed for {candidate}: {error}"
-
-#, python-brace-format
-msgid ""
-"Domain scope restriction disabled, adding all links: {link}, domain: "
-"{domain}"
-msgstr ""
-"Domain scope restriction disabled, adding all links: {link}, domain: "
-"{domain}"
-
-#, python-brace-format
-msgid ""
-"Domain {domain} not seed-related but added due to no restriction: {url}"
-msgstr ""
-"Domain {domain} not seed-related but added due to no restriction: {url}"
-
-#, python-brace-format
-msgid "Endpoint header capture failed for {url}: {error}"
-msgstr "Endpoint header capture failed for {url}: {error}"
-
-#, python-brace-format
-msgid "Endpoint hint materialization failed: {error}"
-msgstr "Endpoint hint materialization failed: {error}"
-
-#, python-brace-format
-msgid "Endpoint hint materialized as asset: {target}"
-msgstr "Endpoint hint materialized as asset: {target}"
-
-msgid ""
-"Engine instance does not exist, defaulting to False to avoid adding "
-"unrelated domains"
-msgstr ""
-"Engine instance does not exist, defaulting to False to avoid adding "
-"unrelated domains"
-
-#, python-brace-format
-msgid "Exceeds depth limit {limit}"
-msgstr "Exceeds depth limit {limit}"
-
-#, python-brace-format
-msgid "Exceeds max depth {depth}"
-msgstr "Exceeds max depth {depth}"
-
-#, python-brace-format
-msgid "Exceeds {type} limit {limit}"
-msgstr "Exceeds {type} limit {limit}"
-
-#, python-brace-format
-msgid ""
-"Internal JSFinder extracted {url_count} URLs and {subdomain_count} "
-"subdomains from {url}"
-msgstr ""
-"Internal JSFinder extracted {url_count} URLs and {subdomain_count} "
-"subdomains from {url}"
-
-#, python-brace-format
-msgid "Invalid port asset value: {value}, error: {error}"
-msgstr "Invalid port asset value: {value}, error: {error}"
-
-#, python-brace-format
-msgid "JS path extraction failed: {error}"
-msgstr "JS path extraction failed: {error}"
-
-#, python-brace-format
-msgid ""
-"JSFinder error output:\n"
-"{error}"
-msgstr ""
-"JSFinder error output:\n"
-"{error}"
-
-#, python-brace-format
-msgid ""
-"JSFinder extracted {count} subdomains from {url}, {related} seed-related"
-msgstr ""
-"JSFinder extracted {count} subdomains from {url}, {related} seed-related"
-
-#, python-brace-format
-msgid ""
-"JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
-msgstr ""
-"JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
-
-#, python-brace-format
-msgid ""
-"JSFinder extracted {related} seed-related subdomains from {url}, total: "
-"{total}"
-msgstr ""
-"JSFinder extracted {related} seed-related subdomains from {url}, total: "
-"{total}"
-
-#, python-brace-format
-msgid ""
-"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from "
-"{url}"
-msgstr ""
-"JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from "
-"{url}"
-
-#, python-brace-format
-msgid ""
-"JSFinder output preview:\n"
-"{output}"
-msgstr ""
-"JSFinder output preview:\n"
-"{output}"
-
-msgid "Matches exclusion rules"
-msgstr "Matches exclusion rules"
-
-#, python-brace-format
-msgid "No breeder for type {type}"
-msgstr "No breeder for type {type}"
-
-#, python-brace-format
-msgid ""
-"Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
-msgstr ""
-"Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
-
-#, python-brace-format
-msgid "Running built-in DNS brute-force for subdomains: {domain}"
-msgstr "Running built-in DNS brute-force for subdomains: {domain}"
-
-msgid ""
-"Seed domain list is empty, this may cause domain relevance judgment errors"
-msgstr ""
-"Seed domain list is empty, this may cause domain relevance judgment errors"
-
-msgid ""
-"Seed domains list attribute not found in engine, all domains will be "
-"considered unrelated"
-msgstr ""
-"Seed domains list attribute not found in engine, all domains will be "
-"considered unrelated"
-
-#, python-brace-format
-msgid "Skipping malformed URL (JS concat/template): {url}"
-msgstr "Skipping malformed URL (JS concat/template): {url}"
-
-#, python-brace-format
-msgid "Skipping non-seed-related API path: {url}"
-msgstr "Skipping non-seed-related API path: {url}"
-
-#, python-brace-format
-msgid "Skipping non-seed-related discovery link: {link}"
-msgstr "Skipping non-seed-related discovery link: {link}"
-
-#, python-brace-format
-msgid ""
-"URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
-msgstr ""
-"URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
-
-#, python-brace-format
-msgid ""
-"URL asset marked as eliminated: {url}, status: {status}, state: {state}"
-msgstr ""
-"URL asset marked as eliminated: {url}, status: {status}, state: {state}"
-
-msgid "Using naabu from system PATH"
-msgstr "Using naabu from system PATH"
-
-#, python-brace-format
-msgid "robots/sitemap discovery failed: {error}"
-msgstr "robots/sitemap discovery failed: {error}"
-
-msgid "Start the web console"
-msgstr "Start the web console"
-
-msgid "Web console port"
-msgstr "Web console port"
-
-msgid "Web console stopped"
-msgstr "Web console stopped"
-
-msgid "actions"
-msgstr "Actions"
+msgid "All types"
+msgstr "All types"
 
 msgid "all_types"
 msgstr "All types"
@@ -2153,20 +64,137 @@ msgstr "All types"
 msgid "analysis"
 msgstr "Analysis"
 
+msgid "API path extraction failed: {error}"
+msgstr "API path extraction failed: {error}"
+
+msgid "API path regex failed: {error}"
+msgstr "API path regex failed: {error}"
+
+msgid "Asset marked as eliminated: {ip}:{port}, reason: {reason}"
+msgstr "Asset marked as eliminated: {ip}:{port}, reason: {reason}"
+
+msgid "Asset marked as eliminated: {url}, reason: {reason}"
+msgstr "Asset marked as eliminated: {url}, reason: {reason}"
+
+msgid "Asset marked as eliminated: {url}, reason: {reason}, state: {state}"
+msgstr "Asset marked as eliminated: {url}, reason: {reason}, state: {state}"
+
+msgid "Asset not found in graph, cannot set state: {uid}"
+msgstr "Asset not found in graph, cannot set state: {uid}"
+
+msgid "Asset not found in graph: {uid}"
+msgstr "Asset not found in graph: {uid}"
+
+msgid "Asset state updated to eliminated: {uid}, new state: {state}"
+msgstr "Asset state updated to eliminated: {uid}, new state: {state}"
+
+msgid "Asset Topology"
+msgstr "Asset Topology"
+
+msgid "Asset Type Distribution"
+msgstr "Asset Type Distribution"
+
+msgid "Asset type {type} disabled, skipping {uid}"
+msgstr "Asset type {type} disabled, skipping {uid}"
+
+msgid "Asset type {type} is disabled"
+msgstr "Asset type {type} is disabled"
+
+msgid "Asset {uid} exceeds max depth {depth}, skipping"
+msgstr "Asset {uid} exceeds max depth {depth}, skipping"
+
+msgid "Asset {uid} exceeds resource limits, skipping"
+msgstr "Asset {uid} exceeds resource limits, skipping"
+
+msgid "Asset {uid} matches exclusion rules, skipping"
+msgstr "Asset {uid} matches exclusion rules, skipping"
+
+msgid "Asset {uid} processed, found {count} new assets"
+msgstr "Asset {uid} processed, found {count} new assets"
+
 msgid "asset_count"
 msgstr "Assets"
 
 msgid "assets"
 msgstr "Assets"
 
+msgid "authentication disabled"
+msgstr "authentication disabled"
+
+msgid "Author"
+msgstr "Author"
+
 msgid "back"
 msgstr "← Back"
+
+msgid "bad static path"
+msgstr "bad static path"
 
 msgid "base_assets"
 msgstr "Base Assets"
 
+msgid "Baseline established: {count} assets"
+msgstr "Baseline established: {count} assets"
+
+msgid "Before filtering: {url_count} URLs, {subdomain_count} subdomains"
+msgstr "Before filtering: {url_count} URLs, {subdomain_count} subdomains"
+
+msgid "Breeding engine completed all tasks, generating output..."
+msgstr "Breeding engine completed all tasks, generating output..."
+
+msgid "Breeding engine paused"
+msgstr "Breeding engine paused"
+
+msgid "Breeding engine resumed"
+msgstr "Breeding engine resumed"
+
+msgid "Breeding engine started"
+msgstr "Breeding engine started"
+
+msgid "Breeding engine stopped"
+msgstr "Breeding engine stopped"
+
+msgid "Breeding queue is empty, breeding cycle completed"
+msgstr "Breeding queue is empty, breeding cycle completed"
+
+msgid "Captured endpoint hints for {url}: {hints}"
+msgstr "Captured endpoint hints for {url}: {hints}"
+
+msgid "Certificate check failed: {error}"
+msgstr "Certificate check failed: {error}"
+
+msgid "Changes detected: +{added} added, -{removed} removed"
+msgstr "Changes detected: +{added} added, -{removed} removed"
+
+msgid "Changes saved: {path}"
+msgstr "Changes saved: {path}"
+
+msgid "Checking if asset exists in graph: {uid}"
+msgstr "Checking if asset exists in graph: {uid}"
+
+msgid "Checkpoint file not found: {path}"
+msgstr "Checkpoint file not found: {path}"
+
+msgid "Checkpoint loaded: {path}, {nodes} nodes, {queue} queued"
+msgstr "Checkpoint loaded: {path}, {nodes} nodes, {queue} queued"
+
+msgid "Checkpoint saved: {path}"
+msgstr "Checkpoint saved: {path}"
+
+msgid "Cleaned URL: {url}"
+msgstr "Cleaned URL: {url}"
+
 msgid "close"
 msgstr "Close"
+
+msgid "Closed port"
+msgstr "Closed port"
+
+msgid "CMS"
+msgstr "CMS"
+
+msgid "comma_separated"
+msgstr "Comma separated"
 
 msgid "common"
 msgstr "Common"
@@ -2186,11 +214,71 @@ msgstr "Concurrency"
 msgid "config"
 msgstr "Config"
 
+msgid "Config file {path} already exists, skipping creation"
+msgstr "Config file {path} already exists, skipping creation"
+
+msgid "Config file {path} does not exist, using default configuration"
+msgstr "Config file {path} does not exist, using default configuration"
+
+msgid "config must be an object"
+msgstr "config must be an object"
+
 msgid "config_file"
 msgstr "Config File (breeding-config.yaml)"
 
 msgid "config_saved"
 msgstr "Config saved"
+
+msgid "Configuration file path"
+msgstr "Configuration file path"
+
+msgid "Configured EHole path does not exist, falling back: {path}"
+msgstr "Configured EHole path does not exist, falling back: {path}"
+
+msgid "Configured WhatWeb path does not exist, falling back: {path}"
+msgstr "Configured WhatWeb path does not exist, falling back: {path}"
+
+msgid "confirm_delete_projects"
+msgstr "Delete {n} selected project(s)? This cannot be undone."
+
+msgid "Conflicts"
+msgstr "Conflicts"
+
+msgid "CONFLICTS:"
+msgstr "CONFLICTS:"
+
+msgid "Connections"
+msgstr "Connections"
+
+msgid "Count"
+msgstr "Count"
+
+msgid "Create default configuration file"
+msgstr "Create default configuration file"
+
+msgid "Created default config file from template: {path}"
+msgstr "Created default config file from template: {path}"
+
+msgid "Created default config file: {path}"
+msgstr "Created default config file: {path}"
+
+msgid "crt.sh found {count} subdomains"
+msgstr "crt.sh found {count} subdomains"
+
+msgid "crt.sh query disabled"
+msgstr "crt.sh query disabled"
+
+msgid "crt.sh query failed: {error}"
+msgstr "crt.sh query failed: {error}"
+
+msgid "Current asset state updated to eliminated: {url}, state: {state}"
+msgstr "Current asset state updated to eliminated: {url}, state: {state}"
+
+msgid "Current seed domain list: {domains}"
+msgstr "Current seed domain list: {domains}"
+
+msgid "Current seed domains: {domains}"
+msgstr "Current seed domains: {domains}"
 
 msgid "data"
 msgstr "Data"
@@ -2198,8 +286,17 @@ msgstr "Data"
 msgid "data_not_found"
 msgstr "Project data not found"
 
+msgid "delete_failed"
+msgstr "Delete failed: {error}"
+
+msgid "delete_result"
+msgstr "Deleted {deleted}, failed {failed}"
+
 msgid "delete_selected"
 msgstr "Delete Selected"
+
+msgid "Depth"
+msgstr "Depth"
 
 msgid "depth"
 msgstr "Depth"
@@ -2210,224 +307,110 @@ msgstr "Depth Distribution"
 msgid "description"
 msgstr "Description"
 
+msgid "Description"
+msgstr "Description"
+
 msgid "detail"
 msgstr "Detail"
 
 msgid "disable"
 msgstr "Disable"
 
+msgid "Discovery fetch failed for {candidate}: {error}"
+msgstr "Discovery fetch failed for {candidate}: {error}"
+
+msgid "Discovery Time"
+msgstr "Discovery Time"
+
+msgid "DNS brute-force disabled"
+msgstr "DNS brute-force disabled"
+
+msgid "DNS brute-force failed: {error}"
+msgstr "DNS brute-force failed: {error}"
+
+msgid "DNS brute-force found {count} subdomains"
+msgstr "DNS brute-force found {count} subdomains"
+
+msgid "DNS brute-force timed out for {domain}"
+msgstr "DNS brute-force timed out for {domain}"
+
+msgid "DNSx resolution disabled"
+msgstr "DNSx resolution disabled"
+
+msgid "DOC:"
+msgstr "DOC:"
+
+msgid "Domain breeder received non-domain asset: {uid}"
+msgstr "Domain breeder received non-domain asset: {uid}"
+
+msgid "Domain contains invalid characters: {domain}"
+msgstr "Domain contains invalid characters: {domain}"
+
+msgid "Domain resolution failed: {error}"
+msgstr "Domain resolution failed: {error}"
+
+msgid "Domain scope restriction disabled, adding all domains: {domain}"
+msgstr "Domain scope restriction disabled, adding all domains: {domain}"
+
+msgid "Domain scope restriction disabled, adding all links: {link}, domain: {domain}"
+msgstr "Domain scope restriction disabled, adding all links: {link}, domain: {domain}"
+
+msgid "Domain scope restriction disabled, adding all subdomains: {subdomain}"
+msgstr "Domain scope restriction disabled, adding all subdomains: {subdomain}"
+
+msgid "Domain {domain} contains all parts of seed domain {seed}"
+msgstr "Domain {domain} contains all parts of seed domain {seed}"
+
+msgid "Domain {domain} ends with .{seed} but is not a direct subdomain"
+msgstr "Domain {domain} ends with .{seed} but is not a direct subdomain"
+
+msgid "Domain {domain} is a seed domain"
+msgstr "Domain {domain} is a seed domain"
+
+msgid "Domain {domain} is a subdomain of seed domain {seed}"
+msgstr "Domain {domain} is a subdomain of seed domain {seed}"
+
+msgid "Domain {domain} is not related to any seed domain"
+msgstr "Domain {domain} is not related to any seed domain"
+
+msgid "Domain {domain} is seed-related"
+msgstr "Domain {domain} is seed-related"
+
+msgid "Domain {domain} is seed-related, adding URL asset"
+msgstr "Domain {domain} is seed-related, adding URL asset"
+
+msgid "Domain {domain} is seed-related, adding URL asset: {url}"
+msgstr "Domain {domain} is seed-related, adding URL asset: {url}"
+
+msgid "Domain {domain} not seed-related but added due to no restriction"
+msgstr "Domain {domain} not seed-related but added due to no restriction"
+
+msgid "Domain {domain} not seed-related but added due to no restriction: {url}"
+msgstr "Domain {domain} not seed-related but added due to no restriction: {url}"
+
+msgid "Domain {domain} not seed-related, skipping URL: {url}"
+msgstr "Domain {domain} not seed-related, skipping URL: {url}"
+
 msgid "domain_seed"
 msgstr "Domain seeds (one per line)"
+
+msgid "Domains"
+msgstr "Domains"
 
 msgid "drag_hint"
 msgstr "Drag to pan · Scroll to zoom"
 
+msgid "Duration"
+msgstr "Duration"
+
+msgid "Edge count: {count}"
+msgstr "Edge count: {count}"
+
 msgid "edges"
 msgstr "Edges"
 
-msgid "enable"
-msgstr "Enable"
-
-msgid "events"
-msgstr "Events"
-
-msgid "follow_log"
-msgstr "Auto-scroll"
-
-msgid "handlers"
-msgstr "Handlers"
-
-msgid "high_related"
-msgstr "Highly Connected (deg≥3)"
-
-msgid "history_projects"
-msgstr "Historical Scans"
-
-msgid "ip_seed"
-msgstr "IP seeds (one per line)"
-
-msgid "max_depth"
-msgstr "Max Depth"
-
-msgid "max_depth_l"
-msgstr "Max Depth"
-
-msgid "name"
-msgstr "Name"
-
-msgid "new_scan_task"
-msgstr "New Scan Task"
-
-msgid "new_task"
-msgstr "New Scan"
-
-msgid "no_assets"
-msgstr "No assets"
-
-msgid "no_data"
-msgstr "No data"
-
-msgid "no_match"
-msgstr "No matching assets"
-
-msgid "no_plugins"
-msgstr "No plugins (plugin dir is empty or not loaded)"
-
-msgid "no_projects"
-msgstr "No historical scans"
-
-msgid "no_props"
-msgstr "No extra properties"
-
-msgid "no_tasks"
-msgstr "No tasks"
-
-msgid "nodes"
-msgstr "Nodes"
-
-msgid "only_base"
-msgstr "Only in Base"
-
-msgid "only_base_has"
-msgstr "Only in Base"
-
-msgid "only_others"
-msgstr "Only in Others"
-
-msgid "only_others_has"
-msgstr "Only in Others"
-
-msgid "other_assets"
-msgstr "Other Assets"
-
-msgid "output"
-msgstr "Output"
-
-msgid "plugin"
-msgstr "Plugin"
-
-msgid "plugins"
-msgstr "Plugins"
-
-msgid "project_compare"
-msgstr "Project Comparison"
-
-msgid "props"
-msgstr "Properties"
-
-msgid "raw_json"
-msgstr "Raw JSON"
-
-msgid "real_time_log"
-msgstr "Live Log"
-
-msgid "refresh"
-msgstr "Refresh"
-
-msgid "reload"
-msgstr "Reload"
-
-msgid "rescan"
-msgstr "Rescan"
-
-msgid "save"
-msgstr "Save"
-
-msgid "scan_after_done"
-msgstr "Full project data available after scan completes"
-
-msgid "scan_projects"
-msgstr "Scan Projects"
-
-msgid "scan_running"
-msgstr "Scan in progress, generating output..."
-
-msgid "scan_tasks"
-msgstr "Scan Tasks"
-
-msgid "search_assets"
-msgstr "Search assets..."
-
-msgid "seed"
-msgstr "Seed"
-
-msgid "seed_domains"
-msgstr "Seed Domains"
-
-msgid "source"
-msgstr "Source"
-
-msgid "start_scan"
-msgstr "Start Scan"
-
-msgid "starting"
-msgstr "Starting..."
-
-msgid "state_dist"
-msgstr "Asset State Distribution"
-
-msgid "status"
-msgstr "Status"
-
-msgid "stop"
-msgstr "Stop"
-
-msgid "strategy"
-msgstr "Strategy"
-
-msgid "task_detail"
-msgstr "Task"
-
-msgid "task_failed"
-msgstr "Task failed"
-
-msgid "task_started"
-msgstr "Task started"
-
-msgid "tasks"
-msgstr "Tasks"
-
-msgid "topology"
-msgstr "Topology"
-
-msgid "type"
-msgstr "Type"
-
-msgid "type_count"
-msgstr "Type Count"
-
-msgid "type_dist"
-msgstr "Asset Type Distribution"
-
-msgid "url_seed"
-msgstr "URL seeds (one per line)"
-
-msgid "version"
-msgstr "Version"
-
-msgid "view"
-msgstr "View"
-
-msgid "view_output"
-msgstr "View Output"
-
-msgid "Asset type {type} disabled, skipping {uid}"
-msgstr "Asset type {type} disabled, skipping {uid}"
-
-msgid "Asset type {type} is disabled"
-msgstr "Asset type {type} is disabled"
-
-msgid "Configured EHole path does not exist, falling back: {path}"
-msgstr "Configured EHole path does not exist, falling back: {path}"
-
-msgid "Configured WhatWeb path does not exist, falling back: {path}"
-msgstr "Configured WhatWeb path does not exist, falling back: {path}"
-
-msgid "Created default config file from template: {path}"
-msgstr "Created default config file from template: {path}"
-
-msgid "DNS brute-force timed out for {domain}"
-msgstr "DNS brute-force timed out for {domain}"
+msgid "EHole call exception: {error}"
+msgstr "EHole call exception: {error}"
 
 msgid "EHole config.ini copy failed: {error}"
 msgstr "EHole config.ini copy failed: {error}"
@@ -2450,23 +433,209 @@ msgstr "EHole returned empty fingerprint list"
 msgid "EHole stderr: {err}"
 msgstr "EHole stderr: {err}"
 
-msgid ""
-"EHole tool not found (no binary for current platform), keeping internal "
-"title extraction"
-msgstr ""
-"EHole tool not found (no binary for current platform), keeping internal "
-"title extraction"
+msgid "EHole tool not found (no binary for current platform), keeping internal title extraction"
+msgstr "EHole tool not found (no binary for current platform), keeping internal title extraction"
 
-msgid ""
-"Fingerprint engine disabled (engine=none), using internal title extraction"
-msgstr ""
-"Fingerprint engine disabled (engine=none), using internal title extraction"
+msgid "Eliminated"
+msgstr "Eliminated"
+
+msgid "Eliminated Assets"
+msgstr "Eliminated Assets"
+
+msgid "Eliminated assets are those that are not alive or responsive, including inaccessible ports, unreachable URLs, etc."
+msgstr "Eliminated assets are those that are not alive or responsive, including inaccessible ports, unreachable URLs, etc."
+
+msgid "Eliminated assets display is disabled in configuration. Set <code>keep_eliminated_assets: true</code> to enable."
+msgstr "Eliminated assets display is disabled in configuration. Set <code>keep_eliminated_assets: true</code> to enable."
+
+msgid "Elimination Reasons"
+msgstr "Elimination Reasons"
+
+msgid "enable"
+msgstr "Enable"
+
+msgid "Endpoint header capture failed for {url}: {error}"
+msgstr "Endpoint header capture failed for {url}: {error}"
+
+msgid "Endpoint hint materialization failed: {error}"
+msgstr "Endpoint hint materialization failed: {error}"
+
+msgid "Endpoint hint materialized as asset: {target}"
+msgstr "Endpoint hint materialized as asset: {target}"
+
+msgid "Engine instance does not exist, defaulting to False to avoid adding unrelated domains"
+msgstr "Engine instance does not exist, defaulting to False to avoid adding unrelated domains"
+
+msgid "Engine is in state {state}, cannot start"
+msgstr "Engine is in state {state}, cannot start"
+
+msgid "enter"
+msgstr "Open"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Error extracting domain from URL: {error}"
+msgstr "Error extracting domain from URL: {error}"
+
+msgid "Error processing asset {uid}: {error}"
+msgstr "Error processing asset {uid}: {error}"
+
+msgid "Error recording IP range: {error}"
+msgstr "Error recording IP range: {error}"
+
+msgid "Error running breeding engine: {error}"
+msgstr "Error running breeding engine: {error}"
+
+msgid "Error saving scan results: {error}"
+msgstr "Error saving scan results: {error}"
+
+msgid "Event hook {event} failed: {error}"
+msgstr "Event hook {event} failed: {error}"
+
+msgid "events"
+msgstr "Events"
+
+msgid "Events"
+msgstr "Events"
+
+msgid "EVENTS"
+msgstr "EVENTS"
+
+msgid "Exceeds depth limit {limit}"
+msgstr "Exceeds depth limit {limit}"
+
+msgid "Exceeds max depth {depth}"
+msgstr "Exceeds max depth {depth}"
+
+msgid "Exceeds {type} limit {limit}"
+msgstr "Exceeds {type} limit {limit}"
+
+msgid "Executing command: {cmd}"
+msgstr "Executing command: {cmd}"
+
+msgid "Executing JSFinder command: {cmd}"
+msgstr "Executing JSFinder command: {cmd}"
+
+msgid "Executing naabu command: {cmd}"
+msgstr "Executing naabu command: {cmd}"
+
+msgid "Execution Metrics"
+msgstr "Execution Metrics"
+
+msgid "Exported CSV asset list: {assets_file}, {relations_file}"
+msgstr "Exported CSV asset list: {assets_file}, {relations_file}"
+
+msgid "Exported GraphML asset graph: {filename}"
+msgstr "Exported GraphML asset graph: {filename}"
+
+msgid "Exported JSON asset graph: {filename}"
+msgstr "Exported JSON asset graph: {filename}"
+
+msgid "Extracted domain from URL seed: {domain}"
+msgstr "Extracted domain from URL seed: {domain}"
+
+msgid "Extracted seed domain from URL {url}: {domain}"
+msgstr "Extracted seed domain from URL {url}: {domain}"
+
+msgid "Extracted {count} seed-related URLs from JS content"
+msgstr "Extracted {count} seed-related URLs from JS content"
+
+msgid "Extracted {count} URLs from JS content (filtered)"
+msgstr "Extracted {count} URLs from JS content (filtered)"
+
+msgid "Extracted {related} seed-related URLs from JS content, total: {total}"
+msgstr "Extracted {related} seed-related URLs from JS content, total: {total}"
+
+msgid "Failed to collect plugin CLI hooks for {name}: {error}"
+msgstr "Failed to collect plugin CLI hooks for {name}: {error}"
+
+msgid "Failed to create default config file: {error}"
+msgstr "Failed to create default config file: {error}"
+
+msgid "Failed to delete JSFinder temporary files: {error}"
+msgstr "Failed to delete JSFinder temporary files: {error}"
+
+msgid "Failed to export {format} format: {error}"
+msgstr "Failed to export {format} format: {error}"
+
+msgid "Failed to extract seed domain from URL: {error}"
+msgstr "Failed to extract seed domain from URL: {error}"
+
+msgid "Failed to get URL content, status code: {code}"
+msgstr "Failed to get URL content, status code: {code}"
+
+msgid "Failed to load checkpoint {path}: {error}"
+msgstr "Failed to load checkpoint {path}: {error}"
+
+msgid "Failed to load config file {path}: {error}"
+msgstr "Failed to load config file {path}: {error}"
+
+msgid "Failed to load plugin {file}: {error}"
+msgstr "Failed to load plugin {file}: {error}"
+
+msgid "Failed to process relative path: {path}, error: {error}"
+msgstr "Failed to process relative path: {path}, error: {error}"
+
+msgid "Failed to read JSFinder subdomain result file: {error}"
+msgstr "Failed to read JSFinder subdomain result file: {error}"
+
+msgid "Failed to read JSFinder URL result file: {error}"
+msgstr "Failed to read JSFinder URL result file: {error}"
+
+msgid "Failed to resolve plugin conflicts: {error}"
+msgstr "Failed to resolve plugin conflicts: {error}"
+
+msgid "Failed to save changes file: {error}"
+msgstr "Failed to save changes file: {error}"
+
+msgid "Failed to save checkpoint {path}: {error}"
+msgstr "Failed to save checkpoint {path}: {error}"
+
+msgid "Failed to use {path}: {error}"
+msgstr "Failed to use {path}: {error}"
+
+msgid "file not found"
+msgstr "file not found"
+
+msgid "Files"
+msgstr "Files"
+
+msgid "Filtering non-seed-related subdomain: {subdomain}"
+msgstr "Filtering non-seed-related subdomain: {subdomain}"
+
+msgid "Filtering non-seed-related URL: {url}"
+msgstr "Filtering non-seed-related URL: {url}"
+
+msgid "Fingerprint engine disabled (engine=none), using internal title extraction"
+msgstr "Fingerprint engine disabled (engine=none), using internal title extraction"
 
 msgid "Fingerprint merged result: {result}"
 msgstr "Fingerprint merged result: {result}"
 
+msgid "Fingerprint result: {result}"
+msgstr "Fingerprint result: {result}"
+
+msgid "Fingerprinting failed: {url}, {error}"
+msgstr "Fingerprinting failed: {url}, {error}"
+
+msgid "Fingerprinting feature not enabled, skipping EHole call"
+msgstr "Fingerprinting feature not enabled, skipping EHole call"
+
 msgid "Fingerprinting feature not enabled, skipping fingerprint call"
 msgstr "Fingerprinting feature not enabled, skipping fingerprint call"
+
+msgid "Fingerprinting returned no results: {url}"
+msgstr "Fingerprinting returned no results: {url}"
+
+msgid "Fingerprints"
+msgstr "Fingerprints"
+
+msgid "follow_log"
+msgstr "Auto-scroll"
+
+msgid "Found asset: {uid}, current state: {state}"
+msgstr "Found asset: {uid}, current state: {state}"
 
 msgid "Found tool ehole in local multi-arch directory"
 msgstr "Found tool ehole in local multi-arch directory"
@@ -2474,11 +643,248 @@ msgstr "Found tool ehole in local multi-arch directory"
 msgid "Found tool whatweb"
 msgstr "Found tool whatweb"
 
+msgid "Found tool {tool} at configured path: {path}"
+msgstr "Found tool {tool} at configured path: {path}"
+
+msgid "Found tool {tool} in assets directory: {path}"
+msgstr "Found tool {tool} in assets directory: {path}"
+
 msgid "Found tool {tool} in local directory"
 msgstr "Found tool {tool} in local directory"
 
+msgid "Found tool {tool} in system PATH"
+msgstr "Found tool {tool} in system PATH"
+
+msgid "free-subfinder call exception: {error}"
+msgstr "free-subfinder call exception: {error}"
+
+msgid "free-subfinder execution failed: {error}"
+msgstr "free-subfinder execution failed: {error}"
+
+msgid "Free-subfinder found no subdomains"
+msgstr "Free-subfinder found no subdomains"
+
+msgid "Free-subfinder found {count} subdomains"
+msgstr "Free-subfinder found {count} subdomains"
+
+msgid "free-subfinder found {count} subdomains: {subdomains}"
+msgstr "free-subfinder found {count} subdomains: {subdomains}"
+
+msgid "free-subfinder.py not found, using internal method instead"
+msgstr "free-subfinder.py not found, using internal method instead"
+
+msgid "Generated HTML report: {filename}"
+msgstr "Generated HTML report: {filename}"
+
+msgid "handlers"
+msgstr "Handlers"
+
+msgid "Handlers"
+msgstr "Handlers"
+
+msgid "HANDLERS"
+msgstr "HANDLERS"
+
+msgid "Handling redirect: {from_} -> {to}"
+msgstr "Handling redirect: {from_} -> {to}"
+
+msgid "high_related"
+msgstr "Highly Connected (deg≥3)"
+
+msgid "Hint: drag to pan, pin/scroll to zoom, builds auto-fit"
+msgstr "Hint: drag to pan, pin/scroll to zoom, builds auto-fit"
+
+msgid "history_projects"
+msgstr "Historical Scans"
+
+msgid "HTTP proxy configured: {proxy}"
+msgstr "HTTP proxy configured: {proxy}"
+
+msgid "HTTP proxy disabled"
+msgstr "HTTP proxy disabled"
+
+msgid "HTTP request completed: {url}, status: {status}"
+msgstr "HTTP request completed: {url}, status: {status}"
+
+msgid "HTTP status code:"
+msgstr "HTTP status code:"
+
+msgid "HTTP status code: {code}"
+msgstr "HTTP status code: {code}"
+
+msgid "HTTP status code: {status}"
+msgstr "HTTP status code: {status}"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "Inaccessible URL"
+msgstr "Inaccessible URL"
+
+msgid "Increased concurrency to {concurrency}"
+msgstr "Increased concurrency to {concurrency}"
+
+msgid "Internal DNS resolver call exception: {error}"
+msgstr "Internal DNS resolver call exception: {error}"
+
+msgid "Internal DNS resolver dnsxs.py does not exist"
+msgstr "Internal DNS resolver dnsxs.py does not exist"
+
+msgid "Internal DNS resolver execution failed: {error}"
+msgstr "Internal DNS resolver execution failed: {error}"
+
+msgid "Internal JSFinder execution failed: {error}"
+msgstr "Internal JSFinder execution failed: {error}"
+
+msgid "Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+msgstr "Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+
+msgid "Internal port scanner call exception: {error}"
+msgstr "Internal port scanner call exception: {error}"
+
+msgid "Internal port scanner execution failed: {error}"
+msgstr "Internal port scanner execution failed: {error}"
+
+msgid "Internal port scanner port.py does not exist"
+msgstr "Internal port scanner port.py does not exist"
+
+msgid "Invalid domain format: {domain}"
+msgstr "Invalid domain format: {domain}"
+
+msgid "invalid domain: {value}"
+msgstr "invalid domain: {value}"
+
+msgid "invalid IP: {value}"
+msgstr "invalid IP: {value}"
+
+msgid "invalid password"
+msgstr "invalid password"
+
+msgid "Invalid port asset value: {value}, error: {error}"
+msgstr "Invalid port asset value: {value}, error: {error}"
+
+msgid "invalid seed assets"
+msgstr "invalid seed assets"
+
+msgid "Invalid URL format for fingerprinting: {url}"
+msgstr "Invalid URL format for fingerprinting: {url}"
+
+msgid "Invalid URL format: {url}"
+msgstr "Invalid URL format: {url}"
+
+msgid "Invalid URL format: {url}, skipping fingerprinting"
+msgstr "Invalid URL format: {url}, skipping fingerprinting"
+
+msgid "invalid URL: {value}"
+msgstr "invalid URL: {value}"
+
+msgid "IP Addresses"
+msgstr "IP Addresses"
+
+msgid "IP breeder received non-IP asset: {uid}"
+msgstr "IP breeder received non-IP asset: {uid}"
+
+msgid "IP range check error: {error}"
+msgstr "IP range check error: {error}"
+
 msgid "IP range discovery disabled by config, skipping IP resolution"
 msgstr "IP range discovery disabled by config, skipping IP resolution"
+
+msgid "ip_seed"
+msgstr "IP seeds (one per line)"
+
+msgid "JS asset {url} processed, found {count} new assets"
+msgstr "JS asset {url} processed, found {count} new assets"
+
+msgid "JS breeder received non-JS asset: {uid}"
+msgstr "JS breeder received non-JS asset: {uid}"
+
+msgid "JS content fetch failed: {url}, {error}"
+msgstr "JS content fetch failed: {url}, {error}"
+
+msgid "JS extraction failed: {error}"
+msgstr "JS extraction failed: {error}"
+
+msgid "JS file extracted from HTML: {url}"
+msgstr "JS file extracted from HTML: {url}"
+
+msgid "JS path extraction failed: {error}"
+msgstr "JS path extraction failed: {error}"
+
+msgid "JSFinder call exception: {error}"
+msgstr "JSFinder call exception: {error}"
+
+msgid "JSFinder error output:\n{error}"
+msgstr "JSFinder error output:\n{error}"
+
+msgid "JSFinder execution completed, exit code: {code}"
+msgstr "JSFinder execution completed, exit code: {code}"
+
+msgid "JSFinder execution failed: {error}"
+msgstr "JSFinder execution failed: {error}"
+
+msgid "JSFinder execution timed out, trying internal method instead"
+msgstr "JSFinder execution timed out, trying internal method instead"
+
+msgid "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+msgstr "JSFinder extracted {count} subdomains from {url}, {related} seed-related"
+
+msgid "JSFinder extracted {count} URLs from {url}"
+msgstr "JSFinder extracted {count} URLs from {url}"
+
+msgid "JSFinder extracted {related} seed-related subdomains from {url}, total: {total}"
+msgstr "JSFinder extracted {related} seed-related subdomains from {url}, total: {total}"
+
+msgid "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+msgstr "JSFinder extracted {related} seed-related URLs from {url}, total: {total}"
+
+msgid "JSFinder extracted {total} URLs from {url}, no domain restriction"
+msgstr "JSFinder extracted {total} URLs from {url}, no domain restriction"
+
+msgid "JSFinder extracted {total} URLs from {url}, {related} seed-related"
+msgstr "JSFinder extracted {total} URLs from {url}, {related} seed-related"
+
+msgid "JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+msgstr "JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}"
+
+msgid "JSFinder found subdomain: {subdomain}"
+msgstr "JSFinder found subdomain: {subdomain}"
+
+msgid "JSFinder found URL: {url}"
+msgstr "JSFinder found URL: {url}"
+
+msgid "JSFinder output preview:\n{output}"
+msgstr "JSFinder output preview:\n{output}"
+
+msgid "JSfinder.py not found, using internal method instead"
+msgstr "JSfinder.py not found, using internal method instead"
+
+msgid "Keeping seed-related subdomain: {subdomain}"
+msgstr "Keeping seed-related subdomain: {subdomain}"
+
+msgid "Keeping seed-related URL: {url}"
+msgstr "Keeping seed-related URL: {url}"
+
+msgid "Kind"
+msgstr "Kind"
+
+msgid "KIND"
+msgstr "KIND"
+
+msgid "Link extraction failed: {error}"
+msgstr "Link extraction failed: {error}"
+
+msgid "Link has no domain part, possibly relative: {link}"
+msgstr "Link has no domain part, possibly relative: {link}"
+
+msgid "List plugins in the plugins directory and exit"
+msgstr "List plugins in the plugins directory and exit"
+
+msgid "Loaded config file: {path}"
+msgstr "Loaded config file: {path}"
+
+msgid "Loaded external tool path configuration: {paths}"
+msgstr "Loaded external tool path configuration: {paths}"
 
 msgid "Local EHole resolution failed: {error}"
 msgstr "Local EHole resolution failed: {error}"
@@ -2486,46 +892,880 @@ msgstr "Local EHole resolution failed: {error}"
 msgid "Local tool resolution failed for {name}: {err}"
 msgstr "Local tool resolution failed for {name}: {err}"
 
-msgid ""
-"No fingerprint tool available (ehole/whatweb), using internal title "
-"extraction"
-msgstr ""
-"No fingerprint tool available (ehole/whatweb), using internal title "
-"extraction"
+msgid "Maintaining asset {uid} elimination status"
+msgstr "Maintaining asset {uid} elimination status"
 
-msgid ""
-"Plugin name conflict: {cur} declares {name} already provided by {prev}, "
-"skipped"
-msgstr ""
-"Plugin name conflict: {cur} declares {name} already provided by {prev}, "
-"skipped"
+msgid "Marking asset as eliminated: {url}, reason: {reason}"
+msgstr "Marking asset as eliminated: {url}, reason: {reason}"
+
+msgid "Matches exclusion rules"
+msgstr "Matches exclusion rules"
+
+msgid "Max Depth"
+msgstr "Max Depth"
+
+msgid "max_depth"
+msgstr "Max Depth"
+
+msgid "max_depth_l"
+msgstr "Max Depth"
+
+msgid "Maximum scan depth set: {depth}"
+msgstr "Maximum scan depth set: {depth}"
+
+msgid "Metric"
+msgstr "Metric"
+
+msgid "Metrics"
+msgstr "Metrics"
+
+msgid "Naabu call exception: {error}"
+msgstr "Naabu call exception: {error}"
+
+msgid "Naabu execution failed: {error}"
+msgstr "Naabu execution failed: {error}"
+
+msgid "Naabu tool not found or invalid path, using internal method instead"
+msgstr "Naabu tool not found or invalid path, using internal method instead"
+
+msgid "name"
+msgstr "Name"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "NAME"
+msgstr "NAME"
+
+msgid "need_one_seed"
+msgstr "Please provide at least one seed"
+
+msgid "New Found"
+msgstr "New Found"
+
+msgid "new_scan_task"
+msgstr "New Scan Task"
+
+msgid "new_task"
+msgstr "New Scan"
+
+msgid "No active assets found"
+msgstr "No active assets found"
+
+msgid "No breeder for type {type}"
+msgstr "No breeder for type {type}"
+
+msgid "No changes detected"
+msgstr "No changes detected"
+
+msgid "No current URL asset being processed: {url}"
+msgstr "No current URL asset being processed: {url}"
+
+msgid "No data"
+msgstr "No data"
+
+msgid "No eliminated assets found"
+msgstr "No eliminated assets found"
+
+msgid "No external tool path configuration found, using default paths"
+msgstr "No external tool path configuration found, using default paths"
+
+msgid "No fingerprint tool available (ehole/whatweb), using internal title extraction"
+msgstr "No fingerprint tool available (ehole/whatweb), using internal title extraction"
+
+msgid "No on_* hook handlers found in {source}"
+msgstr "No on_* hook handlers found in {source}"
+
+msgid "No seed assets provided, unable to start breeding engine"
+msgstr "No seed assets provided, unable to start breeding engine"
+
+msgid "No suitable breeder found for asset type {type}, skipping"
+msgstr "No suitable breeder found for asset type {type}, skipping"
+
+msgid "No title"
+msgstr "No title"
+
+msgid "no valid projects"
+msgstr "no valid projects"
+
+msgid "No valid seed assets provided"
+msgstr "No valid seed assets provided"
+
+msgid "no_assets"
+msgstr "No assets"
+
+msgid "no_data"
+msgstr "No data"
+
+msgid "no_logs"
+msgstr "No logs yet"
+
+msgid "no_match"
+msgstr "No matching assets"
+
+msgid "no_plugins"
+msgstr "No plugins (plugin dir is empty or not loaded)"
+
+msgid "no_projects"
+msgstr "No historical scans"
+
+msgid "no_props"
+msgstr "No extra properties"
+
+msgid "no_tasks"
+msgstr "No tasks"
+
+msgid "Node count: {count}"
+msgstr "Node count: {count}"
+
+msgid "nodes"
+msgstr "Nodes"
+
+msgid "None"
+msgstr "None"
+
+msgid "Normalized URL: {url}"
+msgstr "Normalized URL: {url}"
+
+msgid "not found"
+msgstr "not found"
+
+msgid "only_base"
+msgstr "Only in Base"
+
+msgid "only_base_has"
+msgstr "Only in Base"
+
+msgid "only_others"
+msgstr "Only in Others"
+
+msgid "only_others_has"
+msgstr "Only in Others"
+
+msgid "operation_failed"
+msgstr "Operation failed: {error}"
+
+msgid "options"
+msgstr "options"
+
+msgid "other_assets"
+msgstr "Other Assets"
+
+msgid "output"
+msgstr "Output"
+
+msgid "Output directory"
+msgstr "Output directory"
+
+msgid "Overview"
+msgstr "Overview"
+
+msgid "Path"
+msgstr "Path"
+
+msgid "path escapes plugin dir"
+msgstr "path escapes plugin dir"
+
+msgid "plugin"
+msgstr "Plugin"
+
+msgid "plugin has no webui"
+msgstr "plugin has no webui"
+
+msgid "Plugin name conflict: {cur} declares {name} already provided by {prev}, skipped"
+msgstr "Plugin name conflict: {cur} declares {name} already provided by {prev}, skipped"
 
 msgid "Plugin name conflict: {name} from {a} and {b}, keeping {a}"
 msgstr "Plugin name conflict: {name} from {a} and {b}, keeping {a}"
 
+msgid "plugin not found"
+msgstr "plugin not found"
+
+msgid "Plugin not found: {name}"
+msgstr "Plugin not found: {name}"
+
 msgid "Plugin {cur} conflicts with {prev} ({name}), skipped"
 msgstr "Plugin {cur} conflicts with {prev} ({name}), skipped"
+
+msgid "Plugin {name} failed to register CLI: {error}"
+msgstr "Plugin {name} failed to register CLI: {error}"
+
+msgid "Plugin {plugin} disabled by configuration"
+msgstr "Plugin {plugin} disabled by configuration"
+
+msgid "plugin_help() failed for {name}: {error}"
+msgstr "plugin_help() failed for {name}: {error}"
+
+msgid "plugins"
+msgstr "Plugins"
+
+msgid "Plugins directory not found: {dir}"
+msgstr "Plugins directory not found: {dir}"
+
+msgid "Plugins directory: {dir}"
+msgstr "Plugins directory: {dir}"
+
+msgid "Port breeder received non-port asset: {uid}"
+msgstr "Port breeder received non-port asset: {uid}"
+
+msgid "Port Distribution"
+msgstr "Port Distribution"
+
+msgid "Port not open: {result}"
+msgstr "Port not open: {result}"
+
+msgid "Port {port} scan failed: {error}"
+msgstr "Port {port} scan failed: {error}"
+
+msgid "positional arguments"
+msgstr "positional arguments"
+
+msgid "Pre-filtering: URL processing failed: {url}, error: {error}"
+msgstr "Pre-filtering: URL processing failed: {url}, error: {error}"
+
+msgid "Preliminary extraction: {initial} URLs, cleaned: {cleaned} valid URLs"
+msgstr "Preliminary extraction: {initial} URLs, cleaned: {cleaned} valid URLs"
+
+msgid "Processed"
+msgstr "Processed"
+
+msgid "Processing HTML report, total assets: {count}"
+msgstr "Processing HTML report, total assets: {count}"
+
+msgid "Processing URL: {url}"
+msgstr "Processing URL: {url}"
+
+#, python-brace-format
+msgid "Progress: {processed} assets processed, {found} discovered, {errors} errors, {queued} queued"
+msgstr "Progress: {processed} assets processed, {found} discovered, {errors} errors, {queued} queued"
+
+msgid "project not found"
+msgstr "project not found"
+
+msgid "project_compare"
+msgstr "Project Comparison"
+
+msgid "props"
+msgstr "Properties"
+
+msgid "Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
+msgstr "Proxy auto-disabled. Will retry {url} with direct connection on next cycle."
+
+msgid "Proxy error detected for {url}. Check your proxy configuration."
+msgstr "Proxy error detected for {url}. Check your proxy configuration."
+
+msgid "Querying crt.sh for subdomains: {domain}"
+msgstr "Querying crt.sh for subdomains: {domain}"
+
+msgid "raw_json"
+msgstr "Raw JSON"
+
+msgid "read failed"
+msgstr "read failed"
+
+msgid "real_time_log"
+msgstr "Live Log"
+
+msgid "Reason"
+msgstr "Reason"
+
+msgid "Received stop signal, shutting down gracefully..."
+msgstr "Received stop signal, shutting down gracefully..."
+
+msgid "Received user interrupt, stopping..."
+msgstr "Received user interrupt, stopping..."
+
+msgid "Rechecking asset state: {uid}, state: {state}"
+msgstr "Rechecking asset state: {uid}, state: {state}"
+
+msgid "Redirect detected: {from_} -> {to}"
+msgstr "Redirect detected: {from_} -> {to}"
+
+msgid "Reduced concurrency to {concurrency}"
+msgstr "Reduced concurrency to {concurrency}"
+
+msgid "refresh"
+msgstr "Refresh"
+
+msgid "Registered {count} hook handlers from {source}"
+msgstr "Registered {count} hook handlers from {source}"
+
+msgid "Registrable domain resolution failed for {domain}: {error}"
+msgstr "Registrable domain resolution failed for {domain}: {error}"
+
+msgid "Relation Type"
+msgstr "Relation Type"
+
+msgid "Relations"
+msgstr "Relations"
+
+msgid "reload"
+msgstr "Reload"
+
+msgid "request body too large"
+msgstr "request body too large"
+
+msgid "rescan"
+msgstr "Rescan"
+
+msgid "rescan_failed"
+msgstr "Rescan failed: {error}"
+
+msgid "rescan_started"
+msgstr "Rescan started with same seeds: {id}"
+
+msgid "Resume from last checkpoint"
+msgstr "Resume from last checkpoint"
+
+msgid "Resuming scan from checkpoint, {nodes} assets, {queued} queued"
+msgstr "Resuming scan from checkpoint, {nodes} assets, {queued} queued"
+
+msgid "Reverse DNS domain relevance check: {domain}, related: {related}"
+msgstr "Reverse DNS domain relevance check: {domain}, related: {related}"
+
+msgid "Reverse DNS failed: IP {ip}, error: {error}"
+msgstr "Reverse DNS failed: IP {ip}, error: {error}"
+
+msgid "Reverse DNS for IP {ip} found {count} domains"
+msgstr "Reverse DNS for IP {ip} found {count} domains"
+
+msgid "Reverse DNS query disabled"
+msgstr "Reverse DNS query disabled"
+
+msgid "Reverse DNS successful: IP {ip} resolved to {hostname}"
+msgstr "Reverse DNS successful: IP {ip} resolved to {hostname}"
+
+msgid "robots/sitemap discovery failed: {error}"
+msgstr "robots/sitemap discovery failed: {error}"
+
+msgid "Run in watch mode, rescan periodically and report changes"
+msgstr "Run in watch mode, rescan periodically and report changes"
+
+msgid "Running built-in DNS brute-force for subdomains: {domain}"
+msgstr "Running built-in DNS brute-force for subdomains: {domain}"
+
+msgid "save"
+msgstr "Save"
+
+msgid "save_failed"
+msgstr "Save failed"
+
+msgid "Saving scan results before stopping engine..."
+msgstr "Saving scan results before stopping engine..."
+
+msgid "scan in progress or no output yet"
+msgstr "scan in progress or no output yet"
+
+msgid "Scan Report &mdash; Generated:"
+msgstr "Scan Report &mdash; Generated:"
+
+msgid "Scan results saved: {files}"
+msgstr "Scan results saved: {files}"
+
+#, python-brace-format
+msgid "Scan summary: {total} assets in graph ({eliminated} eliminated), {processed} processed, {found} discovered, {errors} errors"
+msgstr "Scan summary: {total} assets in graph ({eliminated} eliminated), {processed} processed, {found} discovered, {errors} errors"
+
+msgid "scan_after_done"
+msgstr "Full project data available after scan completes"
+
+msgid "scan_projects"
+msgstr "Scan Projects"
+
+msgid "scan_running"
+msgstr "Scan in progress, generating output..."
+
+msgid "scan_tasks"
+msgstr "Scan Tasks"
+
+msgid "Search assets..."
+msgstr "Search assets..."
+
+msgid "Search eliminated assets..."
+msgstr "Search eliminated assets..."
+
+msgid "search_assets"
+msgstr "Search assets..."
+
+msgid "seed"
+msgstr "Seed"
+
+msgid "Seed Assets"
+msgstr "Seed Assets"
+
+msgid "Seed domain list is empty, this may cause domain relevance judgment errors"
+msgstr "Seed domain list is empty, this may cause domain relevance judgment errors"
+
+msgid "Seed domains list attribute not found in engine, all domains will be considered unrelated"
+msgstr "Seed domains list attribute not found in engine, all domains will be considered unrelated"
+
+msgid "Seed domains list attribute not found in engine, defaulting to False"
+msgstr "Seed domains list attribute not found in engine, defaulting to False"
+
+msgid "Seed domains list is empty, all domains will be considered unrelated"
+msgstr "Seed domains list is empty, all domains will be considered unrelated"
+
+msgid "Seed domains list is empty, defaulting to False"
+msgstr "Seed domains list is empty, defaulting to False"
+
+msgid "Seed domains list not found, domain relevance may be inaccurate"
+msgstr "Seed domains list not found, domain relevance may be inaccurate"
+
+msgid "seed must be an object"
+msgstr "seed must be an object"
+
+msgid "seed value must be a non-empty string"
+msgstr "seed value must be a non-empty string"
+
+msgid "seed value too long"
+msgstr "seed value too long"
+
+msgid "Seed {domain} expanded to registrable domain {registrable} (asset_scope.seed_scope={mode})"
+msgstr "Seed {domain} expanded to registrable domain {registrable} (asset_scope.seed_scope={mode})"
+
+msgid "Seed {domain} is itself a public suffix; keeping exact-match scope only"
+msgstr "Seed {domain} is itself a public suffix; keeping exact-match scope only"
+
+msgid "seed_domains"
+msgstr "Seed Domains"
+
+msgid "seeds must be a non-empty array"
+msgstr "seeds must be a non-empty array"
+
+msgid "select_two_projects"
+msgstr "Please select at least two projects"
 
 msgid "Selected fingerprint tool {tool} not available, skipping"
 msgstr "Selected fingerprint tool {tool} not available, skipping"
 
+msgid "Sending HTTP request: {url}"
+msgstr "Sending HTTP request: {url}"
+
+msgid "Server"
+msgstr "Server"
+
+msgid "Service"
+msgstr "Service"
+
+msgid "Set maximum scan depth"
+msgstr "Set maximum scan depth"
+
+msgid "Show detailed info about a plugin and exit"
+msgstr "Show detailed info about a plugin and exit"
+
+msgid "show this help message and exit"
+msgstr "show this help message and exit"
+
+msgid "Show version information"
+msgstr "Show version information"
+
+msgid "Showing {count} assets"
+msgstr "Showing {count} assets"
+
+msgid "Skipping invalid domain format: {subdomain}"
+msgstr "Skipping invalid domain format: {subdomain}"
+
+msgid "Skipping invalid subdomain format: {subdomain}"
+msgstr "Skipping invalid subdomain format: {subdomain}"
+
+msgid "Skipping invalid subdomain: {subdomain}"
+msgstr "Skipping invalid subdomain: {subdomain}"
+
+msgid "Skipping invalid URL: {url}"
+msgstr "Skipping invalid URL: {url}"
+
+msgid "Skipping IP outside seed range: {ip}"
+msgstr "Skipping IP outside seed range: {ip}"
+
+msgid "Skipping malformed subdomain: {subdomain}"
+msgstr "Skipping malformed subdomain: {subdomain}"
+
+msgid "Skipping malformed URL (JS concat/template): {url}"
+msgstr "Skipping malformed URL (JS concat/template): {url}"
+
+msgid "Skipping non-domain string: {subdomain}"
+msgstr "Skipping non-domain string: {subdomain}"
+
+msgid "Skipping non-HTTP URL: {url}"
+msgstr "Skipping non-HTTP URL: {url}"
+
+msgid "Skipping non-seed-related API path: {url}"
+msgstr "Skipping non-seed-related API path: {url}"
+
+msgid "Skipping non-seed-related certificate domain: {domain}"
+msgstr "Skipping non-seed-related certificate domain: {domain}"
+
+msgid "Skipping non-seed-related discovery link: {link}"
+msgstr "Skipping non-seed-related discovery link: {link}"
+
+msgid "Skipping non-seed-related domain asset: {domain}"
+msgstr "Skipping non-seed-related domain asset: {domain}"
+
+msgid "Skipping non-seed-related domain: {domain} from IP {ip}"
+msgstr "Skipping non-seed-related domain: {domain} from IP {ip}"
+
+msgid "Skipping non-seed-related domain: {domain}, URL: {url}"
+msgstr "Skipping non-seed-related domain: {domain}, URL: {url}"
+
+msgid "Skipping non-seed-related link: {link}, domain: {domain}"
+msgstr "Skipping non-seed-related link: {link}, domain: {domain}"
+
+msgid "Skipping non-seed-related redirect domain: {domain}"
+msgstr "Skipping non-seed-related redirect domain: {domain}"
+
+msgid "Skipping non-seed-related subdomain: {subdomain}"
+msgstr "Skipping non-seed-related subdomain: {subdomain}"
+
+msgid "Skipping possible JavaScript code URL: {url}"
+msgstr "Skipping possible JavaScript code URL: {url}"
+
+msgid "Skipping subdomain with invalid characters: {subdomain}"
+msgstr "Skipping subdomain with invalid characters: {subdomain}"
+
+msgid "Skipping system path URL: {url}"
+msgstr "Skipping system path URL: {url}"
+
+msgid "Skipping system path: {path}"
+msgstr "Skipping system path: {path}"
+
+msgid "Skipping system path: {url}"
+msgstr "Skipping system path: {url}"
+
+msgid "Skipping URL without domain: {url}"
+msgstr "Skipping URL without domain: {url}"
+
+msgid "Skipping wildcard subdomain: {subdomain}"
+msgstr "Skipping wildcard subdomain: {subdomain}"
+
+msgid "Sleeping {seconds}s until next cycle"
+msgstr "Sleeping {seconds}s until next cycle"
+
+msgid "source"
+msgstr "Source"
+
+msgid "Source Asset ID"
+msgstr "Source Asset ID"
+
+msgid "Start processing asset: {uid}"
+msgstr "Start processing asset: {uid}"
+
+msgid "Start the web console"
+msgstr "Start the web console"
+
+msgid "Start the web console (set env ZSANS_WEB_PASSWORD to require login)"
+msgstr "Start the web console (set env ZSANS_WEB_PASSWORD to require login)"
+
+msgid "start_scan"
+msgstr "Start Scan"
+
+msgid "starting"
+msgstr "Starting..."
+
+msgid "Starting fingerprinting, original URL: {url}, cleaned URL: {cleaned}"
+msgstr "Starting fingerprinting, original URL: {url}, cleaned URL: {cleaned}"
+
+msgid "Starting JSFinder for URL: {url}"
+msgstr "Starting JSFinder for URL: {url}"
+
+msgid "Starting reverse DNS for IP: {ip}"
+msgstr "Starting reverse DNS for IP: {ip}"
+
+msgid "State"
+msgstr "State"
+
+msgid "state_dist"
+msgstr "Asset State Distribution"
+
+msgid "status"
+msgstr "Status"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "STATUS"
+msgstr "STATUS"
+
+msgid "Status code set for asset: {uid}, code: {code}"
+msgstr "Status code set for asset: {uid}, code: {code}"
+
+msgid "stop"
+msgstr "Stop"
+
+msgid "Stop signal received, exiting watch mode"
+msgstr "Stop signal received, exiting watch mode"
+
+msgid "strategy"
+msgstr "Strategy"
+
+msgid "strategy_breadth_first"
+msgstr "Breadth first"
+
+msgid "strategy_depth_first"
+msgstr "Depth first"
+
+msgid "strategy_priority_based"
+msgstr "Priority based"
+
+msgid "strategy_time_based"
+msgstr "Time based"
+
+msgid "stream closed"
+msgstr "stream closed"
+
+msgid "Subclasses must implement this method"
+msgstr "Subclasses must implement this method"
+
 msgid "Subdomain discovery disabled by config, skipping"
 msgstr "Subdomain discovery disabled by config, skipping"
 
-msgid "Title extracted from WhatWeb: {title}"
-msgstr "Title extracted from WhatWeb: {title}"
+msgid "Subdomain discovery failed: {error}"
+msgstr "Subdomain discovery failed: {error}"
+
+msgid "Subdomain relevance check: {subdomain}, related: {related}"
+msgstr "Subdomain relevance check: {subdomain}, related: {related}"
+
+msgid "Subdomain {subdomain} is seed-related, adding as domain asset"
+msgstr "Subdomain {subdomain} is seed-related, adding as domain asset"
+
+msgid "Subdomain {subdomain} not seed-related but added due to no restriction"
+msgstr "Subdomain {subdomain} not seed-related but added due to no restriction"
+
+msgid "Subfinder call exception: {error}"
+msgstr "Subfinder call exception: {error}"
+
+msgid "Subfinder execution failed: {error}"
+msgstr "Subfinder execution failed: {error}"
+
+msgid "Subfinder found no subdomains"
+msgstr "Subfinder found no subdomains"
+
+msgid "Subfinder found {count} subdomains"
+msgstr "Subfinder found {count} subdomains"
+
+msgid "Subfinder tool not found, using internal method instead"
+msgstr "Subfinder tool not found, using internal method instead"
+
+msgid "System PATH subfinder failed, using internal method instead"
+msgstr "System PATH subfinder failed, using internal method instead"
+
+msgid "Target Asset ID"
+msgstr "Target Asset ID"
+
+msgid "task not found"
+msgstr "task not found"
+
+msgid "task not found or no seeds"
+msgstr "task not found or no seeds"
+
+msgid "Task {func} completed, duration: {duration:.2f} seconds"
+msgstr "Task {func} completed, duration: {duration:.2f} seconds"
+
+msgid "task_detail"
+msgstr "Task"
+
+msgid "task_failed"
+msgstr "Task failed"
+
+msgid "task_started"
+msgstr "Task started"
+
+msgid "tasks"
+msgstr "Tasks"
+
+msgid "Title / Note"
+msgstr "Title / Note"
+
+msgid "Title already extracted from EHole, skipping BeautifulSoup: {url}"
+msgstr "Title already extracted from EHole, skipping BeautifulSoup: {url}"
+
+msgid "Title extracted from BeautifulSoup: {url}, title: {title}"
+msgstr "Title extracted from BeautifulSoup: {url}, title: {title}"
+
+msgid "Title extracted from EHole: {title}"
+msgstr "Title extracted from EHole: {title}"
+
+msgid "Title extracted from EHole: {url}, title: {title}"
+msgstr "Title extracted from EHole: {url}, title: {title}"
 
 msgid "Title extracted from fingerprint tool: {url}, title: {title}"
 msgstr "Title extracted from fingerprint tool: {url}, title: {title}"
 
+msgid "Title extracted from WhatWeb: {title}"
+msgstr "Title extracted from WhatWeb: {title}"
+
+msgid "Title extraction disabled for URL: {url}"
+msgstr "Title extraction disabled for URL: {url}"
+
+msgid "Title extraction failed: {url}, {error}"
+msgstr "Title extraction failed: {url}, {error}"
+
+msgid "Title/Note"
+msgstr "Title/Note"
+
+msgid "too many failed attempts, please retry later"
+msgstr "too many failed attempts, please retry later"
+
+msgid "too many seeds (max {max})"
+msgstr "too many seeds (max {max})"
+
+msgid "Tool manager shutdown"
+msgstr "Tool manager shutdown"
+
 msgid "Tool registered: {name} (path={path}, args={args})"
 msgstr "Tool registered: {name} (path={path}, args={args})"
+
+msgid "Tool {tool} not found"
+msgstr "Tool {tool} not found"
+
+msgid "Tool {tool} path is empty, ignoring configuration"
+msgstr "Tool {tool} path is empty, ignoring configuration"
+
+msgid "Top Hosts"
+msgstr "Top Hosts"
+
+msgid "Topology"
+msgstr "Topology"
+
+msgid "topology"
+msgstr "Topology"
+
+msgid "Total Assets"
+msgstr "Total Assets"
+
+msgid "Trying internal method instead"
+msgstr "Trying internal method instead"
+
+msgid "Trying subfinder from system PATH"
+msgstr "Trying subfinder from system PATH"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "type"
+msgstr "Type"
+
+msgid "type_count"
+msgstr "Type Count"
+
+msgid "type_dist"
+msgstr "Asset Type Distribution"
+
+msgid "Unable to access asset graph, cannot mark asset: {url}"
+msgstr "Unable to access asset graph, cannot mark asset: {url}"
+
+msgid "Unable to access asset graph, cannot set state: {url}"
+msgstr "Unable to access asset graph, cannot set state: {url}"
+
+msgid "Unable to access asset graph, cannot update state: {url}"
+msgstr "Unable to access asset graph, cannot update state: {url}"
+
+msgid "Unable to extract status code from reason: {reason}"
+msgstr "Unable to extract status code from reason: {reason}"
+
+msgid "Unable to fetch content"
+msgstr "Unable to fetch content"
+
+msgid "unauthorized: login required"
+msgstr "unauthorized: login required"
+
+msgid "Unknown"
+msgstr "Unknown"
+
+msgid "Unknown asset type: {type}, using base breeder"
+msgstr "Unknown asset type: {type}, using base breeder"
+
+msgid "Unknown asset_scope.seed_scope value: {mode}, falling back to 'registrable'"
+msgstr "Unknown asset_scope.seed_scope value: {mode}, falling back to 'registrable'"
+
+msgid "unknown seed type: {type}"
+msgstr "unknown seed type: {type}"
+
+msgid "Unknown Service"
+msgstr "Unknown Service"
+
+msgid "Unreachable IP"
+msgstr "Unreachable IP"
+
+msgid "Unresolvable domain"
+msgstr "Unresolvable domain"
+
+msgid "Unsupported output format: {format}"
+msgstr "Unsupported output format: {format}"
+
+msgid "Updated asset graph state to eliminated: {uid}, state: {state}"
+msgstr "Updated asset graph state to eliminated: {uid}, state: {state}"
+
+msgid "updates must be an object"
+msgstr "updates must be an object"
+
+msgid "Updating current asset state: {url}"
+msgstr "Updating current asset state: {url}"
+
+msgid "URL asset already processed, skipping: {uid}, state: {state}"
+msgstr "URL asset already processed, skipping: {uid}, state: {state}"
+
+msgid "URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
+msgstr "URL asset content fetch failed, marked as eliminated: {url}, state: {state}"
+
+msgid "URL asset exists in graph: {uid}, state: {state}"
+msgstr "URL asset exists in graph: {uid}, state: {state}"
+
+msgid "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+msgstr "URL asset marked as eliminated: {url}, status: {status}, state: {state}"
+
+msgid "URL asset not found in graph: {uid}"
+msgstr "URL asset not found in graph: {uid}"
+
+msgid "URL breeder received non-URL asset: {uid}"
+msgstr "URL breeder received non-URL asset: {uid}"
+
+msgid "URL content fetch failed: {url}, {error}"
+msgstr "URL content fetch failed: {url}, {error}"
+
+msgid "URL filtering error: {error}, URL: {url}"
+msgstr "URL filtering error: {error}, URL: {url}"
+
+msgid "URL fingerprint extracted: {url}, fingerprints: {fingerprints}"
+msgstr "URL fingerprint extracted: {url}, fingerprints: {fingerprints}"
+
+msgid "URL link domain relevance: {domain}, related: {related}"
+msgstr "URL link domain relevance: {domain}, related: {related}"
+
+msgid "URL parsing failed: {url}, error: {error}"
+msgstr "URL parsing failed: {url}, error: {error}"
+
+msgid "URL processing failed: {url}, error: {error}"
+msgstr "URL processing failed: {url}, error: {error}"
+
+msgid "URL request returned non-200 status: {url}, status: {status}"
+msgstr "URL request returned non-200 status: {url}, status: {status}"
+
+msgid "URL request successful: {url}, status: 200"
+msgstr "URL request successful: {url}, status: 200"
+
+msgid "url_seed"
+msgstr "URL seeds (one per line)"
+
+msgid "usage: "
+msgstr "usage: "
 
 msgid "Using EHole from configured path: {path}"
 msgstr "Using EHole from configured path: {path}"
 
-msgid "Using WhatWeb from configured path: {path}"
-msgstr "Using WhatWeb from configured path: {path}"
+msgid "Using free-subfinder tool to discover subdomains: {domain}"
+msgstr "Using free-subfinder tool to discover subdomains: {domain}"
+
+msgid "Using internal DNS resolver for {domain}"
+msgstr "Using internal DNS resolver for {domain}"
+
+msgid "Using internal port scanner for {ip}"
+msgstr "Using internal port scanner for {ip}"
+
+msgid "Using JSFinder tool for JS: {url}"
+msgstr "Using JSFinder tool for JS: {url}"
+
+msgid "Using JSFinder tool for URL: {url}"
+msgstr "Using JSFinder tool for URL: {url}"
 
 msgid "Using local EHole for {os}/{arch}: {path}"
 msgstr "Using local EHole for {os}/{arch}: {path}"
@@ -2536,8 +1776,83 @@ msgstr "Using local WhatWeb: {path}"
 msgid "Using naabu from local directory: {path}"
 msgstr "Using naabu from local directory: {path}"
 
+msgid "Using naabu from system PATH"
+msgstr "Using naabu from system PATH"
+
+msgid "Using seed domains list from engine: {domains}"
+msgstr "Using seed domains list from engine: {domains}"
+
+msgid "Using shell execution: {cmd}"
+msgstr "Using shell execution: {cmd}"
+
+msgid "Using shell string execution: {cmd}"
+msgstr "Using shell string execution: {cmd}"
+
 msgid "Using subfinder from local directory: {path}"
 msgstr "Using subfinder from local directory: {path}"
+
+msgid "Using subfinder path from configuration: {path}"
+msgstr "Using subfinder path from configuration: {path}"
+
+msgid "Using subfinder tool to discover subdomains: {domain}"
+msgstr "Using subfinder tool to discover subdomains: {domain}"
+
+msgid "Using subfinder.exe from assets directory: {path}"
+msgstr "Using subfinder.exe from assets directory: {path}"
+
+msgid "Using WhatWeb from configured path: {path}"
+msgstr "Using WhatWeb from configured path: {path}"
+
+msgid "Value"
+msgstr "Value"
+
+msgid "Verbose output"
+msgstr "Verbose output"
+
+msgid "version"
+msgstr "Version"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "VERSION"
+msgstr "VERSION"
+
+msgid "view"
+msgstr "View"
+
+msgid "view_output"
+msgstr "View Output"
+
+msgid "Watch cycle starting..."
+msgstr "Watch cycle starting..."
+
+msgid "Watch mode started, interval: {interval}s"
+msgstr "Watch mode started, interval: {interval}s"
+
+msgid "Web authentication disabled; set the ZSANS_WEB_PASSWORD environment variable to require a password"
+msgstr "Web authentication disabled; set the ZSANS_WEB_PASSWORD environment variable to require a password"
+
+msgid "Web authentication enabled (ZSANS_WEB_PASSWORD is set); API clients can authenticate via 'Authorization: Bearer <password>' or 'X-API-Key' header"
+msgstr "Web authentication enabled (ZSANS_WEB_PASSWORD is set); API clients can authenticate via 'Authorization: Bearer <password>' or 'X-API-Key' header"
+
+msgid "Web console port"
+msgstr "Web console port"
+
+msgid "Web console stopped"
+msgstr "Web console stopped"
+
+msgid "Web login rate-limited for {ip}"
+msgstr "Web login rate-limited for {ip}"
+
+msgid "Web login succeeded from {ip}"
+msgstr "Web login succeeded from {ip}"
+
+msgid "Webhook notification failed: {error}"
+msgstr "Webhook notification failed: {error}"
+
+msgid "Webhook notified, status: {status}"
+msgstr "Webhook notified, status: {status}"
 
 msgid "WhatWeb call exception: {error}"
 msgstr "WhatWeb call exception: {error}"
@@ -2557,9 +1872,29 @@ msgstr "WhatWeb returned empty fingerprint list"
 msgid "WhatWeb stderr: {err}"
 msgstr "WhatWeb stderr: {err}"
 
-msgid ""
-"WhatWeb tool not found (no binary for current platform), keeping internal "
-"title extraction"
-msgstr ""
-"WhatWeb tool not found (no binary for current platform), keeping internal "
-"title extraction"
+msgid "WhatWeb tool not found (no binary for current platform), keeping internal title extraction"
+msgstr "WhatWeb tool not found (no binary for current platform), keeping internal title extraction"
+
+msgid "YAML syntax error: {error}"
+msgstr "YAML syntax error: {error}"
+
+msgid "Z-Sans Asset Breeding Engine"
+msgstr "Z-Sans Asset Breeding Engine"
+
+msgid "Z-Sans Asset Breeding Engine &mdash; Report generated at"
+msgstr "Z-Sans Asset Breeding Engine &mdash; Report generated at"
+
+msgid "Z-Sans Asset Breeding Engine Report"
+msgstr "Z-Sans Asset Breeding Engine Report"
+
+msgid "Z-Sans Asset Breeding Engine v{VERSION}"
+msgstr "Z-Sans Asset Breeding Engine v{VERSION}"
+
+msgid "Z-Sans Asset Breeding Engine v{VERSION} Help Information"
+msgstr "Z-Sans Asset Breeding Engine v{VERSION} Help Information"
+
+msgid "Z-Sans Asset Breeding Engine v{VERSION} initialized"
+msgstr "Z-Sans Asset Breeding Engine v{VERSION} initialized"
+
+msgid "{count} errors during scan"
+msgstr "{count} errors during scan"

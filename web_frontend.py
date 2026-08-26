@@ -344,10 +344,10 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
           <div><label style="display:block;font-size:.8rem;color:var(--text2);margin-bottom:4px">{{ t('max_depth') }}</label><input type="number" v-model.number="newScan.maxDepth" min="1" max="10" style="width:100px"></div>
           <div><label style="display:block;font-size:.8rem;color:var(--text2);margin-bottom:4px">{{ t('strategy') }}</label>
             <select v-model="newScan.strategy" style="min-width:160px">
-              <option value="priority_based">priority_based</option>
-              <option value="depth_first">depth_first</option>
-              <option value="breadth_first">breadth_first</option>
-              <option value="time_based">time_based</option>
+              <option value="priority_based">{{ t('strategy_priority_based') }}</option>
+              <option value="depth_first">{{ t('strategy_depth_first') }}</option>
+              <option value="breadth_first">{{ t('strategy_breadth_first') }}</option>
+              <option value="time_based">{{ t('strategy_time_based') }}</option>
             </select>
           </div>
           <div><label style="display:block;font-size:.8rem;color:var(--text2);margin-bottom:4px">{{ t('concurrency') }}</label><input type="number" v-model.number="newScan.concurrency" min="1" max="50" style="width:100px"></div>
@@ -486,7 +486,7 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
             </select>
             <input v-else-if="field.type==='number' || field.type==='integer'" type="number" v-model.number="pluginForm[key]" @input="schemaDirty=true">
             <textarea v-else-if="field.type==='textarea'" v-model="pluginForm[key]" rows="3" @input="schemaDirty=true"></textarea>
-            <input v-else-if="field.type==='array' || (field.type==='string' && field.items)" v-model="pluginForm[key]" @input="schemaDirty=true" placeholder="逗号分隔">
+            <input v-else-if="field.type==='array' || (field.type==='string' && field.items)" v-model="pluginForm[key]" @input="schemaDirty=true" :placeholder="t('comma_separated')">
             <input v-else type="text" v-model="pluginForm[key]" @input="schemaDirty=true">
             <small v-if="field.description">{{ field.description }}</small>
           </div>
@@ -574,7 +574,7 @@ createApp({
     },
     activeTaskLogText() {
       if (!this.activeTask) return '';
-      return this.activeTask._logs ? this.activeTask._logs.join('\n') : '暂无日志';
+      return this.activeTask._logs && this.activeTask._logs.length ? this.activeTask._logs.join('\n') : this.t('no_logs');
     },
     schemaFields() {
       const s = this.activePlugin && this.activePlugin.schema;
@@ -647,7 +647,7 @@ createApp({
     api(path, opts) { return fetch(path, opts).then(r => r.json()); },
     loadProjects() { this.api('/api/projects').then(d => { if (Array.isArray(d)) this.projects = d; }); },
     compareSelected() {
-      if (this.compareIds.length < 2) { alert('请至少选择两个项目'); return; }
+      if (this.compareIds.length < 2) { alert(this.t('select_two_projects')); return; }
       this.compareTab = 'onlybase';
       this.api('/api/compare?ids=' + encodeURIComponent(this.compareIds.join(','))).then(d => {
         this.compareData = d; this.page = 'compare';
@@ -659,13 +659,13 @@ createApp({
     },
     deleteSelected() {
       if (!this.compareIds.length) return;
-      if (!confirm('确定删除所选 ' + this.compareIds.length + ' 个项目？此操作不可恢复。')) return;
+      if (!confirm(this.t('confirm_delete_projects').replace('{n}', this.compareIds.length))) return;
       this.api('/api/projects/delete', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ids: this.compareIds})}).then(d => {
         if (d.ok) {
           this.compareIds = [];
           this.loadProjects();
-          alert('已删除 ' + d.deleted.length + ' 个，失败 ' + (d.failed||[]).length + ' 个');
-        } else { alert('删除失败: ' + (d.error||'')); }
+          alert(this.t('delete_result').replace('{deleted}', d.deleted.length).replace('{failed}', (d.failed||[]).length));
+        } else { alert(this.t('delete_failed').replace('{error}', d.error||'')); }
       });
     },
     viewProject(id) {
@@ -826,8 +826,8 @@ createApp({
     stopTask(id) { this.api('/api/tasks/stop', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}).then(() => this.loadTasks()); },
     rescanTask(id) {
       this.api('/api/tasks/rescan', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}).then(d => {
-        if (d.ok) { this.lastTaskId = d.id; this.loadTasks(); alert('已用相同种子重新发起扫描: ' + d.id); }
-        else { alert('重扫失败: ' + (d.error||'')); }
+        if (d.ok) { this.lastTaskId = d.id; this.loadTasks(); alert(this.t('rescan_started').replace('{id}', d.id)); }
+        else { alert(this.t('rescan_failed').replace('{error}', d.error||'')); }
       });
     },
     pollTasks() { this.loadTasks(); },
@@ -836,7 +836,7 @@ createApp({
       (this.newScan.domains||'').split('\n').map(s=>s.trim()).filter(Boolean).forEach(v => seeds.push({type:'domain', value:v}));
       (this.newScan.urls||'').split('\n').map(s=>s.trim()).filter(Boolean).forEach(v => seeds.push({type:'url', value:v}));
       (this.newScan.ips||'').split('\n').map(s=>s.trim()).filter(Boolean).forEach(v => seeds.push({type:'ip', value:v}));
-      if (!seeds.length) { alert('请至少填写一个种子'); return; }
+      if (!seeds.length) { alert(this.t('need_one_seed')); return; }
       this.scanStarting = true;
       const config = { max_depth: this.newScan.maxDepth, strategy: this.newScan.strategy };
       if (this.newScan.concurrency) config.concurrency = { max_tasks: this.newScan.concurrency };
@@ -856,7 +856,7 @@ createApp({
     loadPlugins() { this.api('/api/plugins').then(d => { this.plugins = d.plugins || []; }); },
     togglePlugin(name) {
       this.api('/api/plugins/' + name + '/toggle', {method:'POST'}).then(d => {
-        if (d.ok) { this.loadPlugins(); } else { alert('操作失败: ' + (d.error||'')); }
+        if (d.ok) { this.loadPlugins(); } else { alert(this.t('operation_failed').replace('{error}', d.error||'')); }
       });
     },
     openPlugin(p) {
@@ -908,7 +908,7 @@ createApp({
       this.api('/api/plugins/' + this.activePlugin.name + '/config',
         {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}).then(d => {
           if (d.ok) { this.schemaSaved = true; this.schemaDirty = false; this.schemaError = null; }
-          else { this.schemaError = d.error || '保存失败'; }
+          else { this.schemaError = d.error || this.t('save_failed'); }
         });
     },
   },

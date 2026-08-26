@@ -143,6 +143,22 @@ python main.py --web            # http://0.0.0.0:8050
 python main.py --web --port 9000
 ```
 
+#### Authentication
+
+The web console is unauthenticated by default (binds to `127.0.0.1`). Set the `ZSANS_WEB_PASSWORD` environment variable to require a password:
+
+```bash
+# Browser: a login page is shown; after login you get an HttpOnly session cookie
+ZSANS_WEB_PASSWORD='your-secret' python main.py --web
+
+# Third-party API clients: pass the password directly as a token,
+# no login round-trip needed:
+curl -H "Authorization: Bearer your-secret" http://127.0.0.1:8050/api/tasks
+curl -H "X-API-Key: your-secret" http://127.0.0.1:8050/api/projects
+```
+
+When enabled, every endpoint requires authorization until you log in.
+
 Features:
 
 - **Project browser** — browse historical scan runs under `output/`, view the asset graph, analysis charts, and interactive topology
@@ -160,7 +176,7 @@ Features:
 Main sections of `breeding-config.yaml`:
 
 - `strategy` — breeding strategy: `priority_based` / `depth_first` / `breadth_first` / `time_based`
-- `asset_scope` — restrict results to seed domains / IP ranges, include subdomains
+- `asset_scope` — restrict results to seed domains / IP ranges, include subdomains; `seed_scope` controls seed expansion: `registrable` (default, expand to the registrable domain via the bundled Public Suffix List — `www.example.com` also covers `example.com`, while `example.co.uk` stays itself instead of matching any `*.co.uk`) or `exact` (no expansion, only the seed domain and its own subdomains)
 - `concurrency.max_tasks` — number of parallel asset-processing workers
 - `max_depth` — global breeding depth
 - `asset_types` — per-type enable switches, depth limits, priorities, and tool toggles

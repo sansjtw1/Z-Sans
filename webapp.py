@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 # coding: utf-8
 import copy
+import hashlib
+import hmac
 import io
+import ipaddress
 import json
 import logging
 import os
 import re
+import secrets
 import threading
 import time
 import traceback
@@ -13,7 +17,208 @@ import yaml
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
+from core.i18n import _
+
 logger = logging.getLogger('zsans.web')
+
+# ─────────────────────────────────────────────
+# Web 认证（环境变量 ZSANS_WEB_PASSWORD）
+# ─────────────────────────────────────────────
+
+AUTH_COOKIE_NAME = 'zsans_session'
+SESSION_TTL_SECONDS = 24 * 3600
+LOGIN_RATE_WINDOW = 60        # 失败尝试滑动窗口（秒）
+LOGIN_RATE_MAX = 10           # 窗口内最大失败次数，超过即限流
+
+
+class _WebAuthManager:
+    """基于环境变量口令的 Web 控制台认证。
+
+    - 未设置 ``ZSANS_WEB_PASSWORD`` 时认证关闭，行为与旧版一致；
+    - 设置后：除登录/登出接口外所有接口都要求授权。浏览器通过登录接口
+      换取 HttpOnly + SameSite=Lax 会话 Cookie；第三方程序可直接用
+      ``Authorization: Bearer <ZSANS_WEB_PASSWORD>`` 或 ``X-API-Key`` 请求头
+      接入 API，无需先走登录流程。
+    - 会话令牌仅保存 SHA-256 摘要；口令比较使用恒定时间比较。
+    """
+
+    def __init__(self):
+        self.password = os.environ.get('ZSANS_WEB_PASSWORD', '')
+        self.enabled = bool(self.password)
+        self._sessions = {}    # sha256(token) -> 过期时间戳
+        self._failures = {}    # ip -> [失败时间戳]
+        self._lock = threading.Lock()
+
+    @staticmethod
+    def _token_key(token):
+        return hashlib.sha256(token.encode('utf-8')).hexdigest()
+
+    def check_password(self, password):
+        return isinstance(password, str) and hmac.compare_digest(self.password, password)
+
+    def create_session(self):
+        token = secrets.token_urlsafe(32)
+        with self._lock:
+            self._sessions[self._token_key(token)] = time.time() + SESSION_TTL_SECONDS
+        return token
+
+    def drop_session(self, token):
+        if not token:
+            return
+        with self._lock:
+            self._sessions.pop(self._token_key(token), None)
+
+    def validate_session(self, token):
+        if not token:
+            return False
+        key = self._token_key(token)
+        now = time.time()
+        with self._lock:
+            expiry = self._sessions.get(key)
+            if expiry is None:
+                return False
+            if expiry < now:
+                del self._sessions[key]
+                return False
+            return True
+
+    def register_failure(self, ip):
+        """记录一次登录失败。返回 True 表示已超限流阈值（应拒绝尝试）。"""
+        now = time.time()
+        cutoff = now - LOGIN_RATE_WINDOW
+        with self._lock:
+            window = [t for t in (self._failures.get(ip) or []) if t > cutoff]
+            window.append(now)
+            self._failures[ip] = window
+            return len(window) > LOGIN_RATE_MAX
+
+    def clear_failures(self, ip):
+        with self._lock:
+            self._failures.pop(ip, None)
+
+
+def validate_seed(seed):
+    """校验 Web 端提交的种子资产。
+
+    Web 种子最终会进入外部工具命令行参数，必须做严格字符集白名单，
+    从入口杜绝注入面。返回 (normalized_value, None) 或 (None, error)。
+    """
+    if not isinstance(seed, dict):
+        return None, _("seed must be an object")
+    stype = seed.get('type')
+    value = seed.get('value')
+    if not isinstance(value, str) or not value.strip():
+        return None, _("seed value must be a non-empty string")
+    value = value.strip()
+    if len(value) > 2048:
+        return None, _("seed value too long")
+
+    if stype == 'domain':
+        v = value.lower().rstrip('.')
+        if len(v) > 253 or not _is_valid_hostname(v):
+            return None, _("invalid domain: {value}").format(value=value)
+        return v, None
+
+    if stype == 'url':
+        v = value if value.startswith(('http://', 'https://')) else 'https://' + value
+        try:
+            parsed = urlparse(v)
+        except Exception:
+            return None, _("invalid URL: {value}").format(value=value)
+        host = (parsed.hostname or '').lower()
+        if parsed.scheme not in ('http', 'https') or not host:
+            return None, _("invalid URL: {value}").format(value=value)
+        is_ip = _is_valid_ip_literal(host)
+        if not is_ip and not _is_valid_hostname(host):
+            return None, _("invalid URL: {value}").format(value=value)
+        # 仅允许 http(s) 与标准端口写法，其余字符交给 urlparse 白名单结果
+        netloc_ok = bool(re.match(r'^[A-Za-z0-9.\-]+(:\d{1,5})?$', parsed.netloc))
+        path_ok = all(ch.isalnum() or ch in "-._~:/?#[]@!$&'()*+,;=%" for ch in v)
+        if not netloc_ok or not path_ok:
+            return None, _("invalid URL: {value}").format(value=value)
+        return v, None
+
+    if stype == 'ip':
+        if not _is_valid_ip_literal(value):
+            return None, _("invalid IP: {value}").format(value=value)
+        return value, None
+
+    return None, _("unknown seed type: {type}").format(type=stype)
+
+
+def _is_valid_hostname(host):
+    if not host or len(host) > 253:
+        return False
+    label_re = re.compile(r'^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$')
+    return all(label_re.match(label) for label in host.split('.'))
+
+
+def _is_valid_ip_literal(value):
+    try:
+        ipaddress.ip_address(value.strip('[]'))
+        return True
+    except ValueError:
+        return False
+
+
+LOGIN_HTML = r"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Z-Sans Login</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0f172a; color:#e2e8f0; font-family:-apple-system,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif;
+       display:flex; align-items:center; justify-content:center; min-height:100vh; }
+.box { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:36px; width:min(360px,92vw); text-align:center; }
+.box h1 { font-size:1.6rem; letter-spacing:.5px; }
+.box p.sub { color:#94a3b8; font-size:.85rem; margin:6px 0 22px; }
+input[type=password] { width:100%; background:#0f172a; border:1px solid #334155; color:#e2e8f0;
+       border-radius:8px; padding:11px 13px; font-size:.95rem; outline:none; }
+input[type=password]:focus { border-color:#38bdf8; }
+button { margin-top:14px; width:100%; background:#0ea5e9; border:none; color:#fff; padding:11px;
+       border-radius:8px; font-size:.9rem; font-weight:600; cursor:pointer; }
+button:hover { background:#38bdf8; }
+button:disabled { opacity:.5; cursor:not-allowed; }
+.err { color:#f87171; font-size:.82rem; margin-top:12px; min-height:1.2em; word-break:break-all; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>Z-Sans</h1>
+  <p class="sub">Web Console</p>
+  <input type="password" id="pwd" placeholder="Password / 密码" autocomplete="current-password" autofocus>
+  <button id="btn" onclick="doLogin()">Login / 登录</button>
+  <div class="err" id="err"></div>
+</div>
+<script>
+function doLogin() {
+  var btn = document.getElementById('btn'), err = document.getElementById('err');
+  btn.disabled = true; err.textContent = '';
+  fetch('/api/auth/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({password: document.getElementById('pwd').value})
+  }).then(function (r) {
+    return r.json().then(function (d) { return {status: r.status, d: d}; });
+  }).then(function (res) {
+    if (res.status === 200 && res.d.ok) { location.reload(); return; }
+    err.textContent = res.d.error || ('HTTP ' + res.status);
+    btn.disabled = false;
+  }).catch(function (e) {
+    err.textContent = String(e);
+    btn.disabled = false;
+  });
+}
+document.getElementById('pwd').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>
+"""
+
 
 # ─────────────────────────────────────────────
 # 扫描任务管理器
@@ -226,7 +431,7 @@ class ScanManager:
 
                 if not added:
                     task["status"] = "failed"
-                    task["error"] = "No valid seed assets provided"
+                    task["error"] = _("No valid seed assets provided")
                     return
 
                 run_dir = engine.output_handler.ensure_run_dir()
@@ -243,7 +448,7 @@ class ScanManager:
                 else:
                     task["status"] = "completed" if ok else "failed"
                     if not ok and engine.metrics.get("errors"):
-                        task["error"] = f"{engine.metrics.get('errors')} errors during scan"
+                        task["error"] = _("{count} errors during scan").format(count=engine.metrics.get("errors"))
             except Exception as e:
                 logger.error("Web task %s failed: %s", tid, e)
                 task["status"] = "failed"
@@ -316,7 +521,7 @@ class ScanManager:
         返回 (success, message, disabled_status)。
         """
         if not re.match(r'^[A-Za-z0-9_.-]+$', plugin_name or ''):
-            return False, "invalid plugin name", None
+            return False, _("invalid plugin name"), None
         raw, err = read_config_raw(self._config_path)
         if err:
             return False, err, None
@@ -372,7 +577,7 @@ class ScanManager:
     def set_plugin_config(self, plugin_name, data):
         """保存插件 web 配置（整体覆盖）。"""
         if not isinstance(data, dict):
-            return False, "config must be an object"
+            return False, _("config must be an object")
         p = self.plugin_config_path(plugin_name)
         try:
             os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -389,7 +594,7 @@ class ScanManager:
         同目录 schema/json/css/js 等资源）。返回 (abs_path|None, error|None)。
         """
         if not re.match(r'^[A-Za-z0-9_.-]+$', plugin_name or ''):
-            return None, "invalid plugin name"
+            return None, _("invalid plugin name")
         try:
             plugins = list_plugins(lambda: self._new_engine())
         except Exception as e:
@@ -399,21 +604,21 @@ class ScanManager:
                 continue
             base = info.get("path") or ""
             if not base:
-                return None, "plugin not found"
+                return None, _("plugin not found")
             base_abs = os.path.abspath(base)
             if rel:
                 abs_path = os.path.abspath(os.path.join(base_abs, rel))
             else:
                 webui = info.get("webui") or ""
                 if not webui:
-                    return None, "plugin has no webui"
+                    return None, _("plugin has no webui")
                 abs_path = os.path.abspath(os.path.join(base_abs, webui))
             if not abs_path.startswith(base_abs + os.sep) and abs_path != base_abs:
-                return None, "path escapes plugin dir"
+                return None, _("path escapes plugin dir")
             if not os.path.isfile(abs_path):
-                return None, "file not found"
+                return None, _("file not found")
             return abs_path, None
-        return None, "plugin not found"
+        return None, _("plugin not found")
 
 
 class _TaskLogHandler(logging.Handler):
@@ -507,7 +712,7 @@ def compare_projects(output_dir, ids):
         projects.append({"id": pid, "uids": uid_set, "nodes": data['nodes']})
 
     if not projects:
-        return {"error": "no valid projects"}
+        return {"error": _("no valid projects")}
 
     base = projects[0]
     result = {
@@ -749,7 +954,7 @@ def apply_config_patch(raw, updates):
     try:
         yaml.safe_load(raw)
     except Exception as e:
-        return raw, f"YAML 语法错误: {e}"
+        return raw, _("YAML syntax error: {error}").format(error=e)
     lines = raw.splitlines()
 
     # 先排序，父路径优先于子路径，避免插入影响后续定位
@@ -806,7 +1011,7 @@ def write_config_yaml(path, raw):
     try:
         yaml.safe_load(raw)  # 校验语法
     except Exception as e:
-        return False, f"YAML 语法错误: {e}"
+        return False, _("YAML syntax error: {error}").format(error=e)
     try:
         with open(path, 'w', encoding='utf-8') as f:
             f.write(raw)
@@ -893,6 +1098,10 @@ WEB_I18N_KEYS = [
     "no_props","source","type","close","scan_running","scan_after_done",
     "data_not_found","task_failed","drag_hint","only_base_has","only_others_has",
     "common_has",
+    "strategy_priority_based","strategy_depth_first","strategy_breadth_first",
+    "strategy_time_based","select_two_projects","confirm_delete_projects",
+    "delete_result","delete_failed","rescan_started","rescan_failed",
+    "need_one_seed","no_logs","operation_failed","save_failed","comma_separated",
 ]
 
 _web_gettext_cache = {}
@@ -903,8 +1112,10 @@ def _web_gettext(lang):
     if lang in _web_gettext_cache:
         return _web_gettext_cache[lang]
     import gettext
+    # 以本文件位置为基准定位 i18n 目录，避免依赖启动时的 CWD
+    locale_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'i18n')
     try:
-        t = gettext.translation('messages', localedir='i18n', languages=[lang])
+        t = gettext.translation('messages', localedir=locale_dir, languages=[lang])
     except Exception:
         t = gettext.NullTranslations()
     _web_gettext_cache[lang] = t.gettext
@@ -952,18 +1163,18 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
         """提供 web_static/ 下的静态资源（本地化前端依赖，不依赖外网 CDN）。"""
         name = os.path.basename(path)
         if not name or '..' in name:
-            self._send_json({"error": "bad static path"}, 400)
+            self._send_json({"error": _("bad static path")}, 400)
             return
         file_path = os.path.join(self.server.static_dir, name)
         if not os.path.isfile(file_path):
-            self._send_json({"error": "not found"}, 404)
+            self._send_json({"error": _("not found")}, 404)
             return
         ctype = 'application/javascript; charset=utf-8' if name.endswith('.js') else 'application/octet-stream'
         try:
             with open(file_path, 'rb') as f:
                 body = f.read()
         except Exception:
-            self._send_json({"error": "read failed"}, 500)
+            self._send_json({"error": _("read failed")}, 500)
             return
         self.send_response(200)
         self.send_header('Content-Type', ctype)
@@ -993,7 +1204,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
             with open(file_path, 'rb') as f:
                 body = f.read()
         except Exception:
-            self._send_json({"error": "read failed"}, 500)
+            self._send_json({"error": _("read failed")}, 500)
             return
         self.send_response(200)
         self.send_header('Content-Type', ctype)
@@ -1012,14 +1223,16 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'text/event-stream')
             self.send_header('Cache-Control', 'no-cache')
             self.send_header('Connection', 'keep-alive')
-            self.send_header('Access-Control-Allow-Origin', '*')
+            # 不设置 Access-Control-Allow-Origin：日志流只应被同源前端消费，
+            # 通配 CORS 会把扫描日志（资产情报）泄露给任意第三方页面。
             self.end_headers()
 
             last_idx = 0
             # 先推送一次现有日志(全量)作为初始
             snap = mgr.get_logs_since(tid, 0)
             if snap is None:
-                self.wfile.write(b'event: done\ndata: {"error":"task not found"}\n\n')
+                self.wfile.write(b'event: done\ndata: {"error":"' +
+                                 _("task not found").encode('utf-8') + b'"}\n\n')
                 self.wfile.flush()
                 return
             new_logs, last_idx, status = snap
@@ -1048,15 +1261,19 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
             pass
         except Exception as e:
             try:
-                self.wfile.write(b'event: done\ndata: {"error":"stream closed"}\n\n')
+                self.wfile.write(b'event: done\ndata: {"error":"' +
+                                 _("stream closed").encode('utf-8') + b'"}\n\n')
                 self.wfile.flush()
             except Exception:
                 pass
 
-    def _read_body(self):
+    def _read_body(self, max_bytes=2 * 1024 * 1024):
         length = int(self.headers.get('Content-Length') or 0)
         if length <= 0:
             return b''
+        if length > max_bytes:
+            # 超过上限的请求体直接拒绝读取，防止内存 DoS
+            raise ValueError(_("request body too large"))
         return self.rfile.read(length)
 
     def _json_body(self):
@@ -1071,11 +1288,102 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
     def _get_manager(self):
         return self.server.manager  # type: ignore[attr-defined]
 
+    # ---- 认证 ----
+    def _get_auth(self):
+        return getattr(self.server, 'auth', None)
+
+    def _client_ip(self):
+        try:
+            return self.client_address[0]
+        except Exception:
+            return '?'
+
+    def _cookie_token(self):
+        header = self.headers.get('Cookie') or ''
+        for part in header.split(';'):
+            k, _, v = part.strip().partition('=')
+            if k == AUTH_COOKIE_NAME:
+                return v.strip()
+        return None
+
+    def _is_authorized(self):
+        """认证开关关闭时恒为 True；开启时接受会话 Cookie 或 Bearer/X-API-Key 口令。"""
+        auth = self._get_auth()
+        if not auth or not auth.enabled:
+            return True
+        auth_header = self.headers.get('Authorization') or ''
+        if auth_header.startswith('Bearer '):
+            supplied = auth_header[len('Bearer '):].strip()
+            if supplied and hmac.compare_digest(supplied, auth.password):
+                return True
+        api_key = (self.headers.get('X-API-Key') or '').strip()
+        if api_key and hmac.compare_digest(api_key, auth.password):
+            return True
+        return auth.validate_session(self._cookie_token())
+
+    def _handle_login(self):
+        auth = self._get_auth()
+        if not auth or not auth.enabled:
+            self._send_json({"ok": True, "message": _("authentication disabled")})
+            return
+        body = self._json_body()
+        password = body.get('password') if isinstance(body, dict) else None
+        ip = self._client_ip()
+        if auth.check_password(password):
+            auth.clear_failures(ip)
+            token = auth.create_session()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Set-Cookie',
+                             '{name}={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age={ttl}'.format(
+                                 name=AUTH_COOKIE_NAME, token=token, ttl=SESSION_TTL_SECONDS))
+            body_bytes = json.dumps({"ok": True}, ensure_ascii=False).encode('utf-8')
+            self.send_header('Content-Length', str(len(body_bytes)))
+            self.end_headers()
+            self.wfile.write(body_bytes)
+            logger.info(_("Web login succeeded from {ip}").format(ip=ip))
+        else:
+            limited = False
+            if isinstance(password, str):
+                limited = auth.register_failure(ip)
+            time.sleep(0.5)  # 减缓在线爆破
+            if limited:
+                logger.warning(_("Web login rate-limited for {ip}").format(ip=ip))
+                self._send_json(
+                    {"ok": False, "error": _("too many failed attempts, please retry later")}, 429)
+            else:
+                self._send_json({"ok": False, "error": _("invalid password")}, 401)
+
+    def _handle_logout(self):
+        auth = self._get_auth()
+        token = self._cookie_token()
+        if auth and token:
+            auth.drop_session(token)
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.send_header('Set-Cookie',
+                         '{name}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0'.format(name=AUTH_COOKIE_NAME))
+        body_bytes = json.dumps({"ok": True}, ensure_ascii=False).encode('utf-8')
+        self.send_header('Content-Length', str(len(body_bytes)))
+        self.end_headers()
+        self.wfile.write(body_bytes)
+
+    def _reject_unauthorized(self, is_api_request):
+        if is_api_request:
+            self._send_json({"error": _("unauthorized: login required")}, 401)
+        else:
+            self._send_html(LOGIN_HTML)
+
     # ---- 路由 ----
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
         qs = parse_qs(parsed.query)
+
+        auth = self._get_auth()
+        if auth and auth.enabled and not self._is_authorized():
+            self._reject_unauthorized(path.startswith('/api/'))
+            return
 
         try:
             if path == '/' or path == '/index.html':
@@ -1103,9 +1411,10 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                         # 目录存在但无数据 vs 目录不存在
                         proj_dir = os.path.join(self._get_manager()._output_dir, pid)
                         if os.path.isdir(proj_dir):
-                            self._send_json({"status": "pending", "message": "scan in progress or no output yet"})
+                            self._send_json({"status": "pending",
+                                             "message": _("scan in progress or no output yet")})
                         else:
-                            self._send_json({"error": "project not found"}, 404)
+                            self._send_json({"error": _("project not found")}, 404)
                 else:
                     self._send_json(data)
             elif path == '/api/compare':
@@ -1126,7 +1435,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                 tid = path.rsplit('/', 1)[-1]
                 t = self._get_manager().get_task(tid)
                 if t is None:
-                    self._send_json({"error": "task not found"}, 404)
+                    self._send_json({"error": _("task not found")}, 404)
                 else:
                     self._send_json(t)
             elif path == '/api/config':
@@ -1165,7 +1474,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
             elif path == '/api/config/schema':
                 self._send_json(self._get_manager()._base_config)
             else:
-                self._send_json({"error": "not found", "path": path}, 404)
+                self._send_json({"error": _("not found"), "path": path}, 404)
         except Exception as e:
             logger.error("GET %s error: %s", path, e)
             traceback.print_exc()
@@ -1175,12 +1484,52 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
 
+        # 登录/登出始终放行（登录自身做限流；登出无敏感操作）
+        if path == '/api/auth/login':
+            try:
+                self._handle_login()
+            except Exception as e:
+                logger.error("POST %s error: %s", path, e)
+                traceback.print_exc()
+                self._send_json({"error": str(e)}, 500)
+            return
+        if path == '/api/auth/logout':
+            try:
+                self._handle_logout()
+            except Exception as e:
+                logger.error("POST %s error: %s", path, e)
+                traceback.print_exc()
+                self._send_json({"error": str(e)}, 500)
+            return
+
+        auth = self._get_auth()
+        if auth and auth.enabled and not self._is_authorized():
+            self._send_json({"error": _("unauthorized: login required")}, 401)
+            return
+
         try:
             if path == '/api/scan/start':
                 body = self._json_body()
-                seeds = body.get('seeds') or []
+                seeds_raw = body.get('seeds') or []
                 overrides = body.get('config') or {}
-                tid = self._get_manager().start_scan(seeds, overrides)
+                if not isinstance(seeds_raw, list) or not seeds_raw:
+                    self._send_json({"error": _("seeds must be a non-empty array")}, 400)
+                    return
+                if len(seeds_raw) > 100:
+                    self._send_json({"error": _("too many seeds (max {max})").format(max=100)}, 400)
+                    return
+                validated = []
+                invalid = []
+                for s in seeds_raw:
+                    value, err = validate_seed(s)
+                    if err:
+                        invalid.append({"seed": s if isinstance(s, dict) else str(s), "reason": err})
+                    else:
+                        validated.append({"type": s.get('type'), "value": value})
+                if invalid:
+                    self._send_json({"error": _("invalid seed assets"), "invalid": invalid}, 400)
+                    return
+                tid = self._get_manager().start_scan(validated, overrides)
                 self._send_json({"id": tid, "status": "started"})
             elif path == '/api/projects/delete':
                 body = self._json_body()
@@ -1199,7 +1548,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                 if new_id:
                     self._send_json({"ok": True, "id": new_id})
                 else:
-                    self._send_json({"error": "task not found or no seeds"}, 404)
+                    self._send_json({"error": _("task not found or no seeds")}, 404)
             elif path == '/api/config':
                 raw = self._read_body().decode('utf-8')
                 ok, err = write_config_yaml(self._get_manager()._config_path, raw)
@@ -1211,7 +1560,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                 body = self._json_body()
                 updates = body.get('updates')
                 if not isinstance(updates, dict):
-                    self._send_json({"error": "updates must be an object"}, 400)
+                    self._send_json({"error": _("updates must be an object")}, 400)
                     return
                 cur_raw, err = read_config_raw(self._get_manager()._config_path)
                 if err:
@@ -1242,7 +1591,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                 else:
                     self._send_json({"error": err}, 500)
             else:
-                self._send_json({"error": "not found"}, 404)
+                self._send_json({"error": _("not found")}, 404)
         except Exception as e:
             logger.error("POST %s error: %s", path, e)
             traceback.print_exc()
@@ -1252,11 +1601,12 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
 class ZSansWebServer(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, addr, handler_cls, manager, zs_version, static_dir=None, lang='zh'):
+    def __init__(self, addr, handler_cls, manager, zs_version, static_dir=None, lang='zh', auth=None):
         super().__init__(addr, handler_cls)
         self.manager = manager
         self.zs_version = zs_version
         self.lang = lang
+        self.auth = auth
         self.static_dir = static_dir or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web_static')
 
 
@@ -1265,6 +1615,7 @@ def start_web_server(base_config, config_path, output_dir, port=8050, host='127.
     from main import BreedingEngine
 
     manager = ScanManager(base_config, config_path, output_dir)
+    auth = _WebAuthManager()
 
     def _fresh_engine():
         # 每次从配置文件重新读取，使插件启停等配置改动即时生效
@@ -1282,7 +1633,9 @@ def start_web_server(base_config, config_path, output_dir, port=8050, host='127.
         if cur:
             lang = cur
         # 配置文件优先：直接读 language.default_language
-        cfg_data, _ = read_config_file(config_path)
+        # 注意：不能用 `_` 作丢弃变量名，否则会把模块级 gettext 函数 `_`
+        # 遮蔽成本地变量，函数内后续的 _(…) 调用会变成调用 None。
+        cfg_data, _cfg_err = read_config_file(config_path)
         if cfg_data and isinstance(cfg_data.get('language'), dict):
             dl = cfg_data['language'].get('default_language')
             if dl:
@@ -1295,7 +1648,12 @@ def start_web_server(base_config, config_path, output_dir, port=8050, host='127.
         zs_version = _zs_version
     except Exception:
         zs_version = "0.0.6"
-    server = ZSansWebServer((host, port), ZSansWebHandler, manager, zs_version, lang=lang)
+    server = ZSansWebServer((host, port), ZSansWebHandler, manager, zs_version, lang=lang, auth=auth)
+    if auth.enabled:
+        logger.info(_("Web authentication enabled (ZSANS_WEB_PASSWORD is set); "
+                      "API clients can authenticate via 'Authorization: Bearer <password>' or 'X-API-Key' header"))
+    else:
+        logger.warning(_("Web authentication disabled; set the ZSANS_WEB_PASSWORD environment variable to require a password"))
     logger.info("Z-Sans web console started on http://%s:%d", host, port)
     try:
         server.serve_forever()

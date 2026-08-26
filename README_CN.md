@@ -157,6 +157,19 @@ python main.py --web            # http://0.0.0.0:8050
 python main.py --web --port 9000
 ```
 
+#### 认证
+
+Web 控制台默认无认证（默认仅绑定 `127.0.0.1`）。通过环境变量 `ZSANS_WEB_PASSWORD` 设置口令后，所有接口在授权前禁止访问：
+
+```bash
+# 浏览器：显示登录页，登录后获得 HttpOnly 会话 Cookie
+ZSANS_WEB_PASSWORD='your-secret' python main.py --web
+
+# 第三方程序：直接以口令作为令牌接入 API，无需先走登录流程：
+curl -H "Authorization: Bearer your-secret" http://127.0.0.1:8050/api/tasks
+curl -H "X-API-Key: your-secret" http://127.0.0.1:8050/api/projects
+```
+
 功能特性：
 
 - **项目浏览** — 浏览 `output/` 下的历史扫描项目，查看资产图、分析图表和交互式拓扑
@@ -195,6 +208,12 @@ asset_scope:
   restrict_to_seed_ip_ranges: false  # 不限制在种子IP范围内
   include_subdomains: true          # 包含子域名
   include_ip_ranges: true           # 包含IP范围
+  seed_scope: registrable           # 种子作用域扩展方式：
+                                    #   registrable - 基于内置公共后缀表(PSL)扩展到注册域 eTLD+1（默认，推荐）
+                                    #                 www.example.com 会同时覆盖 example.com 及其子域；
+                                    #                 example.co.uk 保持自身（co.uk 是公共后缀，不会误拆到 *.co.uk）。
+                                    #   exact       - 不做任何扩展，仅匹配种子域本身及其子域
+                                    #                 www.example.com 只扫描 *.www.example.com，不含 mail.example.com。
 ```
 
 ### 并发配置

@@ -73,11 +73,23 @@ def set_http_proxy(proxy_url):
                 'https': proxy_url
             }
             _proxy_failure_count = 0  # 重置失败计数
-            logger.debug(f"HTTP proxy configured: {proxy_url}")
+            # 日志中抹掉代理凭据（proxy URL 可能含 user:password）
+            safe_url = proxy_url
+            try:
+                from urllib.parse import urlsplit, urlunsplit
+                parts = urlsplit(proxy_url)
+                if parts.username or parts.password:
+                    host = parts.hostname or ''
+                    if parts.port:
+                        host += f':{parts.port}'
+                    safe_url = urlunsplit((parts.scheme, host, parts.path, parts.query, parts.fragment))
+            except Exception:
+                pass
+            logger.debug(_("HTTP proxy configured: {proxy}").format(proxy=safe_url))
         else:
             http_session.proxies = {}
             _proxy_failure_count = 0
-            logger.debug("HTTP proxy disabled")
+            logger.debug(_("HTTP proxy disabled"))
 
 def report_proxy_failure():
     """报告一次代理失败，连续失败达到阈值后自动禁用代理"""
@@ -149,7 +161,8 @@ DEFAULT_CONFIG = {
         "restrict_to_seed_domains": True,    # 限制在种子域名范围内
         "restrict_to_seed_ip_ranges": True,  # 限制在种子IP范围内
         "include_subdomains": True,          # 包含子域名
-        "include_ip_ranges": True            # 包含IP范围
+        "include_ip_ranges": True,           # 包含IP范围
+        "seed_scope": "registrable"          # 种子作用域: registrable(按公共后缀表扩展到注册域eTLD+1) / exact(仅种子域本身及子域,不拆分)
     },
 
     # 并发配置

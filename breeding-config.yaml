@@ -7,6 +7,7 @@ asset_scope:
   restrict_to_seed_ip_ranges: false  # Limit to seed IP ranges
   include_subdomains: true          # Include subdomains
   include_ip_ranges: true           # Include IP ranges
+  seed_scope: registrable           # Seed scope expansion: registrable (expand to registrable domain via Public Suffix List, e.g. www.jiyu.com -> jiyu.com; beijing.edu.cn stays beijing.edu.cn) / exact (no expansion, seed domain and its subdomains only)
 
 # Concurrency configuration
 concurrency:

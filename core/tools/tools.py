@@ -219,34 +219,30 @@ class ToolOrchestrator:
                 tool_path = self.tool_paths['subfinder']
                 if os.path.exists(tool_path):
                     subfinder_path = tool_path
-                    logger.info(_("Using subfinder path from configuration: {path}").format(path=subfinder_path))
+                    logger.debug(_("Using subfinder path from configuration: {path}").format(path=subfinder_path))
             else:
                 local_path = self._resolve_local_tool_binary('subfinder')
                 if local_path:
                     subfinder_path = local_path
-                    logger.info(_("Using subfinder from local directory: {path}").format(path=subfinder_path))
+                    logger.debug(_("Using subfinder from local directory: {path}").format(path=subfinder_path))
             if os.name == 'nt' and os.path.exists(os.path.join('assets', 'subfinder.exe')):
                 subfinder_path = os.path.abspath(os.path.join('assets', 'subfinder.exe'))
-                logger.info(_("Using subfinder.exe from assets directory: {path}").format(path=subfinder_path))
+                logger.debug(_("Using subfinder.exe from assets directory: {path}").format(path=subfinder_path))
             
             cmd = [subfinder_path, '-d', domain, '-o', temp_path, '-silent'] + self.tool_extra_args('subfinder')
-            logger.info(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
-            
+            logger.debug(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
+
+            # 统一使用参数列表调用（Windows 同样支持）：
+            # 绝不用 shell=True 字符串拼接 —— domain 来自被爬页面/Web 输入，
+            # 拼接进 shell 命令会构成命令注入链。
             try:
-                if os.name == 'nt' and subfinder_path.endswith('.exe'):
-                    cmd_str = f'"{subfinder_path}" -d {domain} -o "{temp_path}" -silent'
-                    if self.tool_extra_args('subfinder'):
-                        cmd_str += ' ' + ' '.join(self.tool_extra_args('subfinder'))
-                    logger.info(_("Using shell execution: {cmd}").format(cmd=cmd_str))
-                    subprocess.run(cmd_str, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, timeout=120)
-                else:
-                    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+                subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
             except subprocess.CalledProcessError as e:
                 logger.error(_("Failed to use {path}: {error}").format(path=subfinder_path, error=e.stderr.decode() if e.stderr else str(e)))
                 if subfinder_path != 'subfinder':
-                    logger.info(_("Trying subfinder from system PATH"))
+                    logger.debug(_("Trying subfinder from system PATH"))
                     cmd = ['subfinder', '-d', domain, '-o', temp_path, '-silent']
-                    logger.info(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
+                    logger.debug(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
                     try:
                         subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
                     except subprocess.CalledProcessError:
@@ -276,13 +272,13 @@ class ToolOrchestrator:
         return subdomains
         
     def _run_internal_dns_resolver(self, domain):
-        logger.info(_("Using internal DNS resolver for {domain}").format(domain=domain))
+        logger.debug(_("Using internal DNS resolver for {domain}").format(domain=domain))
         subdomains = []
         
         try:
             dnsx_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('dnsx', True)
             if not dnsx_enabled:
-                logger.info(_("DNSx resolution disabled"))
+                logger.debug(_("DNSx resolution disabled"))
                 return subdomains
             
             if not os.path.exists(_script_path('dnsxs.py')):
@@ -319,12 +315,12 @@ class ToolOrchestrator:
             local_path = self._resolve_local_tool_binary('naabu')
             if local_path:
                 naabu_path = local_path
-                logger.info(_("Using naabu from local directory: {path}").format(path=naabu_path))
+                logger.debug(_("Using naabu from local directory: {path}").format(path=naabu_path))
             else:
                 from shutil import which
                 if which('naabu'):
                     naabu_path = 'naabu'
-                    logger.info(_("Using naabu from system PATH"))
+                    logger.debug(_("Using naabu from system PATH"))
                 else:
                     logger.warning(_("Naabu tool not found or invalid path, using internal method instead"))
                     return self._run_internal_port_scanner(ip)
@@ -335,7 +331,7 @@ class ToolOrchestrator:
                 temp_path = temp_file.name
             
             cmd = [naabu_path, '-host', ip, '-json', '-o', temp_path, '-silent'] + self.tool_extra_args('naabu')
-            logger.info(_("Executing naabu command: {cmd}").format(cmd=' '.join(cmd)))
+            logger.debug(_("Executing naabu command: {cmd}").format(cmd=' '.join(cmd)))
             subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=240)
             
             with open(temp_path, 'r') as f:
@@ -359,7 +355,7 @@ class ToolOrchestrator:
         return open_ports
         
     def _run_internal_port_scanner(self, ip):
-        logger.info(_("Using internal port scanner for {ip}").format(ip=ip))
+        logger.debug(_("Using internal port scanner for {ip}").format(ip=ip))
         open_ports = {}
         try:
             if not os.path.exists(_script_path('port.py')):
@@ -404,13 +400,13 @@ class ToolOrchestrator:
             
         if not url.startswith('http://') and not url.startswith('https://'):
             url = f"https://{url}"
-            logger.info(_("Normalized URL: {url}").format(url=url))
+            logger.debug(_("Normalized URL: {url}").format(url=url))
             
         if not os.path.exists(_script_path('JSfinder.py')):
             logger.warning(_("JSfinder.py not found, using internal method instead"))
             return self._internal_jsfinder(url)
             
-        logger.info(_("Starting JSFinder for URL: {url}").format(url=url))
+        logger.debug(_("Starting JSFinder for URL: {url}").format(url=url))
         
         urls = []
         subdomains = []
@@ -478,16 +474,17 @@ class ToolOrchestrator:
                 seed_domains = []
                 if hasattr(self, 'engine') and hasattr(self.engine, 'seed_domains'):
                     seed_domains = self.engine.seed_domains
-                    logger.info(_("Using seed domains list from engine: {domains}").format(domains=seed_domains))
+                    logger.debug(_("Using seed domains list from engine: {domains}").format(domains=seed_domains))
                 else:
                     try:
                         parsed_url = urlparse(url)
-                        seed_domain = parsed_url.netloc
-                        parts = seed_domain.split('.')
-                        if len(parts) > 2:
-                            seed_domain = '.'.join(parts[-2:])
-                        seed_domains = [seed_domain]
-                        logger.info(_("Extracted seed domain from URL {url}: {domain}").format(url=url, domain=seed_domain))
+                        # 用 PSL 计算注册域（eTLD+1），避免旧式"取后两段"把
+                        # beijing.edu.cn 拆成公共后缀 edu.cn 导致范围误判
+                        from core.domain_utils import get_registrable_domain
+                        hostname = (parsed_url.hostname or parsed_url.netloc or '').lower()
+                        registrable = get_registrable_domain(hostname)
+                        seed_domains = [registrable if registrable else hostname]
+                        logger.debug(_("Extracted seed domain from URL {url}: {domain}").format(url=url, domain=seed_domains[0]))
                     except Exception as e:
                         logger.error(_("Failed to extract seed domain from URL: {error}").format(error=str(e)))
                         seed_domains = []
@@ -525,12 +522,12 @@ class ToolOrchestrator:
                         else:
                             logger.debug(_("Filtering non-seed-related subdomain: {subdomain}").format(subdomain=subdomain))
                     
-                    logger.info(_("Before filtering: {url_count} URLs, {subdomain_count} subdomains").format(url_count=len(urls), subdomain_count=len(subdomains)))
+                    logger.debug(_("Before filtering: {url_count} URLs, {subdomain_count} subdomains").format(url_count=len(urls), subdomain_count=len(subdomains)))
                     urls = filtered_urls
                     subdomains = filtered_subdomains
-                    logger.info(_("After filtering: {url_count} URLs, {subdomain_count} subdomains").format(url_count=len(urls), subdomain_count=len(subdomains)))
+                    logger.debug(_("After filtering: {url_count} URLs, {subdomain_count} subdomains").format(url_count=len(urls), subdomain_count=len(subdomains)))
             
-            logger.info(_("JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}").format(url_count=len(urls), subdomain_count=len(subdomains), url=url))
+            logger.debug(_("JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}").format(url_count=len(urls), subdomain_count=len(subdomains), url=url))
         except subprocess.CalledProcessError as e:
             logger.error(_("JSFinder execution failed: {error}").format(error=e.stderr.decode() if e.stderr else str(e)))
             logger.info(_("Trying internal method instead"))
@@ -606,7 +603,7 @@ class ToolOrchestrator:
                         if any(link_domain.endswith(tld) for tld in [".com", ".net", ".org", ".io", ".cn", ".xyz", ".edu", ".gov", ".mil", ".int", ".info", ".biz", ".name", ".pro", ".mobi", ".app", ".dev", ".site", ".online", ".tech", ".ai", ".co", ".me", ".tv", ".cc"]):
                             subdomains.append(link_domain)
             
-            logger.info(_("Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}").format(url_count=len(urls), subdomain_count=len(subdomains), url=url))
+            logger.debug(_("Internal JSFinder extracted {url_count} URLs and {subdomain_count} subdomains from {url}").format(url_count=len(urls), subdomain_count=len(subdomains), url=url))
         except Exception as e:
             error_str = str(e)
             if 'ProxyError' in error_str or 'proxy' in error_str.lower():
@@ -625,7 +622,7 @@ class ToolOrchestrator:
         try:
             if domain not in subdomains:
                 subdomains.append(domain)
-                logger.info(_("Adding original domain to subdomains list: {domain}").format(domain=domain))
+                logger.debug(_("Adding original domain to subdomains list: {domain}").format(domain=domain))
             
             cmd = [PY_EXE, _script_path('free-subfinder.py'), domain, '-q']
             process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
@@ -643,9 +640,9 @@ class ToolOrchestrator:
                     original_domain = '.'.join(parts[1:])
                     if original_domain not in subdomains:
                         subdomains.append(original_domain)
-                        logger.info(_("Added original domain from ww-prefix domain: {domain}").format(domain=original_domain))
+                        logger.debug(_("Added original domain from ww-prefix domain: {domain}").format(domain=original_domain))
             
-            logger.info(_("free-subfinder found {count} subdomains: {subdomains}").format(count=len(subdomains), subdomains=', '.join(subdomains)))
+            logger.debug(_("free-subfinder found {count} subdomains: {subdomains}").format(count=len(subdomains), subdomains=', '.join(subdomains)))
         except subprocess.CalledProcessError as e:
             logger.error(_("free-subfinder execution failed: {error}").format(error=e.stderr.decode('utf-8', errors='ignore') if e.stderr else str(e)))
         except Exception as e:
@@ -772,7 +769,7 @@ class ToolOrchestrator:
     def run_ehole(self, url):
         fingerprint_enabled = self.config.get('external_tools', {}).get('fingerprint', {}).get('enabled', False)
         if not fingerprint_enabled:
-            logger.info(_("Fingerprinting feature not enabled, skipping EHole call"))
+            logger.debug(_("Fingerprinting feature not enabled, skipping EHole call"))
             return None
 
         ehole_path = self._resolve_ehole_binary()
@@ -786,7 +783,7 @@ class ToolOrchestrator:
             logger.warning(_("Invalid URL format: {url}, skipping fingerprinting").format(url=url))
             return None
             
-        logger.info(_("Cleaned URL: {url}").format(url=cleaned_url))
+        logger.debug(_("Cleaned URL: {url}").format(url=cleaned_url))
         
         result = {
             'url': url,
@@ -803,22 +800,14 @@ class ToolOrchestrator:
                 out_json_path = tmp_out.name
 
             cmd = [ehole_path, 'finger', '-u', cleaned_url, '-o', out_json_path] + self.tool_extra_args('ehole')
-            logger.info(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
+            logger.debug(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
             
             process = None
             try:
-                if os.name == 'nt' and ehole_path.endswith('.exe'):
-                    final_url = cleaned_url.strip()
-                    while '`' in final_url or '"' in final_url:
-                        final_url = final_url.replace('`', '').replace('"', '')
-                    final_url = final_url.strip()
-                    cmd_str = f'"{ehole_path}" finger -u "{final_url}" -o "{out_json_path}"'
-                    if self.tool_extra_args('ehole'):
-                        cmd_str += ' ' + ' '.join(self.tool_extra_args('ehole'))
-                    logger.debug(_("Using shell string execution: {cmd}").format(cmd=cmd_str))
-                    process = subprocess.run(cmd_str, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, timeout=60)
-                else:
-                    process = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
+                # 统一使用参数列表调用（Windows 同样支持），避免 shell=True
+                # 字符串拼接 —— URL 来自被爬页面内容，拼接进 shell 命令会构成
+                # 命令注入链（cleaned_url 清洗仅作纵深防御，不再是安全边界）。
+                process = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
             except subprocess.TimeoutExpired:
                 logger.error(_("EHole execution timed out: {url}").format(url=cleaned_url))
                 return None
@@ -869,12 +858,12 @@ class ToolOrchestrator:
         title = (str(entry.get('title') or '').strip()) or None
         if title:
             result['title'] = title
-            logger.info(_("Title extracted from EHole: {title}").format(title=title))
+            logger.debug(_("Title extracted from EHole: {title}").format(title=title))
         try:
             result['status_code'] = int(entry.get('statuscode') or entry.get('status') or 0) or None
         except (TypeError, ValueError):
             pass
-        logger.info(_("Fingerprint result: {result}").format(result=result))
+        logger.debug(_("Fingerprint result: {result}").format(result=result))
         return result
 
     def run_whatweb(self, url):
@@ -895,7 +884,7 @@ class ToolOrchestrator:
             logger.warning(_("Invalid URL format: {url}, skipping fingerprinting").format(url=url))
             return None
 
-        logger.info(_("Cleaned URL: {url}").format(url=cleaned_url))
+        logger.debug(_("Cleaned URL: {url}").format(url=cleaned_url))
 
         result = {
             'url': url,
@@ -913,7 +902,7 @@ class ToolOrchestrator:
 
             cmd = [whatweb_path, '--no-errors',
                    '--log-json=' + out_json_path, cleaned_url] + self.tool_extra_args('whatweb')
-            logger.info(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
+            logger.debug(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
 
             try:
                 process = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=90)
@@ -1004,14 +993,14 @@ class ToolOrchestrator:
             title = str(title_info['string'][0]).strip() or None
             if title:
                 result['title'] = title
-                logger.info(_("Title extracted from WhatWeb: {title}").format(title=title))
+                logger.debug(_("Title extracted from WhatWeb: {title}").format(title=title))
 
         try:
             result['status_code'] = int(entry.get('http_status') or 0) or None
         except (TypeError, ValueError):
             pass
 
-        logger.info(_("Fingerprint result: {result}").format(result=result))
+        logger.debug(_("Fingerprint result: {result}").format(result=result))
         return result
 
     def run_fingerprint(self, url):
@@ -1023,12 +1012,12 @@ class ToolOrchestrator:
         """
         fp_cfg = self.config.get('external_tools', {}).get('fingerprint', {}) or {}
         if not fp_cfg.get('enabled', False):
-            logger.info(_("Fingerprinting feature not enabled, skipping fingerprint call"))
+            logger.debug(_("Fingerprinting feature not enabled, skipping fingerprint call"))
             return None
 
         engine = str(fp_cfg.get('engine', 'auto') or 'auto').lower()
         if engine == 'none':
-            logger.info(_("Fingerprint engine disabled (engine=none), using internal title extraction"))
+            logger.debug(_("Fingerprint engine disabled (engine=none), using internal title extraction"))
             return None
 
         if engine == 'ehole':
@@ -1090,7 +1079,7 @@ class ToolOrchestrator:
         if not merged['fingerprint_tools']:
             logger.warning(_("Fingerprinting returned no results: {url}").format(url=url))
             return None
-        logger.info(_("Fingerprint merged result: {result}").format(result=merged))
+        logger.debug(_("Fingerprint merged result: {result}").format(result=merged))
         return merged
 
     def _resolve_local_tool_binary(self, tool_name):

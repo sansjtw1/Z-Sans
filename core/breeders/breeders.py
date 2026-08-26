@@ -40,7 +40,7 @@ class BreederBase:
             return None
             
         if re.search(r'[A-Za-z]:\\', url) or url.startswith('//'):
-            logger.warning(_("Skipping system path: {path}").format(path=url))
+            logger.debug(_("Skipping system path: {path}").format(path=url))
             return None
             
         if url.startswith('/'):
@@ -50,7 +50,7 @@ class BreederBase:
                     base_domain = f"{base_parsed.scheme}://{base_parsed.netloc}"
                     return urljoin(base_domain, url)
                 except Exception as e:
-                    logger.warning(_("Failed to process relative path: {path}, error: {error}").format(path=url, error=str(e)))
+                    logger.debug(_("Failed to process relative path: {path}, error: {error}").format(path=url, error=str(e)))
                     return None
             else:
                 return None
@@ -75,27 +75,27 @@ class BreederBase:
         
     def _is_related_to_seed_domain(self, domain):
         if not self.engine:
-            logger.warning(_("Engine instance does not exist, defaulting to False to avoid adding unrelated domains"))
+            logger.debug(_("Engine instance does not exist, defaulting to False to avoid adding unrelated domains"))
             return False
             
         if not hasattr(self.engine, 'seed_domains'):
-            logger.warning(_("Seed domains list attribute not found in engine, defaulting to False"))
+            logger.debug(_("Seed domains list attribute not found in engine, defaulting to False"))
             return False
             
         if not self.engine.seed_domains:
-            logger.warning(_("Seed domains list is empty, defaulting to False"))
+            logger.debug(_("Seed domains list is empty, defaulting to False"))
             return False
         
         if not domain or not isinstance(domain, str):
-            logger.warning(_("Invalid domain format: {domain}").format(domain=domain))
+            logger.debug(_("Invalid domain format: {domain}").format(domain=domain))
             return False
             
         if '/' in domain or '\\' in domain or ' ' in domain or ':' in domain:
-            logger.warning(_("Domain contains invalid characters: {domain}").format(domain=domain))
+            logger.debug(_("Domain contains invalid characters: {domain}").format(domain=domain))
             return False
             
         if domain in self.engine.seed_domains:
-            logger.info(_("Domain {domain} is a seed domain").format(domain=domain))
+            logger.debug(_("Domain {domain} is a seed domain").format(domain=domain))
             return True
             
         for seed_domain in self.engine.seed_domains:
@@ -104,9 +104,9 @@ class BreederBase:
             
             if len(domain_parts) >= len(seed_parts) and domain_parts[-len(seed_parts):] == seed_parts:
                 if domain.endswith('.' + seed_domain):
-                    logger.info(_("Domain {domain} is a subdomain of seed domain {seed}").format(domain=domain, seed=seed_domain))
+                    logger.debug(_("Domain {domain} is a subdomain of seed domain {seed}").format(domain=domain, seed=seed_domain))
                 else:
-                    logger.info(_("Domain {domain} contains all parts of seed domain {seed}").format(domain=domain, seed=seed_domain))
+                    logger.debug(_("Domain {domain} contains all parts of seed domain {seed}").format(domain=domain, seed=seed_domain))
                 return True
             elif domain.endswith('.' + seed_domain):
                 logger.warning(_("Domain {domain} ends with .{seed} but is not a direct subdomain").format(domain=domain, seed=seed_domain))
@@ -161,21 +161,21 @@ class DomainBreeder(BreederBase):
         # include_subdomains: 关闭时跳过子域名枚举
         include_subdomains = self.config.get('asset_scope', {}).get('include_subdomains', True)
         if not include_subdomains:
-            logger.info(_("Subdomain discovery disabled by config, skipping"))
+            logger.debug(_("Subdomain discovery disabled by config, skipping"))
             subdomains = []
         else:
             subdomains = self._discover_subdomains(domain, tool_manager)
         for subdomain in subdomains:
             if restrict_to_seed_domains:
                 is_related = self._is_related_to_seed_domain(subdomain)
-                logger.info(_("Subdomain relevance check: {subdomain}, related: {related}").format(subdomain=subdomain, related=is_related))
+                logger.debug(_("Subdomain relevance check: {subdomain}, related: {related}").format(subdomain=subdomain, related=is_related))
                 if not is_related:
                     logger.warning(_("Skipping non-seed-related subdomain: {subdomain}").format(subdomain=subdomain))
                     continue
                 else:
-                    logger.info(_("Adding seed-related subdomain: {subdomain}").format(subdomain=subdomain))
+                    logger.debug(_("Adding seed-related subdomain: {subdomain}").format(subdomain=subdomain))
             else:
-                logger.info(_("Domain scope restriction disabled, adding all subdomains: {subdomain}").format(subdomain=subdomain))
+                logger.debug(_("Domain scope restriction disabled, adding all subdomains: {subdomain}").format(subdomain=subdomain))
                 
             new_asset = DomainAsset(subdomain, source=asset.uid, depth=asset.depth+1)
             new_assets.append(new_asset)
@@ -183,7 +183,7 @@ class DomainBreeder(BreederBase):
         # include_ip_ranges: 关闭时跳过域名的 IP 解析与 IP 资产生成
         include_ip_ranges = self.config.get('asset_scope', {}).get('include_ip_ranges', True)
         if not include_ip_ranges:
-            logger.info(_("IP range discovery disabled by config, skipping IP resolution"))
+            logger.debug(_("IP range discovery disabled by config, skipping IP resolution"))
             ip_addresses = []
         else:
             ip_addresses = self._resolve_domain(domain)
@@ -222,19 +222,19 @@ class DomainBreeder(BreederBase):
         free_subfinder_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('free_subfinder', True)
         
         if subfinder_enabled and tool_manager and hasattr(tool_manager, 'run_subfinder'):
-            logger.info(_("Using subfinder tool to discover subdomains: {domain}").format(domain=domain))
+            logger.debug(_("Using subfinder tool to discover subdomains: {domain}").format(domain=domain))
             tool_subdomains = tool_manager.run_subfinder(domain)
             if tool_subdomains:
-                logger.info(_("Subfinder found {count} subdomains").format(count=len(tool_subdomains)))
+                logger.debug(_("Subfinder found {count} subdomains").format(count=len(tool_subdomains)))
                 subdomains.update(tool_subdomains)
             else:
                 logger.warning(_("Subfinder found no subdomains"))
         
         if free_subfinder_enabled and tool_manager and hasattr(tool_manager, 'run_free_subfinder'):
-            logger.info(_("Using free-subfinder tool to discover subdomains: {domain}").format(domain=domain))
+            logger.debug(_("Using free-subfinder tool to discover subdomains: {domain}").format(domain=domain))
             free_subdomains = tool_manager.run_free_subfinder(domain)
             if free_subdomains:
-                logger.info(_("Free-subfinder found {count} subdomains").format(count=len(free_subdomains)))
+                logger.debug(_("Free-subfinder found {count} subdomains").format(count=len(free_subdomains)))
                 subdomains.update(free_subdomains)
             else:
                 logger.warning(_("Free-subfinder found no subdomains"))
@@ -243,13 +243,13 @@ class DomainBreeder(BreederBase):
             crtsh_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('crtsh', True)
             
             if crtsh_enabled:
-                logger.info(_("Querying crt.sh for subdomains: {domain}").format(domain=domain))
+                logger.debug(_("Querying crt.sh for subdomains: {domain}").format(domain=domain))
                 crt_subdomains = self._query_crtsh(domain)
                 if crt_subdomains:
-                    logger.info(_("crt.sh found {count} subdomains").format(count=len(crt_subdomains)))
+                    logger.debug(_("crt.sh found {count} subdomains").format(count=len(crt_subdomains)))
                     subdomains.update(crt_subdomains)
             else:
-                logger.info(_("crt.sh query disabled"))
+                logger.debug(_("crt.sh query disabled"))
             
         except Exception as e:
             logger.error(_("Subdomain discovery failed: {error}").format(error=str(e)))
@@ -258,13 +258,13 @@ class DomainBreeder(BreederBase):
         try:
             dns_brute_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('dns_brute', True)
             if dns_brute_enabled:
-                logger.info(_("Running built-in DNS brute-force for subdomains: {domain}").format(domain=domain))
+                logger.debug(_("Running built-in DNS brute-force for subdomains: {domain}").format(domain=domain))
                 brute_subdomains = self._dns_brute_subdomains(domain)
                 if brute_subdomains:
-                    logger.info(_("DNS brute-force found {count} subdomains").format(count=len(brute_subdomains)))
+                    logger.debug(_("DNS brute-force found {count} subdomains").format(count=len(brute_subdomains)))
                     subdomains.update(brute_subdomains)
             else:
-                logger.info(_("DNS brute-force disabled"))
+                logger.debug(_("DNS brute-force disabled"))
         except Exception as e:
             logger.error(_("DNS brute-force failed: {error}").format(error=str(e)))
         
@@ -453,19 +453,19 @@ class IPBreeder(BreederBase):
         domains = []
         if reverse_dns_enabled:
             domains = self._reverse_dns(ip)
-            logger.info(_("Reverse DNS for IP {ip} found {count} domains").format(ip=ip, count=len(domains)))
+            logger.debug(_("Reverse DNS for IP {ip} found {count} domains").format(ip=ip, count=len(domains)))
         else:
-            logger.info(_("Reverse DNS query disabled"))
+            logger.debug(_("Reverse DNS query disabled"))
         for domain in domains:
             restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
             if restrict_to_seed_domains:
                 is_related = self._is_related_to_seed_domain(domain)
-                logger.info(_("Reverse DNS domain relevance check: {domain}, related: {related}").format(domain=domain, related=is_related))
+                logger.debug(_("Reverse DNS domain relevance check: {domain}, related: {related}").format(domain=domain, related=is_related))
                 if not is_related:
-                    logger.warning(_("Skipping non-seed-related domain: {domain} from IP {ip}").format(domain=domain, ip=ip))
+                    logger.debug(_("Skipping non-seed-related domain: {domain} from IP {ip}").format(domain=domain, ip=ip))
                     continue
                 else:
-                    logger.info(_("Adding seed-related domain: {domain} from IP {ip}").format(domain=domain, ip=ip))
+                    logger.debug(_("Adding seed-related domain: {domain} from IP {ip}").format(domain=domain, ip=ip))
             else:
                 logger.info(_("Domain scope restriction disabled, adding all domains: {domain}").format(domain=domain))
                 
@@ -560,11 +560,11 @@ class IPBreeder(BreederBase):
     def _reverse_dns(self, ip):
         domains = set()
         try:
-            logger.info(_("Starting reverse DNS for IP: {ip}").format(ip=ip))
+            logger.debug(_("Starting reverse DNS for IP: {ip}").format(ip=ip))
             hostname, _aliases, _addresses = socket.gethostbyaddr(ip)
             if hostname:
                 hostname = hostname.lower()
-                logger.info(_("Reverse DNS successful: IP {ip} resolved to {hostname}").format(ip=ip, hostname=hostname))
+                logger.debug(_("Reverse DNS successful: IP {ip} resolved to {hostname}").format(ip=ip, hostname=hostname))
                 domains.add(hostname)
         except (socket.herror, socket.gaierror) as e:
             logger.debug(_("Reverse DNS failed: IP {ip}, error: {error}").format(ip=ip, error=str(e)))
@@ -582,7 +582,7 @@ class URLBreeder(BreederBase):
             return []
         
         if asset.state == "scanned" or asset.state == "eliminated":
-            logger.info(_("URL asset already processed, skipping: {uid}, state: {state}").format(uid=asset.uid, state=asset.state))
+            logger.debug(_("URL asset already processed, skipping: {uid}, state: {state}").format(uid=asset.uid, state=asset.state))
             return []
         
         asset.state = "scanning"
@@ -596,12 +596,12 @@ class URLBreeder(BreederBase):
         tools = asset_type_config.get('tools', {}) or {}
         
         if tools.get('jsfinder', False) and tool_manager and hasattr(tool_manager, 'run_jsfinder'):
-            logger.info(_("Using JSFinder tool for URL: {url}").format(url=url))
+            logger.debug(_("Using JSFinder tool for URL: {url}").format(url=url))
             jsfinder_urls, jsfinder_subdomains = tool_manager.run_jsfinder(url)
             
             parsed_url = urlparse(url)
-            domain = parsed_url.netloc
-            
+            domain = (parsed_url.hostname or '').lower()
+
             restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
             related_urls_count = 0
             total_urls_count = len(jsfinder_urls)
@@ -614,7 +614,7 @@ class URLBreeder(BreederBase):
                 
                 try:
                     link_parsed = urlparse(normalized_url)
-                    link_domain = link_parsed.netloc
+                    link_domain = (link_parsed.hostname or '').lower()
                     
                     if not link_domain:
                         logger.debug(_("Skipping URL without domain: {url}").format(url=normalized_url))
@@ -631,17 +631,17 @@ class URLBreeder(BreederBase):
                 
                 if restrict_to_seed_domains:
                     if not is_related:
-                        logger.warning(_("Skipping non-seed-related domain: {domain}, URL: {url}").format(domain=link_domain, url=normalized_url))
+                        logger.debug(_("Skipping non-seed-related domain: {domain}, URL: {url}").format(domain=link_domain, url=normalized_url))
                         continue
                     else:
-                        logger.info(_("Adding seed-related URL: {url}").format(url=normalized_url))
+                        logger.debug(_("Adding seed-related URL: {url}").format(url=normalized_url))
                         related_urls_count += 1
                 else:
                     if is_related:
-                        logger.info(_("Adding seed-related URL: {url}").format(url=normalized_url))
+                        logger.debug(_("Adding seed-related URL: {url}").format(url=normalized_url))
                         related_urls_count += 1
                     else:
-                        logger.info(_("Adding non-seed-related URL (restriction disabled): {url}").format(url=normalized_url))
+                        logger.debug(_("Adding non-seed-related URL (restriction disabled): {url}").format(url=normalized_url))
                 
                 new_asset = URLAsset(normalized_url, source=asset.uid, depth=asset.depth+1)
                 new_asset.properties['source_tool'] = 'jsfinder'
@@ -653,11 +653,11 @@ class URLBreeder(BreederBase):
                     new_assets.append(new_asset)
             
             if restrict_to_seed_domains:
-                logger.info(_("JSFinder extracted {related} seed-related URLs from {url}, total: {total}").format(related=related_urls_count, url=url, total=total_urls_count))
+                logger.debug(_("JSFinder extracted {related} seed-related URLs from {url}, total: {total}").format(related=related_urls_count, url=url, total=total_urls_count))
             else:
-                logger.info(_("JSFinder extracted {total} URLs from {url}, no domain restriction").format(total=total_urls_count, url=url))
+                logger.debug(_("JSFinder extracted {total} URLs from {url}, no domain restriction").format(total=total_urls_count, url=url))
                 
-            logger.info(_("JSFinder extracted {count} URLs from {url}").format(count=len(jsfinder_urls), url=url))
+            logger.debug(_("JSFinder extracted {count} URLs from {url}").format(count=len(jsfinder_urls), url=url))
                 
             for subdomain in jsfinder_subdomains:
                 if re.search(r'[A-Za-z]:\\', subdomain) or '/' in subdomain or '\\' in subdomain or ' ' in subdomain or ':' in subdomain:
@@ -679,7 +679,7 @@ class URLBreeder(BreederBase):
                 new_asset = DomainAsset(subdomain, source=asset.uid, depth=asset.depth+1)
                 new_asset.properties['source_tool'] = 'jsfinder'
                 new_assets.append(new_asset)
-                logger.info(_("Adding seed-related subdomain: {subdomain}").format(subdomain=subdomain))
+                logger.debug(_("Adding seed-related subdomain: {subdomain}").format(subdomain=subdomain))
 
         
         html_content = self._fetch_url(url, tool_manager=tool_manager)
@@ -687,8 +687,8 @@ class URLBreeder(BreederBase):
         redirect_as_new_asset = self.config.get('http', {}).get('redirect_as_new_asset', True)
         if redirect_as_new_asset and hasattr(self, 'redirect_targets') and self.redirect_targets:
             for redirect_url in self.redirect_targets:
-                original_domain = urlparse(url).netloc
-                redirect_domain = urlparse(redirect_url).netloc
+                original_domain = (urlparse(url).hostname or '').lower()
+                redirect_domain = (urlparse(redirect_url).hostname or '').lower()
                 
                 new_asset = URLAsset(redirect_url, source=asset.uid, depth=asset.depth+1)
                 new_asset.properties['redirect_from'] = url
@@ -739,18 +739,18 @@ class URLBreeder(BreederBase):
                     graph_asset.state = "eliminated"
                     if 'eliminated_reason' not in graph_asset.properties:
                         graph_asset.properties['eliminated_reason'] = _("Unable to fetch content")
-                    logger.info(_("Updated asset graph state to eliminated: {uid}, state: {state}").format(uid=asset_uid, state=graph_asset.state))
+                    logger.debug(_("Updated asset graph state to eliminated: {uid}, state: {state}").format(uid=asset_uid, state=graph_asset.state))
                 else:
-                    logger.info(_("Asset not found in graph: {uid}").format(uid=asset_uid))
+                    logger.debug(_("Asset not found in graph: {uid}").format(uid=asset_uid))
             else:
-                logger.info(_("Unable to access asset graph, cannot update state: {url}").format(url=url))
+                logger.debug(_("Unable to access asset graph, cannot update state: {url}").format(url=url))
             
-            logger.info(_("URL asset content fetch failed, marked as eliminated: {url}, state: {state}").format(url=url, state=asset.state))
+            logger.debug(_("URL asset content fetch failed, marked as eliminated: {url}, state: {state}").format(url=url, state=asset.state))
             return new_assets
         
         parsed_url = urlparse(url)
-        domain = parsed_url.netloc
-        
+        domain = (parsed_url.hostname or '').lower()
+
         js_files = self._extract_js_files(html_content, url)
         for js_url in js_files:
             new_asset = JSAsset(js_url, source=asset.uid, depth=asset.depth+1)
@@ -761,21 +761,21 @@ class URLBreeder(BreederBase):
             for link in links:
                 restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
                 
-                link_domain = urlparse(link).netloc
+                link_domain = (urlparse(link).hostname or '').lower()
                 
                 if restrict_to_seed_domains and link_domain:
                     is_related = self._is_related_to_seed_domain(link_domain)
-                    logger.info(_("URL link domain relevance: {domain}, related: {related}").format(domain=link_domain, related=is_related))
+                    logger.debug(_("URL link domain relevance: {domain}, related: {related}").format(domain=link_domain, related=is_related))
                     if not is_related:
-                        logger.warning(_("Skipping non-seed-related link: {link}, domain: {domain}").format(link=link, domain=link_domain))
+                        logger.debug(_("Skipping non-seed-related link: {link}, domain: {domain}").format(link=link, domain=link_domain))
                         continue
                     else:
-                        logger.info(_("Adding seed-related link: {link}, domain: {domain}").format(link=link, domain=link_domain))
+                        logger.debug(_("Adding seed-related link: {link}, domain: {domain}").format(link=link, domain=link_domain))
                 else:
                     if not link_domain:
-                        logger.info(_("Link has no domain part, possibly relative: {link}").format(link=link))
+                        logger.debug(_("Link has no domain part, possibly relative: {link}").format(link=link))
                     else:
-                        logger.info(_("Domain scope restriction disabled, adding all links: {link}, domain: {domain}").format(link=link, domain=link_domain))
+                        logger.debug(_("Domain scope restriction disabled, adding all links: {link}, domain: {domain}").format(link=link, domain=link_domain))
                     
                 if domain == link_domain or not link_domain:
                     new_asset = URLAsset(link, source=asset.uid, depth=asset.depth+1)
@@ -792,7 +792,7 @@ class URLBreeder(BreederBase):
             discovery_links = self._fetch_robots_sitemap(url)
             for dl in discovery_links:
                 restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
-                dl_domain = urlparse(dl).netloc
+                dl_domain = (urlparse(dl).hostname or '').lower()
                 if restrict_to_seed_domains and dl_domain and not self._is_related_to_seed_domain(dl_domain):
                     logger.debug(_("Skipping non-seed-related discovery link: {link}").format(link=dl))
                     continue
@@ -857,17 +857,17 @@ class URLBreeder(BreederBase):
             redirect_as_new_asset = self.config.get('http', {}).get('redirect_as_new_asset', True)
             max_redirects = self.config.get('http', {}).get('max_redirects', 5)
             
-            logger.info(_("Processing URL: {url}").format(url=url))
+            logger.debug(_("Processing URL: {url}").format(url=url))
             
             if self.engine and hasattr(self.engine, 'asset_graph'):
                 asset_uid = f"url:{url}"
                 if asset_uid in self.engine.asset_graph.nodes:
                     asset = self.engine.asset_graph.nodes[asset_uid]
-                    logger.info(_("URL asset exists in graph: {uid}, state: {state}").format(uid=asset_uid, state=asset.state))
+                    logger.debug(_("URL asset exists in graph: {uid}, state: {state}").format(uid=asset_uid, state=asset.state))
                 else:
-                    logger.info(_("URL asset not found in graph: {uid}").format(uid=asset_uid))
+                    logger.debug(_("URL asset not found in graph: {uid}").format(uid=asset_uid))
             
-            logger.info(_("Sending HTTP request: {url}").format(url=url))
+            logger.debug(_("Sending HTTP request: {url}").format(url=url))
             from core.zsans_engine import http_session
             response = http_session.get(
                 url,
@@ -910,7 +910,7 @@ class URLBreeder(BreederBase):
                         if not cleaned_url.startswith(('http://', 'https://')):
                             logger.warning(_("Invalid URL format for fingerprinting: {url}").format(url=url))
                         else:
-                            logger.info(_("Starting fingerprinting, original URL: {url}, cleaned URL: {cleaned}").format(url=url, cleaned=cleaned_url))
+                            logger.debug(_("Starting fingerprinting, original URL: {url}, cleaned URL: {cleaned}").format(url=url, cleaned=cleaned_url))
                             fingerprint_result = tool_manager.run_fingerprint(cleaned_url)
                             if fingerprint_result:
                                 asset_uid = f"url:{url}"
@@ -924,12 +924,12 @@ class URLBreeder(BreederBase):
                                             asset.properties['server'] = fingerprint_result.get('server')
                                         if fingerprint_result.get('title'):
                                             asset.properties['title'] = fingerprint_result.get('title')
-                                            logger.info(_("Title extracted from fingerprint tool: {url}, title: {title}").format(url=url, title=fingerprint_result.get('title')))
-                                        logger.info(_("URL fingerprint extracted: {url}, fingerprints: {fingerprints}").format(url=url, fingerprints=fingerprint_result.get('fingerprints')))
+                                            logger.debug(_("Title extracted from fingerprint tool: {url}, title: {title}").format(url=url, title=fingerprint_result.get('title')))
+                                        logger.debug(_("URL fingerprint extracted: {url}, fingerprints: {fingerprints}").format(url=url, fingerprints=fingerprint_result.get('fingerprints')))
                             else:
                                 logger.warning(_("Fingerprinting returned no results: {url}").format(url=url))
                     except Exception as e:
-                        logger.info(_("Fingerprinting failed: {url}, {error}").format(url=url, error=str(e)))
+                        logger.debug(_("Fingerprinting failed: {url}, {error}").format(url=url, error=str(e)))
                 
                 title_extraction_config = url_config.get('title_extraction', {})
                 if title_extraction_config.get('enabled', True):
@@ -938,7 +938,7 @@ class URLBreeder(BreederBase):
                     if self.engine and hasattr(self.engine, 'asset_graph') and asset_uid in self.engine.asset_graph.nodes:
                         if 'title' in self.engine.asset_graph.nodes[asset_uid].properties:
                             title_already_extracted = True
-                            logger.info(_("Title already extracted from EHole, skipping BeautifulSoup: {url}").format(url=url))
+                            logger.debug(_("Title already extracted from EHole, skipping BeautifulSoup: {url}").format(url=url))
                     
                     if not title_already_extracted:
                         try:
@@ -958,15 +958,15 @@ class URLBreeder(BreederBase):
                             if self.engine and hasattr(self.engine, 'asset_graph'):
                                 if asset_uid in self.engine.asset_graph.nodes:
                                     self.engine.asset_graph.nodes[asset_uid].properties['title'] = title
-                                    logger.info(_("Title extracted from BeautifulSoup: {url}, title: {title}").format(url=url, title=title))
+                                    logger.debug(_("Title extracted from BeautifulSoup: {url}, title: {title}").format(url=url, title=title))
                         except Exception as e:
-                            logger.info(_("Title extraction failed: {url}, {error}").format(url=url, error=str(e)))
+                            logger.debug(_("Title extraction failed: {url}, {error}").format(url=url, error=str(e)))
                 else:
-                    logger.info(_("Title extraction disabled for URL: {url}").format(url=url))
+                    logger.debug(_("Title extraction disabled for URL: {url}").format(url=url))
                 
                 return response.text
             else:
-                logger.info(_("URL request returned non-200 status: {url}, status: {status}").format(url=url, status=response.status_code))
+                logger.debug(_("URL request returned non-200 status: {url}, status: {status}").format(url=url, status=response.status_code))
                 self._mark_asset_as_eliminated(url, _("HTTP status code: {status}").format(status=response.status_code))
                 
                 if self.engine and hasattr(self.engine, 'asset_graph'):
@@ -975,9 +975,9 @@ class URLBreeder(BreederBase):
                         asset = self.engine.asset_graph.nodes[asset_uid]
                         asset.properties['status_code'] = response.status_code
                         asset.state = "eliminated"
-                        logger.info(_("URL asset marked as eliminated: {url}, status: {status}, state: {state}").format(url=url, status=response.status_code, state=asset.state))
+                        logger.debug(_("URL asset marked as eliminated: {url}, status: {status}, state: {state}").format(url=url, status=response.status_code, state=asset.state))
                         
-                        logger.info(_("Rechecking asset state: {uid}, state: {state}").format(uid=asset_uid, state=asset.state))
+                        logger.debug(_("Rechecking asset state: {uid}, state: {state}").format(uid=asset_uid, state=asset.state))
                     else:
                         logger.info(_("Asset not found in graph, cannot set state: {uid}").format(uid=asset_uid))
                 else:
@@ -996,7 +996,7 @@ class URLBreeder(BreederBase):
                     logger.warning(
                         _("Proxy error detected for {url}. Check your proxy configuration.").format(url=url)
                     )
-            logger.info(_("URL content fetch failed: {url}, {error}").format(url=url, error=error_str))
+            logger.debug(_("URL content fetch failed: {url}, {error}").format(url=url, error=error_str))
             self._mark_asset_as_eliminated(url, _("Access failed: {error}").format(error=error_str))
         return None
         
@@ -1006,41 +1006,41 @@ class URLBreeder(BreederBase):
         self.redirect_targets.append(redirect_url)
     
     def _mark_asset_as_eliminated(self, url, reason):
-        logger.info(_("Marking asset as eliminated: {url}, reason: {reason}").format(url=url, reason=reason))
+        logger.debug(_("Marking asset as eliminated: {url}, reason: {reason}").format(url=url, reason=reason))
         if self.engine and hasattr(self.engine, 'asset_graph'):
             with self.engine.asset_graph.lock:
                 asset_uid = f"url:{url}"
-                logger.info(_("Checking if asset exists in graph: {uid}").format(uid=asset_uid))
+                logger.debug(_("Checking if asset exists in graph: {uid}").format(uid=asset_uid))
                 if asset_uid in self.engine.asset_graph.nodes:
                     asset = self.engine.asset_graph.nodes[asset_uid]
-                    logger.info(_("Found asset: {uid}, current state: {state}").format(uid=asset_uid, state=asset.state))
+                    logger.debug(_("Found asset: {uid}, current state: {state}").format(uid=asset_uid, state=asset.state))
                     asset.state = "eliminated"
                     asset.properties['eliminated_reason'] = reason
-                    logger.info(_("Asset state updated to eliminated: {uid}, new state: {state}").format(uid=asset_uid, state=asset.state))
+                    logger.debug(_("Asset state updated to eliminated: {uid}, new state: {state}").format(uid=asset_uid, state=asset.state))
                     
                     if reason.startswith(_("HTTP status code:")):
                         try:
                             status_code = int(reason.split(":")[1].strip())
                             asset.properties['status_code'] = status_code
-                            logger.info(_("Status code set for asset: {uid}, code: {code}").format(uid=asset_uid, code=status_code))
+                            logger.debug(_("Status code set for asset: {uid}, code: {code}").format(uid=asset_uid, code=status_code))
                         except (ValueError, IndexError):
-                            logger.info(_("Unable to extract status code from reason: {reason}").format(reason=reason))
+                            logger.debug(_("Unable to extract status code from reason: {reason}").format(reason=reason))
                     
-                    logger.info(_("Asset marked as eliminated: {url}, reason: {reason}, state: {state}").format(url=url, reason=reason, state=asset.state))
+                    logger.debug(_("Asset marked as eliminated: {url}, reason: {reason}, state: {state}").format(url=url, reason=reason, state=asset.state))
                     
-                    logger.info(_("Rechecking asset state: {uid}, state: {state}").format(uid=asset_uid, state=self.engine.asset_graph.nodes[asset_uid].state))
+                    logger.debug(_("Rechecking asset state: {uid}, state: {state}").format(uid=asset_uid, state=self.engine.asset_graph.nodes[asset_uid].state))
                 else:
-                    logger.info(_("Asset not found in graph: {uid}").format(uid=asset_uid))
+                    logger.debug(_("Asset not found in graph: {uid}").format(uid=asset_uid))
         else:
             logger.info(_("Unable to access asset graph, cannot mark asset: {url}").format(url=url))
             
         if hasattr(self, 'current_asset') and self.current_asset and self.current_asset.type == "url" and self.current_asset.value == url:
-            logger.info(_("Updating current asset state: {url}").format(url=url))
+            logger.debug(_("Updating current asset state: {url}").format(url=url))
             self.current_asset.state = "eliminated"
             self.current_asset.properties['eliminated_reason'] = reason
-            logger.info(_("Current asset state updated to eliminated: {url}, state: {state}").format(url=url, state=self.current_asset.state))
+            logger.debug(_("Current asset state updated to eliminated: {url}, state: {state}").format(url=url, state=self.current_asset.state))
         else:
-            logger.info(_("No current URL asset being processed: {url}").format(url=url))
+            logger.debug(_("No current URL asset being processed: {url}").format(url=url))
 
 
     def _record_endpoint_headers(self, response, url):
@@ -1167,7 +1167,7 @@ class URLBreeder(BreederBase):
 
         # 过滤系统路径
         if re.search(r'[A-Za-z]:\\', url):
-            logger.warning(_("Skipping system path: {path}").format(path=url))
+            logger.debug(_("Skipping system path: {path}").format(path=url))
             return None
 
         if url.startswith('//'):
@@ -1215,9 +1215,9 @@ class JSBreeder(BreederBase):
             if not self.engine.seed_domains:
                 logger.warning(_("Seed domains list is empty, all domains will be considered unrelated"))
             else:
-                logger.info(_("Current seed domains: {domains}").format(domains=', '.join(self.engine.seed_domains)))
+                logger.debug(_("Current seed domains: {domains}").format(domains=', '.join(self.engine.seed_domains)))
         else:
-            logger.warning(_("Seed domains list attribute not found in engine, all domains will be considered unrelated"))
+            logger.debug(_("Seed domains list attribute not found in engine, all domains will be considered unrelated"))
         
         js_url = asset.value
         new_assets = []
@@ -1230,7 +1230,7 @@ class JSBreeder(BreederBase):
             jsfinder_urls, jsfinder_subdomains = tool_manager.run_jsfinder(js_url)
             
             parsed_url = urlparse(js_url)
-            domain = parsed_url.netloc
+            domain = (parsed_url.hostname or '').lower()
             
             restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
             related_count = 0
@@ -1244,7 +1244,7 @@ class JSBreeder(BreederBase):
                 
                 try:
                     link_parsed = urlparse(normalized_url)
-                    link_domain = link_parsed.netloc
+                    link_domain = (link_parsed.hostname or '').lower()
                     
                     if not link_domain:
                         logger.debug(_("Skipping URL without domain: {url}").format(url=normalized_url))
@@ -1261,7 +1261,7 @@ class JSBreeder(BreederBase):
                 
                 if restrict_to_seed_domains:
                     if is_related:
-                        logger.info(_("Domain {domain} is seed-related").format(domain=link_domain))
+                        logger.debug(_("Domain {domain} is seed-related").format(domain=link_domain))
                         related_count += 1
                         new_asset = URLAsset(normalized_url, source=asset.uid, depth=asset.depth+1)
                         new_asset.properties['source_tool'] = 'jsfinder'
@@ -1269,22 +1269,22 @@ class JSBreeder(BreederBase):
                         logger.info(_("Adding seed-related URL asset: {url}").format(url=normalized_url))
                         total_count += 1
                     else:
-                        logger.warning(_("Skipping non-seed-related domain: {domain}, URL: {url}").format(domain=link_domain, url=normalized_url))
+                        logger.debug(_("Skipping non-seed-related domain: {domain}, URL: {url}").format(domain=link_domain, url=normalized_url))
                 else:
                     new_asset = URLAsset(normalized_url, source=asset.uid, depth=asset.depth+1)
                     new_asset.properties['source_tool'] = 'jsfinder'
                     total_count += 1
                     if is_related:
                         related_count += 1
-                        logger.info(_("Domain {domain} is seed-related, adding URL asset: {url}").format(domain=link_domain, url=normalized_url))
+                        logger.debug(_("Domain {domain} is seed-related, adding URL asset: {url}").format(domain=link_domain, url=normalized_url))
                     else:
                         logger.info(_("Domain {domain} not seed-related but added due to no restriction: {url}").format(domain=link_domain, url=normalized_url))
                     new_assets.append(new_asset)
             
             if restrict_to_seed_domains:
-                logger.info(_("JSFinder extracted {related} seed-related URLs from {url}, total: {total}").format(related=related_count, url=js_url, total=len(jsfinder_urls)))
+                logger.debug(_("JSFinder extracted {related} seed-related URLs from {url}, total: {total}").format(related=related_count, url=js_url, total=len(jsfinder_urls)))
             else:
-                logger.info(_("JSFinder extracted {total} URLs from {url}, {related} seed-related").format(total=total_count, url=js_url, related=related_count))
+                logger.debug(_("JSFinder extracted {total} URLs from {url}, {related} seed-related").format(total=total_count, url=js_url, related=related_count))
             
             subdomains_count = 0
             related_subdomains_count = 0
@@ -1311,30 +1311,30 @@ class JSBreeder(BreederBase):
                         logger.warning(_("Skipping non-seed-related subdomain: {subdomain}").format(subdomain=subdomain))
                         continue
                     else:
-                        logger.info(_("Subdomain {subdomain} is seed-related, adding as domain asset").format(subdomain=subdomain))
+                        logger.debug(_("Subdomain {subdomain} is seed-related, adding as domain asset").format(subdomain=subdomain))
                         related_subdomains_count += 1
                 else:
                     if is_related:
-                        logger.info(_("Subdomain {subdomain} is seed-related, adding as domain asset").format(subdomain=subdomain))
+                        logger.debug(_("Subdomain {subdomain} is seed-related, adding as domain asset").format(subdomain=subdomain))
                         related_subdomains_count += 1
                     else:
-                        logger.info(_("Subdomain {subdomain} not seed-related but added due to no restriction").format(subdomain=subdomain))
+                        logger.debug(_("Subdomain {subdomain} not seed-related but added due to no restriction").format(subdomain=subdomain))
                 
                 new_asset = DomainAsset(subdomain, source=asset.uid, depth=asset.depth+1)
                 new_asset.properties['source_tool'] = 'jsfinder'
                 new_assets.append(new_asset)
             
             if restrict_to_seed_domains:
-                logger.info(_("JSFinder extracted {related} seed-related subdomains from {url}, total: {total}").format(related=related_subdomains_count, url=js_url, total=len(jsfinder_subdomains)))
+                logger.debug(_("JSFinder extracted {related} seed-related subdomains from {url}, total: {total}").format(related=related_subdomains_count, url=js_url, total=len(jsfinder_subdomains)))
             else:
-                logger.info(_("JSFinder extracted {count} subdomains from {url}, {related} seed-related").format(count=subdomains_count, url=js_url, related=related_subdomains_count))
+                logger.debug(_("JSFinder extracted {count} subdomains from {url}, {related} seed-related").format(count=subdomains_count, url=js_url, related=related_subdomains_count))
         
         js_content = self._fetch_js(js_url)
         if not js_content:
             return new_assets
         
         urls = self._extract_urls_from_js(js_content)
-        logger.info(_("Extracted {count} URLs from JS content (filtered)").format(count=len(urls)))
+        logger.debug(_("Extracted {count} URLs from JS content (filtered)").format(count=len(urls)))
         
         for url in urls:
             if url.startswith('http'):
@@ -1357,7 +1357,7 @@ class JSBreeder(BreederBase):
             api_urls = self._extract_paths_from_js(js_content, js_url)
             for api_url in api_urls:
                 restrict_to_seed_domains = self.config.get('asset_scope', {}).get('restrict_to_seed_domains', True)
-                api_domain = urlparse(api_url).netloc
+                api_domain = (urlparse(api_url).hostname or '').lower()
                 if restrict_to_seed_domains and api_domain and not self._is_related_to_seed_domain(api_domain):
                     logger.debug(_("Skipping non-seed-related API path: {url}").format(url=api_url))
                     continue
@@ -1412,7 +1412,7 @@ class JSBreeder(BreederBase):
         related_count = 0
         
         if self.engine and hasattr(self.engine, 'seed_domains') and self.engine.seed_domains:
-            logger.info(_("Current seed domains: {domains}").format(domains=', '.join(self.engine.seed_domains)))
+            logger.debug(_("Current seed domains: {domains}").format(domains=', '.join(self.engine.seed_domains)))
         else:
             logger.warning(_("Seed domains list not found, domain relevance may be inaccurate"))
         
@@ -1423,13 +1423,13 @@ class JSBreeder(BreederBase):
                 continue
             clean_matches.append(url)
         
-        logger.info(_("Preliminary extraction: {initial} URLs, cleaned: {cleaned} valid URLs").format(initial=len(matches), cleaned=len(clean_matches)))
+        logger.debug(_("Preliminary extraction: {initial} URLs, cleaned: {cleaned} valid URLs").format(initial=len(matches), cleaned=len(clean_matches)))
         
         for url in clean_matches:
             try:
                 parsed_url = urlparse(url)
-                domain = parsed_url.netloc
-                
+                domain = (parsed_url.hostname or '').lower()
+
                 if not domain:
                     logger.warning(_("Skipping URL without domain: {url}").format(url=url))
                     continue
@@ -1438,7 +1438,7 @@ class JSBreeder(BreederBase):
                 
                 if restrict_to_seed_domains:
                     if is_related:
-                        logger.info(_("Domain {domain} is seed-related, adding URL asset").format(domain=domain))
+                        logger.debug(_("Domain {domain} is seed-related, adding URL asset").format(domain=domain))
                         filtered_urls.append(url)
                         related_count += 1
                     else:
@@ -1447,7 +1447,7 @@ class JSBreeder(BreederBase):
                     filtered_urls.append(url)
                     if is_related:
                         related_count += 1
-                        logger.info(_("Domain {domain} is seed-related").format(domain=domain))
+                        logger.debug(_("Domain {domain} is seed-related").format(domain=domain))
                     else:
                         logger.info(_("Domain {domain} not seed-related but added due to no restriction").format(domain=domain))
             except Exception as e:
@@ -1455,11 +1455,11 @@ class JSBreeder(BreederBase):
                 continue
         
         if restrict_to_seed_domains:
-            logger.info(_("Extracted {count} seed-related URLs from JS content").format(count=related_count))
+            logger.debug(_("Extracted {count} seed-related URLs from JS content").format(count=related_count))
         else:
-            logger.info(_("Extracted {related} seed-related URLs from JS content, total: {total}").format(related=related_count, total=len(filtered_urls)))
+            logger.debug(_("Extracted {related} seed-related URLs from JS content, total: {total}").format(related=related_count, total=len(filtered_urls)))
         
-        logger.info(_("Extracted {count} URLs from JS content (filtered)").format(count=len(filtered_urls)))
+        logger.debug(_("Extracted {count} URLs from JS content (filtered)").format(count=len(filtered_urls)))
         
         return filtered_urls
 

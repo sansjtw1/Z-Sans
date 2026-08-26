@@ -93,7 +93,7 @@ def configure_logging():
 
 logger = configure_logging()
 
-VERSION = "0.0.8"
+VERSION = "0.0.9"
 DEFAULT_CONFIG_PATH = "breeding-config.yaml"
 PLUGINS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plugins')
 
@@ -206,18 +206,49 @@ class BreedingEngine:
             "config_hash": cfg_hash,
         }
 
+    def _expand_seed_domain(self, domain):
+        """按 asset_scope.seed_scope 把种子域名扩展到注册域（eTLD+1）。
+
+        - registrable（默认）：基于公共后缀表（PSL）计算注册域后并入种子范围。
+          www.jiyu.com -> 追加 jiyu.com；beijing.edu.cn -> edu.cn 是公共后缀，
+          不会再被错误上拆（旧版"取后两段"会把任意 *.edu.cn 都判为相关）。
+        - exact：绝不拆分/扩展，只匹配种子域名本身及其子域。
+        """
+        scope_cfg = self.config.get('asset_scope', {}) or {}
+        mode = str(scope_cfg.get('seed_scope', 'registrable') or 'registrable').lower()
+        if mode in ('exact', 'none', 'false'):
+            return
+        if mode not in ('registrable', 'true'):
+            logger.warning(_("Unknown asset_scope.seed_scope value: {mode}, falling back to 'registrable'").format(mode=mode))
+            mode = 'registrable'
+
+        from core.domain_utils import get_registrable_domain
+        try:
+            registrable = get_registrable_domain(domain)
+        except Exception as e:
+            logger.warning(_("Registrable domain resolution failed for {domain}: {error}").format(domain=domain, error=e))
+            return
+        if registrable is None:
+            # 种子本身即公共后缀（如 edu.cn）：无法安全扩展，保持精确匹配
+            logger.warning(_("Seed {domain} is itself a public suffix; keeping exact-match scope only").format(domain=domain))
+            return
+        if registrable != domain:
+            self.seed_domains.add(registrable)
+            logger.info(_("Seed {domain} expanded to registrable domain {registrable} (asset_scope.seed_scope={mode})").format(
+                domain=domain, registrable=registrable, mode=mode))
+
     def add_seed(self, asset_type, value):
         asset = AssetFactory.create_asset(value, asset_type)
         if self.asset_graph.add_asset(asset):
             self.queue.add(asset)
             logger.info(_("Added seed asset: {uid}").format(uid=asset.uid))
-            
+
             if asset_type == ASSET_TYPE_DOMAIN:
-                self.seed_domains.add(value)
-                parts = value.split('.')
-                if len(parts) >= 2:
-                    tld = '.'.join(parts[-2:])
-                    self.seed_domains.add(tld)
+                # 与 Asset.value 同步归一化（小写、去尾部点），否则相关性
+                # 匹配对大写种子会全部失配；再按配置决定是否扩展到注册域。
+                normalized_domain = value.lower().rstrip('.')
+                self.seed_domains.add(normalized_domain)
+                self._expand_seed_domain(normalized_domain)
             elif asset_type == ASSET_TYPE_URL:
                 try:
                     from urllib.parse import urlparse
@@ -231,10 +262,7 @@ class BreedingEngine:
                     if domain:
                         domain = domain.lower()
                         self.seed_domains.add(domain)
-                        parts = domain.split('.')
-                        if len(parts) >= 2:
-                            tld = '.'.join(parts[-2:])
-                            self.seed_domains.add(tld)
+                        self._expand_seed_domain(domain)
                         logger.info(_("Extracted domain from URL seed: {domain}").format(domain=domain))
                 except Exception as e:
                     logger.error(_("Error extracting domain from URL: {error}").format(error=str(e)))
@@ -405,7 +433,14 @@ class BreedingEngine:
             if cp_cfg.get('enabled', True) and (self.metrics["assets_processed"] % max(1, cp_cfg.get('interval', 50))) == 0:
                 self.save_checkpoint()
             
-            logger.info(_("Asset {uid} processed, found {count} new assets").format(uid=asset.uid, count=len(new_assets)))
+            # 控制台心跳：逐资产的 INFO 已降级为 DEBUG（明细仍完整写入
+            # zsans.log），改为每 25 个资产汇总一次进度，避免刷屏。
+            if self.metrics["assets_processed"] % 25 == 0:
+                logger.info(_("Progress: {processed} assets processed, {found} discovered, {errors} errors, {queued} queued").format(
+                    processed=self.metrics["assets_processed"],
+                    found=self.metrics["new_assets_found"],
+                    errors=self.metrics["errors"],
+                    queued=self.queue.size()))
             return True
         
         except Exception as e:
@@ -650,6 +685,12 @@ class BreedingEngine:
             self._concurrent_breed()
             
             if self.state == "completed":
+                logger.info(_("Scan summary: {total} assets in graph ({eliminated} eliminated), {processed} processed, {found} discovered, {errors} errors").format(
+                    total=len(self.asset_graph.nodes),
+                    eliminated=sum(1 for a in self.asset_graph.nodes.values() if getattr(a, 'state', '') == 'eliminated'),
+                    processed=self.metrics["assets_processed"],
+                    found=self.metrics["new_assets_found"],
+                    errors=self.metrics["errors"]))
                 logger.info(_("Breeding engine completed all tasks, generating output..."))
                 self.emit_hook("on_scan_completed", engine=self)
             return True
@@ -836,7 +877,7 @@ def _plugin_cli_modules(config_path):
     try:
         winners, _conflicts = _resolve_winners(pdir, disabled)
     except Exception as e:
-        logger.debug("解析插件冲突失败: %s", e)
+        logger.debug(_("Failed to resolve plugin conflicts: {error}").format(error=e))
         winners = []
     taken = {}   # 已入选插件名 -> (声明名, 互斥模式)
     for name, entry, kind in winners:
@@ -858,7 +899,7 @@ def _plugin_cli_modules(config_path):
             taken[declared] = (declared, conflicts)
             items.append((name, module))
         except Exception as e:
-            logger.debug("收集插件 CLI 失败 %s: %s", name, e)
+            logger.debug(_("Failed to collect plugin CLI hooks for {name}: {error}").format(name=name, error=e))
     return items
 
 
@@ -902,7 +943,7 @@ def _apply_plugin_cli(parser, config_path):
         try:
             module.register_cli(parser)
         except Exception as e:
-            logger.debug("插件 %s 注册 CLI 失败: %s", pname, e)
+            logger.debug(_("Plugin {name} failed to register CLI: {error}").format(name=pname, error=e))
     parser.add_argument = original_add
 
 
@@ -1167,23 +1208,35 @@ def print_plugin_info(info):
     固定字段之后一并展示，便于插件安装/工具变更后帮助信息即时更新。
     """
     print()
+    field_labels = {
+        "name": _("Name"),
+        "version": _("Version"),
+        "author": _("Author"),
+        "description": _("Description"),
+        "handlers": _("Handlers"),
+        "events": _("Events"),
+        "kind": _("Kind"),
+        "path": _("Path"),
+        "status": _("Status"),
+        "error": _("Error"),
+    }
     for key in ("name", "version", "author", "description", "handlers", "events", "kind", "path", "status", "error"):
         if key == "events":
             value = ','.join(info.get(key) or []) or '-'
         else:
             value = info.get(key) or '-'
-        print("{}: {}".format(key.upper().ljust(12), value))
+        print("{}: {}".format(field_labels.get(key, key).ljust(12), value))
     conflicts = info.get("conflicts") or []
     if conflicts:
-        print("CONFLICTS   {}".format(", ".join(conflicts)))
+        print("{:<12}{}".format(_("Conflicts"), ", ".join(conflicts)))
     if info.get("kind") == "dir":
         files = info.get("files") or []
         if files:
             shown = ", ".join(files[:12]) + (" ..." if len(files) > 12 else "")
-            print("FILES       {}".format(shown))
+            print("{:<12}{}".format(_("Files"), shown))
         doc = (info.get("doc") or "").strip()
         if doc:
-            print("DOC:")
+            print(_("DOC:"))
             for line in doc.splitlines():
                 print("  " + line)
     module = info.get("module")
@@ -1193,7 +1246,7 @@ def print_plugin_info(info):
         try:
             print(plugin_help())
         except Exception as e:
-            logger.debug("plugin_help() failed for %s: %s", info.get("name"), e)
+            logger.debug(_("plugin_help() failed for {name}: {error}").format(name=info.get("name"), error=e))
     print()
 
 
@@ -1202,7 +1255,7 @@ def print_plugin_table(engine):
     print()
     print(_("Plugins directory: {dir}").format(dir=engine.plugin_dir))
     print()
-    print("{}  {}  {}  {}  {}  {}".format("NAME".ljust(20), "VERSION".ljust(10), "HANDLERS".ljust(8), "KIND".ljust(5), "STATUS".ljust(10), "EVENTS"))
+    print("{}  {}  {}  {}  {}  {}".format(_("NAME").ljust(20), _("VERSION").ljust(10), _("HANDLERS").ljust(8), _("KIND").ljust(5), _("STATUS").ljust(10), _("EVENTS")))
     print("-" * 78)
     for name in sorted(engine.plugins):
         info = engine.plugins[name]
@@ -1218,7 +1271,7 @@ def print_plugin_table(engine):
     conflicts = getattr(engine, "plugin_conflicts", None) or []
     if conflicts:
         print()
-        print("CONFLICTS:")
+        print(_("CONFLICTS:"))
         for c in conflicts:
             print("  * {}: {}  ↔  {} ({})".format(
                 c.get("name", '-'), c.get("winner", '-'), c.get("loser", '-'), c.get("reason", '?')))
@@ -1353,7 +1406,7 @@ def main():
     parser.add_argument("--watch", help=_("Run in watch mode, rescan periodically and report changes"), action="store_true")
     parser.add_argument("--list-plugins", help=_("List plugins in the plugins directory and exit"), action="store_true")
     parser.add_argument("--plugin-info", metavar="NAME", help=_("Show detailed info about a plugin and exit"))
-    parser.add_argument("--web", help=_("Start the web console"), action="store_true")
+    parser.add_argument("--web", help=_("Start the web console (set env ZSANS_WEB_PASSWORD to require login)"), action="store_true")
     parser.add_argument("--port", help=_("Web console port"), type=int, default=8050)
     parser.add_argument("--host", help=_("Web console bind address (default: 127.0.0.1)"), default="127.0.0.1")
 

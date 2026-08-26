@@ -18,6 +18,12 @@ asset_scope:
   restrict_to_seed_ip_ranges: true  # 仅扫描种子IP段范围（与 DEFAULT_CONFIG 默认一致，可改为 false 不限制）
   include_subdomains: true          # 扫描包含所有子域名
   include_ip_ranges: true           # 同步扫描关联IP段
+  seed_scope: registrable           # 种子作用域扩展方式：
+                                    #   registrable - 基于公共后缀表(PSL)扩展到注册域 eTLD+1（推荐）
+                                    #                 例：www.jiyu.com 会同时纳入 jiyu.com 及其子域；
+                                    #                 beijing.edu.cn 保持为 beijing.edu.cn（edu.cn 是公共后缀，不会误拆）。
+                                    #   exact       - 不做任何扩展，仅匹配种子域本身及其子域
+                                    #                 例：种子 www.jiyu.com 只扫描 *.www.jiyu.com，不含 mail.jiyu.com。
 
 # 并发任务配置
 concurrency:
