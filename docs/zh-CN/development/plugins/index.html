@@ -1158,11 +1158,11 @@
 </tr>
 <tr>
 <td><code>engine.asset_graph</code></td>
-<td>资产图（<code>.nodes</code> / <code>.edges</code> / <code>add_asset()</code> / <code>add_edge()</code>），线程安全</td>
+<td>资产图（<code>.nodes</code> / <code>.edges</code> / <code>add_asset()</code> / <code>try_add_asset()</code> / <code>add_edge()</code>），线程安全。<code>try_add_asset(asset, max_count=None)</code> 是原子入口（返回 <code>added</code> / <code>updated</code> / <code>exists</code> / <code>rejected</code>），在图的锁内执行按类型配额限制</td>
 </tr>
 <tr>
 <td><code>engine.queue</code></td>
-<td>优先级队列（<code>.add()</code> / <code>.size()</code> / <code>get_next()</code>）</td>
+<td>优先级队列（<code>.add()</code> / <code>.size()</code> / <code>get_next()</code> / <code>done()</code>）</td>
 </tr>
 <tr>
 <td><code>engine.metrics</code></td>
@@ -1188,8 +1188,16 @@
 <td><code>engine.plugin_conflicts</code></td>
 <td>冲突记录</td>
 </tr>
+<tr>
+<td><code>core.zsans_engine.get_http_session()</code></td>
+<td>线程本地 <code>requests.Session</code>（自动继承引擎配置的代理 / User-Agent / SSL 校验）。插件发起 HTTP 请求请用它</td>
+</tr>
 </tbody>
 </table></div>
+<div class="admonition note">
+<p class="admonition-title">HTTP 会话</p>
+<p><code>core.zsans_engine.http_session</code> 曾是单个全局 <code>requests.Session</code>。由于 <code>requests.Session</code> 非线程安全，现改为每线程一个实例；旧名 <code>http_session</code> 作为兼容别名保留，转发到当前线程的 Session，旧插件无需改动即可继续工作——但新代码请调用 <code>get_http_session()</code>。</p>
+</div>
 <p>资产对象字段：<code>uid</code>（<code>type:value</code>）、<code>type</code>、<code>value</code>、<code>depth</code>、<code>state</code>、<code>properties</code>（dict）、<code>to_dict()</code>。</p>
 <div class="admonition warning">
 <p class="admonition-title">并发安全</p>
@@ -1297,7 +1305,7 @@
 </tr>
 <tr>
 <td><code>on_asset_discovered</code></td>
-<td>新资产入库</td>
+<td>繁殖发现资产（可能已存在于图谱）</td>
 </tr>
 <tr>
 <td><code>on_asset_excluded</code></td>
@@ -1444,6 +1452,12 @@
                         <a class="text-2xl font-medium" href="../../usage/output/">
                             
                             Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../../usage/findings/">
+                            
+                            Findings & Risk
                             
                         </a>
                         

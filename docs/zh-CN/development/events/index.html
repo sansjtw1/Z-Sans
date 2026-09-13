@@ -1131,7 +1131,7 @@
 </tbody>
 </table></div>
 <h3 id="on_asset_discovered">on_asset_discovered<a class="headerlink" href="#on_asset_discovered" title="Permanent link">&para;</a></h3>
-<p>触发时机：<code>_process_asset()</code> 中发现循环内，<code>asset_graph.add_asset(new_asset)</code> 返回 <code>True</code>（<strong>首次入库</strong>）时，对每个新资产发射一次。仅需记录"新发现"的场景监听它。</p>
+<p>触发时机：<code>_process_asset()</code> 中发现循环内，对繁殖器返回的<strong>每个</strong>资产发射一次——每次发现都会触发，包括已被其它父节点重复发现的、图谱中已存在的资产（此时同样会记录 <code>discovered</code> 边）。若只关心真正被处理的资产，请监听 <code>on_asset_scanned</code>；若需要"首次入库"语义，请自行判断该资产是否已存在于 <code>engine.asset_graph</code>（或其 <code>state</code>）。</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -1379,6 +1379,12 @@
                         <a class="text-2xl font-medium" href="../../usage/output/">
                             
                             Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../../usage/findings/">
+                            
+                            Findings & Risk
                             
                         </a>
                         

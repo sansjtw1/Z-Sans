@@ -3,12 +3,21 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Test caches
+/.pytest_cache/
+.coverage
+htmlcov/
+
+# Z-Sans runtime cache
+/.cache/
+
 # Virtual environments
 venv/
 env/
 .env/
 
-# Output files
+# Output files (scan results must never be committed)
+/output/
 zsans.log
 
 # Configuration files

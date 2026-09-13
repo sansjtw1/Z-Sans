@@ -1092,15 +1092,45 @@
     </div>
   </div>
   <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
-    <h2 id="v0092026-08-25">v0.0.9（2026-08-25）<a class="headerlink" href="#v0092026-08-25" title="Permanent link">&para;</a></h2>
-<h3 id="_1">安全<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+    <h2 id="v0102026-09-13">v0.1.0（2026-09-13）<a class="headerlink" href="#v0102026-09-13" title="Permanent link">&para;</a></h2>
+<h3 id="_1">新增<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Web 控制台认证</strong>：设置环境变量 <code>ZSANS_WEB_PASSWORD</code> 后所有接口需口令授权。浏览器走独立登录页（HttpOnly 会话 Cookie）；第三方程序可通过 <code>Authorization: Bearer &lt;口令&gt;</code> 或 <code>X-API-Key</code> 请求头直接接入。含登录限流</li>
+<li><strong>TLS 证书富化</strong>：完整探测证书（subject / issuer / 有效期 / SAN / SHA-256），并用 SAN 发现子域；新增 <code>cert-expired</code>、<code>cert-expiring</code>、<code>cert-self-signed</code>、<code>cert-hostname-mismatch</code> 发现。同时修复了一个潜在缺陷：<code>CERT_NONE</code> 下 <code>getpeercert()</code> 返回空，导致 SAN 从未被提取</li>
+<li><strong>泛解析检测</strong>：随机标签探测，剔除 DNS 爆破假阳性</li>
+<li><strong>历史 URL</strong>：可选的 Wayback（CDX）与 Common Crawl 采集，产出为 URL 资产</li>
+<li><strong>子域接管检测</strong>（仅检测）：CNAME 链匹配已知云服务，可选 HTTP 确认；结果为 findings</li>
+<li><strong>全局限速</strong>（<code>http.rate_limit</code>）与每工具并发上限（<code>concurrency.tools</code>，此前为死配置）</li>
+<li><strong>跨运行磁盘缓存</strong>（<code>cache</code>，sqlite）缓存 DNS / HTTP / 证书结果；<code>--watch</code> 旁路 HTTP 缓存</li>
+<li><strong>完整 IPv6 支持</strong>（校验、作用域判断、端口扫描、URL 与 uid 方括号）</li>
+<li><strong>新增导出</strong>：SARIF 2.1.0（<code>output.formats.sarif</code>，默认开启）与 Neo4j/BloodHound CSV（<code>output.formats.neo4j</code>）；报告新增 <em>Findings</em> 页签；<code>GET /api/projects/&lt;id&gt;/sarif</code></li>
+<li><strong>Findings 模型</strong>（<code>properties.findings</code>），随 JSON / CSV / GraphML / 报告 / SARIF 呈现</li>
+</ul>
+<h3 id="_2">修复<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>重复发现丢边</strong>：<code>discovered</code> 边与 <code>on_asset_discovered</code> 事件此前依赖 <code>add_asset()</code> 返回 <code>True</code>。已被扫描/淘汰/扫描中的资产会返回 <code>False</code>，导致新父节点重复发现它时边与事件被静默丢弃。现在边与事件无条件记录，仅"是否重新入队"由返回值决定</li>
+<li><strong>并发重复扫描</strong>：<code>queue.get_next()</code> 在资产状态变为 <code>scanning</code> 之前就把它移出 <code>_queued</code>，窗口内的重复发现会再次入队，同一资产被两个 worker 并发扫描。现在 uid 保留为"处理中"，直到新增的 <code>queue.done(asset)</code>（任务完成时调用）才移除</li>
+<li><strong>资源上限超发（TOCTOU）</strong>：按类型配额（<code>max_domains</code> / <code>max_urls</code> 等）的"先检查、后自增"两步之间没有共享锁，并发 worker 最多超发（worker 数）个。新增原子 <code>AssetGraph.try_add_asset(asset, max_count)</code>，在图的锁内完成检查与占位</li>
+</ul>
+<h3 id="_3">变更<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>HTTP 会话线程安全</strong>：原先单个全局 <code>requests.Session</code>（非线程安全）改为通过 <code>get_http_session()</code> 每线程一个实例，配置变更（代理 / UA / SSL）经代次号传播。旧名 <code>http_session</code> 作为兼容别名保留并转发到当前线程的 Session，旧插件无需改动</li>
+<li><strong>版本号单一来源</strong>：新增 <code>core/version.py</code>，<code>main.py</code>、<code>webapp.py</code> 与 HTML 报告页脚统一读取 <code>0.1.0</code>（此前多处硬编码 <code>0.0.5</code> / <code>0.0.6</code>）</li>
+</ul>
+<h3 id="_4">工具链修复<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>临时文件泄漏</strong>：内置 DNS 解析器与端口扫描器创建的 <code>NamedTemporaryFile</code> 从未使用也从不删除；naabu / JSfinder 的清理不在 <code>finally</code> 中，异常路径会残留文件</li>
+<li><strong>i18n 补全</strong>：补齐遗漏的翻译条目，并新增 <code>tools/build_i18n.py</code>，用 <code>polib</code> 把 <code>.po</code> 编译为 <code>.mo</code>（无需 <code>msgfmt</code>）</li>
+<li>新增 <code>pytest</code> 测试套件覆盖上述修复</li>
+</ul>
+<h2 id="v0092026-08-25">v0.0.9（2026-08-25）<a class="headerlink" href="#v0092026-08-25" title="Permanent link">&para;</a></h2>
+<h3 id="_5">安全<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Web 控制台认证</strong>：设置环境变量 <code>ZSANS_WEB_PASSWORD</code> 后，除登录和登出接口外均需口令授权。浏览器走独立登录页（HttpOnly 会话 Cookie）；第三方程序可通过 <code>Authorization: Bearer &lt;口令&gt;</code> 或 <code>X-API-Key</code> 请求头直接接入。含登录限流</li>
 <li><strong>命令注入修复</strong>：外部工具（subfinder / EHole）一律改为参数列表调用，删除了 Windows 下 <code>shell=True</code> 字符串拼接路径</li>
 <li><strong>Web 种子校验</strong>：Web 提交的种子在触达工具命令行前做严格格式校验（域名/URL/IP 白名单）</li>
 <li>SSE 日志流不再发送 <code>Access-Control-Allow-Origin: *</code>；请求体上限 2 MB</li>
 </ul>
-<h3 id="_2">修复<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h3 id="_6">修复<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>种子作用域</strong>：以公共后缀表（PSL）计算注册域，取代旧的"取末两段"逻辑（内置 PSL 数据，离线可用）。<code>example.co.uk</code> 不再被错误上拆到公共后缀 <code>co.uk</code>，同时 <code>www.example.com</code> 仍能覆盖 <code>example.com</code>。新增配置项 <code>asset_scope.seed_scope: registrable | exact</code></li>
 <li>种子域名统一归一化为小写（此前 <code>-d EXAMPLE.COM</code> 会导致相关性匹配全错）</li>
@@ -1108,7 +1138,7 @@
 <li>含凭据的代理 URL 写入日志前已脱敏</li>
 <li>补齐前端缺失的 i18n key（<code>enter</code>）；策略下拉选项本地化</li>
 </ul>
-<h3 id="_3">变更<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h3 id="_7">变更<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
 <ul>
 <li>控制台日志大幅降噪：逐资产/逐链接日志降级为 DEBUG（仍完整写入 <code>zsans.log</code>），改为每处理 25 个资产输出一次进度心跳 + 扫描结束时输出汇总</li>
 <li>补完剩余硬编码字符串的国际化（API 错误消息、CLI 插件列表标签、前端弹窗文案）</li>
@@ -1285,6 +1315,12 @@
                             
                         </a>
                         
+                        <a class="text-2xl font-medium" href="../usage/findings/">
+                            
+                            Findings & Risk
+                            
+                        </a>
+                        
                         <a class="text-2xl font-medium" href="../usage/web-console/">
                             
                             Web Console
@@ -1374,17 +1410,17 @@
         
         
         
-        <a href="#v0092026-08-25"
+        <a href="#v0102026-09-13"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#v0092026-08-25');">
-            v0.0.9（2026-08-25）
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#v0102026-09-13');">
+            v0.1.0（2026-09-13）
         </a>
         
         
         <a href="#_1"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#_1');">
-            安全
+            新增
         </a>
         
         <a href="#_2"
@@ -1396,6 +1432,40 @@
         <a href="#_3"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#_3');">
+            变更
+        </a>
+        
+        <a href="#_4"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#_4');">
+            工具链修复
+        </a>
+        
+        
+
+        
+        <a href="#v0092026-08-25"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#v0092026-08-25');">
+            v0.0.9（2026-08-25）
+        </a>
+        
+        
+        <a href="#_5"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#_5');">
+            安全
+        </a>
+        
+        <a href="#_6"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#_6');">
+            修复
+        </a>
+        
+        <a href="#_7"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#_7');">
             变更
         </a>
         

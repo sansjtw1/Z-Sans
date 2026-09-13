@@ -2,9 +2,16 @@
 # coding: utf-8
 
 import re
+import ipaddress
+import os
+import json
 import socket
 import ssl
+import uuid
+import hashlib
 import logging
+import tempfile
+from datetime import datetime, timezone
 from urllib.parse import urlparse, urljoin
 import requests
 from bs4 import BeautifulSoup
@@ -14,10 +21,54 @@ from core.i18n import _
 from core.zsans_engine import (
     Asset, DomainAsset, IPAsset, URLAsset, PortAsset, JSAsset,
     ASSET_TYPE_DOMAIN, ASSET_TYPE_IP, ASSET_TYPE_URL, ASSET_TYPE_PORT, ASSET_TYPE_JS,
-    AssetFactory
+    AssetFactory, _normalize_ip
 )
 
 logger = logging.getLogger('zsans.breeders')
+
+
+def _name_to_str(name):
+    """把 ssl 解析出的 X.509 名称元组拍平成 "CN=.., O=.." 字符串。"""
+    if not name:
+        return ''
+    parts = []
+    for rdn in name:
+        for key, value in rdn:
+            parts.append("{0}={1}".format(key, value))
+    return ', '.join(parts)
+
+
+def _parse_cert_time(value):
+    """解析证书的 notBefore/notAfter（如 'Jan  1 00:00:00 2026 GMT'）。"""
+    if not value:
+        return None
+    normalized = ' '.join(str(value).split())
+    try:
+        return datetime.strptime(normalized, '%b %d %H:%M:%S %Y %Z').replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+
+
+def _cert_covers_domain(domain, cert_info):
+    """证书（SAN / CN）是否覆盖给定域名，支持单层通配符。无信息时不误报。"""
+    if not isinstance(domain, str):
+        return True
+    domain = domain.lower().rstrip('.')
+    candidates = list(cert_info.get('san_dns') or [])
+    for chunk in (cert_info.get('subject') or '').split(','):
+        key, _, val = chunk.strip().partition('=')
+        if key.strip().lower() == 'cn':
+            candidates.append(val.strip().lower())
+    candidates = [c for c in candidates if c]
+    if not candidates:
+        return True
+    for cand in candidates:
+        cand = cand.lower().rstrip('.')
+        if cand == domain:
+            return True
+        if cand.startswith('*.') and domain.count('.') == cand.count('.') and domain.endswith(cand[1:]):
+            return True
+    return False
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
@@ -131,17 +182,23 @@ class BreederBase:
     def _ip_in_range(self, ip, ip_range):
         """判断 IP 是否在指定范围/网段内。
 
-        支持两种格式：
-        - CIDR：如 `10.0.0.0/8`、`192.168.1.0/24`，按前缀精确匹配；
-        - 旧式 /16 简写：如 `192.168.0.0`，仅比较前两段（兼容历史配置）。
+        支持：
+        - CIDR：如 `10.0.0.0/8`、`2001:db8::/32`，按前缀匹配（v4/v6 均可）；
+        - 旧式 /16 简写：如 `192.168.0.0`，仅比较前两段（兼容历史 IPv4 配置）；
+        - 裸 IPv6/单 IP：精确匹配。
         """
         try:
+            addr = ipaddress.ip_address(_normalize_ip(ip))
+            ip_range = (ip_range or '').strip()
             if '/' in ip_range:
-                import ipaddress
-                return ipaddress.ip_address(ip) in ipaddress.ip_network(ip_range, strict=False)
-            ip_parts = ip.split('.')
-            range_parts = ip_range.split('.')
-            return ip_parts[0] == range_parts[0] and ip_parts[1] == range_parts[1]
+                return addr in ipaddress.ip_network(ip_range, strict=False)
+            # 旧式 IPv4 /16 简写：仅当形如 a.b（纯 IPv4）时按前两段比较
+            if addr.version == 4 and ':' not in ip_range:
+                range_parts = ip_range.split('.')
+                if len(range_parts) >= 2:
+                    ip_parts = str(addr).split('.')
+                    return ip_parts[0] == range_parts[0] and ip_parts[1] == range_parts[1]
+            return addr == ipaddress.ip_address(ip_range)
         except Exception as e:
             logger.error(_("IP range check error: {error}").format(error=str(e)))
             return False
@@ -179,7 +236,30 @@ class DomainBreeder(BreederBase):
                 
             new_asset = DomainAsset(subdomain, source=asset.uid, depth=asset.depth+1)
             new_assets.append(new_asset)
-        
+
+        # 历史 URL（Wayback / Common Crawl）：默认关闭，补充已下线/隐藏的路径
+        hist_cfg = self.config.get('historical_urls', {}) or {}
+        if hist_cfg.get('enabled', False):
+            historical = set()
+            try:
+                if (hist_cfg.get('wayback', {}) or {}).get('enabled', True):
+                    historical.update(self._query_wayback_cdx(domain))
+            except Exception as e:
+                logger.debug(_("Wayback query failed for {domain}: {error}").format(domain=domain, error=str(e)))
+            try:
+                if (hist_cfg.get('commoncrawl', {}) or {}).get('enabled', False):
+                    historical.update(self._query_commoncrawl(domain))
+            except Exception as e:
+                logger.debug(_("Common Crawl query failed for {domain}: {error}").format(domain=domain, error=str(e)))
+            for hist_url in historical:
+                if not isinstance(hist_url, str):
+                    continue
+                if not (hist_url.startswith('http://') or hist_url.startswith('https://')):
+                    continue
+                hist_asset = URLAsset(hist_url, source=asset.uid, depth=asset.depth+1)
+                hist_asset.properties['source_tool'] = 'wayback'
+                new_assets.append(hist_asset)
+
         # include_ip_ranges: 关闭时跳过域名的 IP 解析与 IP 资产生成
         include_ip_ranges = self.config.get('asset_scope', {}).get('include_ip_ranges', True)
         if not include_ip_ranges:
@@ -196,7 +276,38 @@ class DomainBreeder(BreederBase):
             new_asset = IPAsset(ip, source=asset.uid, depth=asset.depth+1)
             new_assets.append(new_asset)
         
-        cert_domains = self._check_certificate(domain)
+        # TLS 证书探测：提取 SAN 用于繁殖，并把证书信息与证书类 finding 写回源域名节点
+        cert_cfg = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('cert_probe', {})
+        cert_cfg = cert_cfg if isinstance(cert_cfg, dict) else {}
+        cert_domains = []
+        if cert_cfg.get('enabled', True):
+            probe_ports = cert_cfg.get('ports') or [443]
+            cert_info = self._probe_certificate(domain, probe_ports[0])
+            if cert_info:
+                asset.properties['cert'] = cert_info
+                self._emit_cert_findings(asset, domain, cert_info, cert_cfg)
+                cert_domains = cert_info.get('san_dns', [])
+
+        # 子域接管检测（仅检测：CNAME 查询 + 可选一次 HTTP GET，绝不做认领/利用）
+        takeover_cfg = self.config.get('takeover', {}) or {}
+        if takeover_cfg.get('enabled', True):
+            try:
+                from core.takeover import detect_takeover
+                from core.findings import add_finding
+
+                http_get = None
+                if takeover_cfg.get('http_probe', True):
+                    from core.zsans_engine import get_http_session
+
+                    def http_get(url, timeout):
+                        return get_http_session().get(url, timeout=timeout, allow_redirects=False)
+
+                for finding in detect_takeover(domain, http_get, takeover_cfg.get('timeout', 8)):
+                    if add_finding(asset, finding):
+                        logger.warning(_("Subdomain takeover candidate: {domain}").format(domain=domain))
+            except Exception as e:
+                logger.debug(_("Takeover detection failed for {domain}: {error}").format(domain=domain, error=str(e)))
+
         for cert_domain in cert_domains:
             if cert_domain != domain:
                 if restrict_to_seed_domains and not self._is_related_to_seed_domain(cert_domain):
@@ -254,12 +365,24 @@ class DomainBreeder(BreederBase):
         except Exception as e:
             logger.error(_("Subdomain discovery failed: {error}").format(error=str(e)))
 
+        # 泛解析检测：若 *.domain 常驻解析，则爆破结果需剔除解析到泛解析 IP 的名字
+        wildcard_ips = set()
+        try:
+            wildcard_cfg = self.config.get('asset_types', {}).get('domain', {}).get('wildcard', {}) or {}
+            if wildcard_cfg.get('enabled', True):
+                info = self._detect_wildcard(domain)
+                if info.get('is_wildcard'):
+                    wildcard_ips = info.get('ips') or set()
+                    logger.warning(_("Wildcard DNS detected for {domain}; filtering brute-force false positives").format(domain=domain))
+        except Exception as e:
+            logger.debug(_("Wildcard detection failed for {domain}: {error}").format(domain=domain, error=str(e)))
+
         # 内置 DNS 暴力枚举：纯本地、无需外部工具，用常见子域词表探测 A 记录
         try:
             dns_brute_enabled = self.config.get('asset_types', {}).get('domain', {}).get('tools', {}).get('dns_brute', True)
             if dns_brute_enabled:
                 logger.debug(_("Running built-in DNS brute-force for subdomains: {domain}").format(domain=domain))
-                brute_subdomains = self._dns_brute_subdomains(domain)
+                brute_subdomains = self._dns_brute_subdomains(domain, wildcard_ips=wildcard_ips)
                 if brute_subdomains:
                     logger.debug(_("DNS brute-force found {count} subdomains").format(count=len(brute_subdomains)))
                     subdomains.update(brute_subdomains)
@@ -269,6 +392,128 @@ class DomainBreeder(BreederBase):
             logger.error(_("DNS brute-force failed: {error}").format(error=str(e)))
         
         return self._filter_subdomains(subdomains, domain)
+
+    def _detect_wildcard(self, domain):
+        """检测 ``*.domain`` 是否泛解析。
+
+        查询若干随机标签的 A 记录：若全部解析成功即判为泛解析，并收集其 IP 集。
+        结果按需缓存。返回 ``{"is_wildcard": bool, "sample": str, "ips": set}``。
+        """
+        from core.zsans_engine import cache_get_json, cache_set_json
+        cached = cache_get_json('dns', 'wildcard:' + domain)
+        if isinstance(cached, dict):
+            return {
+                'is_wildcard': bool(cached.get('is_wildcard')),
+                'sample': cached.get('sample', ''),
+                'ips': set(cached.get('ips') or []),
+            }
+
+        result = {'is_wildcard': False, 'sample': '', 'ips': set()}
+        try:
+            import dns.resolver
+        except Exception:
+            return result
+
+        cfg = self.config.get('asset_types', {}).get('domain', {}).get('wildcard', {}) or {}
+        try:
+            samples = max(1, int(cfg.get('samples', 2) or 2))
+        except (TypeError, ValueError):
+            samples = 2
+
+        hits = 0
+        ips = set()
+        for _ in range(samples):
+            label = uuid.uuid4().hex[:12]
+            full = "{0}.{1}".format(label, domain)
+            try:
+                answers = dns.resolver.resolve(full, 'A', lifetime=3.0, raise_on_no_answer=True)
+                values = {rdata.address for rdata in answers}
+                if values:
+                    hits += 1
+                    ips.update(values)
+                    result['sample'] = full
+            except Exception:
+                pass
+
+        if hits >= samples:
+            result['is_wildcard'] = True
+            result['ips'] = ips
+
+        cache_set_json('dns', 'wildcard:' + domain, {
+            'is_wildcard': result['is_wildcard'],
+            'sample': result['sample'],
+            'ips': sorted(ips),
+        })
+        return result
+
+    def _query_wayback_cdx(self, domain):
+        """从 Wayback Machine CDX API 拉取历史 URL（去重）。"""
+        cfg = self.config.get('historical_urls', {}) or {}
+        wb = cfg.get('wayback', {}) or {}
+        try:
+            max_results = int(wb.get('max_results', 2000) or 2000)
+        except (TypeError, ValueError):
+            max_results = 2000
+        timeout = wb.get('timeout', 30)
+
+        from core.zsans_engine import get_http_session
+        query = ("https://web.archive.org/cdx/search/cdx?url=*.{domain}/*"
+                 "&output=json&fl=original&collapse=urlkey&limit={limit}").format(
+            domain=domain, limit=max_results)
+        response = get_http_session().get(query, timeout=timeout)
+        if response.status_code != 200:
+            logger.debug(_("Wayback CDX returned status {status}").format(status=response.status_code))
+            return set()
+        try:
+            data = response.json()
+        except Exception:
+            return set()
+        urls = set()
+        for row in (data[1:] if data else []):
+            if isinstance(row, list) and row and isinstance(row[0], str):
+                urls.add(row[0])
+        return urls
+
+    def _query_commoncrawl(self, domain):
+        """从 Common Crawl 索引 API 拉取历史 URL（去重）。"""
+        cfg = self.config.get('historical_urls', {}) or {}
+        cc = cfg.get('commoncrawl', {}) or {}
+        try:
+            max_results = int(cc.get('max_results', 1000) or 1000)
+        except (TypeError, ValueError):
+            max_results = 1000
+
+        from core.zsans_engine import get_http_session
+        session = get_http_session()
+        response = session.get('https://index.commoncrawl.org/collinfo.json', timeout=30)
+        if response.status_code != 200:
+            return set()
+        try:
+            indexes = response.json()
+        except Exception:
+            return set()
+        if not indexes or not isinstance(indexes, list):
+            return set()
+        index_url = indexes[0].get('cdx-api')
+        if not index_url:
+            return set()
+
+        query = '{0}?url=*.{1}/*&output=json&fl=url&limit={2}'.format(index_url, domain, max_results)
+        response = session.get(query, timeout=60)
+        if response.status_code != 200:
+            return set()
+        urls = set()
+        for line in response.text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                url = json.loads(line).get('url')
+            except Exception:
+                continue
+            if url:
+                urls.add(url)
+        return urls
 
     # 常见子域名字典（内置，免外部依赖）
     _BRUTE_SUBDOMAINS = [
@@ -312,20 +557,24 @@ class DomainBreeder(BreederBase):
         'gw', 'api-gw', 'api-gateway', 'open', 'openapi', 'public', 'pub',
     ]
 
-    def _dns_brute_subdomains(self, domain, max_workers=30, timeout=3.0):
+    def _dns_brute_subdomains(self, domain, max_workers=30, timeout=3.0, wildcard_ips=None):
         """用内置词表暴力枚举子域名 A 记录，无需外部工具。
 
         返回解析成功的子域列表；网络异常时静默降级，不影响主流程。
+        ``wildcard_ips`` 非空时，解析结果完全落在泛解析 IP 集合内的名字会被剔除，
+        以消除泛解析造成的假阳性。
         """
         import concurrent.futures as cf
         found = []
+        wildcard_ips = set(wildcard_ips or ())
 
         def _probe(sub):
             full = f"{sub}.{domain}"
             try:
                 import dns.resolver
                 answers = dns.resolver.resolve(full, 'A', lifetime=timeout, raise_on_no_answer=True)
-                return full if answers else None
+                ips = {rdata.address for rdata in answers}
+                return (full, ips) if ips else None
             except Exception:
                 return None
 
@@ -337,8 +586,13 @@ class DomainBreeder(BreederBase):
                         result = future.result()
                     except Exception:
                         result = None
-                    if result:
-                        found.append(result)
+                    if not result:
+                        continue
+                    full, ips = result
+                    if wildcard_ips and ips and ips.issubset(wildcard_ips):
+                        logger.debug(_("Skipping wildcard-resolved subdomain: {subdomain}").format(subdomain=full))
+                        continue
+                    found.append(full)
         except cf.TimeoutError:
             logger.warning(_("DNS brute-force timed out for {domain}").format(domain=domain))
         return found
@@ -366,8 +620,8 @@ class DomainBreeder(BreederBase):
         subdomains = set()
         try:
             url = f"https://crt.sh/?q=%25.{domain}&output=json"
-            from core.zsans_engine import http_session
-            response = http_session.get(url, timeout=self.timeout)
+            from core.zsans_engine import get_http_session
+            response = get_http_session().get(url, timeout=self.timeout)
             
             if response.status_code == 200:
                 data = response.json()
@@ -387,41 +641,148 @@ class DomainBreeder(BreederBase):
         return list(subdomains)
     
     def _resolve_domain(self, domain):
+        from core.zsans_engine import cache_get_json, cache_set_json
+        cached = cache_get_json('dns', domain)
+        if cached is not None:
+            return list(cached)
+
         ip_addresses = set()
         try:
             info = socket.getaddrinfo(domain, None)
             for _family, _socktype, _proto, _canonname, sockaddr in info:
-                ip = sockaddr[0]
+                ip = _normalize_ip(sockaddr[0])
                 if self._is_valid_ip(ip):
                     ip_addresses.add(ip)
         except Exception as e:
             logger.error(_("Domain resolution failed: {error}").format(error=str(e)))
-        
-        return list(ip_addresses)
+
+        result = list(ip_addresses)
+        cache_set_json('dns', domain, result)
+        return result
     
     def _is_valid_ip(self, ip):
-        pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
-        return bool(re.match(pattern, ip))
+        """校验 IPv4 / IPv6（此前仅用正则接受 IPv4，会丢弃所有 IPv6 地址）。"""
+        try:
+            ipaddress.ip_address(_normalize_ip(ip))
+            return True
+        except (ValueError, TypeError):
+            return False
     
     def _check_certificate(self, domain):
-        cert_domains = set()
+        """返回 TLS 证书中的 DNS SAN 列表（供繁殖为子域）。"""
+        cert = self._probe_certificate(domain)
+        if not cert:
+            return []
+        return [name for name in cert.get('san_dns', []) if name and name != domain]
+
+    def _probe_certificate(self, domain, port=443):
+        """探测并解析 TLS 证书，返回证书字典（含 SAN）；失败返回 None。
+
+        注意：``verify_mode=CERT_NONE`` 时 ``getpeercert()`` 返回空 dict，
+        因此这里改用 ``getpeercert(binary_form=True)`` 取 DER 再自行解析，
+        否则 SAN 永远取不到（历史缺陷）。结果可按需缓存。
+        """
+        from core.zsans_engine import cache_get_json, cache_set_json
+        cache_key = "{0}:{1}".format(domain, port)
+        cached = cache_get_json('cert', cache_key)
+        if isinstance(cached, dict) and 'cert' in cached:
+            return cached.get('cert')
+
+        cert_info = None
         try:
             context = ssl.create_default_context()
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
-            
-            with socket.create_connection((domain, 443), timeout=self.timeout) as sock:
+            with socket.create_connection((domain, port), timeout=self.timeout) as sock:
                 with context.wrap_socket(sock, server_hostname=domain) as ssock:
-                    cert = ssock.getpeercert()
-                    
-                    if 'subjectAltName' in cert:
-                        for type_name, value in cert['subjectAltName']:
-                            if type_name == 'DNS':
-                                cert_domains.add(value.lower())
+                    der = ssock.getpeercert(binary_form=True)
+            cert_info = self._decode_cert_der(der)
         except Exception as e:
-            logger.debug(_("Certificate check failed: {error}").format(error=str(e)))
-        
-        return list(cert_domains)
+            logger.debug(_("Certificate probe failed: {error}").format(error=str(e)))
+
+        cache_set_json('cert', cache_key, {'cert': cert_info})
+        return cert_info
+
+    @staticmethod
+    def _decode_cert_der(der):
+        """把 DER 证书解析为字典（纯标准库）。解析失败时降级为最小结构。"""
+        if not der:
+            return None
+        fingerprint = hashlib.sha256(der).hexdigest()
+        decoded = None
+        tmp_path = None
+        try:
+            pem = ssl.DER_cert_to_PEM_cert(der)
+            with tempfile.NamedTemporaryFile('w', suffix='.pem', delete=False) as tmp:
+                tmp.write(pem)
+                tmp_path = tmp.name
+            decoded = ssl._ssl._test_decode_cert(tmp_path)
+        except Exception as e:
+            logger.debug(_("Certificate decode failed: {error}").format(error=str(e)))
+            return {'san': [], 'san_dns': [], 'san_ip': [], 'fingerprint_sha256': fingerprint}
+        finally:
+            if tmp_path:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+
+        san_dns, san_ip = [], []
+        for type_name, value in (decoded.get('subjectAltName') or ()):
+            if type_name == 'DNS':
+                san_dns.append(str(value).lower())
+            elif type_name == 'IP Address':
+                san_ip.append(str(value))
+
+        subject = _name_to_str(decoded.get('subject'))
+        issuer = _name_to_str(decoded.get('issuer'))
+        return {
+            'subject': subject,
+            'issuer': issuer,
+            'serial': decoded.get('serialNumber'),
+            'not_before': decoded.get('notBefore'),
+            'not_after': decoded.get('notAfter'),
+            'san': sorted(set(san_dns + san_ip)),
+            'san_dns': sorted(set(san_dns)),
+            'san_ip': sorted(set(san_ip)),
+            'self_signed': bool(subject) and subject == issuer,
+            'fingerprint_sha256': fingerprint,
+        }
+
+    def _emit_cert_findings(self, asset, domain, cert_info, cert_cfg):
+        """根据证书信息生成 finding（过期/即将过期/自签名/主机名不匹配）。"""
+        from core.findings import (
+            make_finding, add_finding,
+            SEVERITY_HIGH, SEVERITY_MEDIUM,
+        )
+        warn_days = int(cert_cfg.get('expiry_warn_days', 30) or 0)
+        not_after = cert_info.get('not_after')
+        expires_at = _parse_cert_time(not_after)
+        if expires_at is not None:
+            days_left = (expires_at - datetime.now(timezone.utc)).days
+            evidence = {'domain': domain, 'not_after': not_after, 'days_left': days_left}
+            if days_left < 0:
+                add_finding(asset, make_finding(
+                    'cert-expired', SEVERITY_HIGH,
+                    _("TLS certificate has expired"), evidence, asset.uid))
+            elif warn_days and days_left <= warn_days:
+                add_finding(asset, make_finding(
+                    'cert-expiring', SEVERITY_MEDIUM,
+                    _("TLS certificate is expiring soon"), evidence, asset.uid))
+
+        if cert_cfg.get('self_signed_finding', True) and cert_info.get('self_signed'):
+            add_finding(asset, make_finding(
+                'cert-self-signed', SEVERITY_MEDIUM,
+                _("TLS certificate is self-signed"),
+                {'subject': cert_info.get('subject'), 'issuer': cert_info.get('issuer')},
+                asset.uid))
+
+        if cert_info.get('san_dns') and not _cert_covers_domain(domain, cert_info):
+            add_finding(asset, make_finding(
+                'cert-hostname-mismatch', SEVERITY_MEDIUM,
+                _("TLS certificate does not match the hostname"),
+                {'domain': domain, 'san': cert_info.get('san_dns', [])},
+                asset.uid))
 
 
 class IPBreeder(BreederBase):
@@ -445,7 +806,8 @@ class IPBreeder(BreederBase):
             
             if service in ['http', 'https'] or port in [80, 443, 8080, 8443]:
                 protocol = 'https' if port == 443 or port == 8443 or service == 'https' else 'http'
-                url = f"{protocol}://{ip}:{port}"
+                host = f"[{ip}]" if ':' in ip else ip  # IPv6 需方括号
+                url = f"{protocol}://{host}:{port}"
                 new_asset = URLAsset(url, source=asset.uid, depth=asset.depth+1)
                 new_assets.append(new_asset)
         
@@ -810,7 +1172,7 @@ class URLBreeder(BreederBase):
         found = []
         try:
             from urllib.parse import urlparse
-            from core.zsans_engine import http_session
+            from core.zsans_engine import get_http_session
             parsed = urlparse(url)
             origin = f"{parsed.scheme}://{parsed.netloc}"
             candidates = [
@@ -819,7 +1181,7 @@ class URLBreeder(BreederBase):
             ]
             for cu in candidates:
                 try:
-                    resp = http_session.get(cu, timeout=min(self.timeout, 10), verify=False)
+                    resp = get_http_session().get(cu, timeout=min(self.timeout, 10))
                     if resp.status_code != 200 or not resp.text:
                         continue
                     text = resp.text
@@ -868,8 +1230,8 @@ class URLBreeder(BreederBase):
                     logger.debug(_("URL asset not found in graph: {uid}").format(uid=asset_uid))
             
             logger.debug(_("Sending HTTP request: {url}").format(url=url))
-            from core.zsans_engine import http_session
-            response = http_session.get(
+            from core.zsans_engine import get_http_session
+            response = get_http_session().get(
                 url,
                 allow_redirects=follow_redirects,
                 timeout=self.timeout
@@ -1376,8 +1738,8 @@ class JSBreeder(BreederBase):
     
     def _fetch_js(self, js_url):
         try:
-            from core.zsans_engine import http_session
-            response = http_session.get(js_url, headers=HEADERS, timeout=self.timeout, verify=False)
+            from core.zsans_engine import get_http_session
+            response = get_http_session().get(js_url, headers=HEADERS, timeout=self.timeout)
             if response.status_code == 200:
                 return response.text
             else:

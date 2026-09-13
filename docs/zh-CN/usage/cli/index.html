@@ -1010,6 +1010,26 @@
             
             <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
     <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../findings/"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Findings & Risk
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
         data-size="default" href="../web-console/"
         class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
 
@@ -1154,7 +1174,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>main.py<span class="w"> </span>--help
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python<span class="w"> </span>main.py<span class="w"> </span>--version
 </code></pre></div>
-<p><code>--version</code> 输出：<code>Z-Sans Asset Breeding Engine v0.0.7</code>。</p>
+<p><code>--version</code> 输出：<code>Z-Sans Asset Breeding Engine v0.1.0</code>。</p>
 <h2 id="_2">全部参数<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <div class="table-wrapper"><table>
 <thead>
@@ -1250,6 +1270,12 @@
 <td><code>8050</code></td>
 <td>Web 控制台端口</td>
 </tr>
+<tr>
+<td><code>--host &lt;地址&gt;</code></td>
+<td>string</td>
+<td><code>127.0.0.1</code></td>
+<td>Web 控制台绑定地址</td>
+</tr>
 </tbody>
 </table></div>
 <div class="admonition tip">
@@ -1282,10 +1308,10 @@
 <p>定期重新扫描，对比增量并输出变更文件（默认 3600 秒一次）。详见<a href="../watch-mode/">监控模式</a>。</p>
 <h3 id="4-web">4. Web 控制台<a class="headerlink" href="#4-web" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>main.py<span class="w"> </span>--web
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>python<span class="w"> </span>main.py<span class="w"> </span>--web<span class="w"> </span>--port<span class="w"> </span><span class="m">9000</span><span class="w">   </span><span class="c1"># 默认 0.0.0.0:8050</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>python<span class="w"> </span>main.py<span class="w"> </span>--web<span class="w"> </span>--port<span class="w"> </span><span class="m">9000</span><span class="w">   </span><span class="c1"># 默认 127.0.0.1:8050</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nv">ZSANS_WEB_PASSWORD</span><span class="o">=</span><span class="s1">&#39;secret&#39;</span><span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>--web<span class="w">   </span><span class="c1"># 要求认证</span>
 </code></pre></div>
-<p>启动后控制台常驻，<code>Ctrl+C</code> 退出。设置环境变量 <code>ZSANS_WEB_PASSWORD</code> 后所有控制台接口需要口令（第三方程序可通过 <code>Authorization: Bearer</code> 或 <code>X-API-Key</code> 请求头授权）。详见<a href="../web-console/">Web 控制台</a>。</p>
+<p>启动后控制台常驻，<code>Ctrl+C</code> 退出。设置环境变量 <code>ZSANS_WEB_PASSWORD</code> 后除登录和登出接口外，所有控制台接口都需要授权（第三方程序可通过 <code>Authorization: Bearer</code> 或 <code>X-API-Key</code> 请求头授权）。详见<a href="../web-console/">Web 控制台</a>。</p>
 <h3 id="5">5. 插件管理<a class="headerlink" href="#5" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>main.py<span class="w"> </span>--list-plugins<span class="w">        </span><span class="c1"># 列出所有已加载插件</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>main.py<span class="w"> </span>--plugin-info<span class="w"> </span>myplug<span class="w">  </span><span class="c1"># 查看单个插件详情</span>
@@ -1445,6 +1471,12 @@
                         <a class="text-2xl font-medium" href="../output/">
                             
                             Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../findings/">
+                            
+                            Findings & Risk
                             
                         </a>
                         

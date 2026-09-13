@@ -30,7 +30,7 @@ def setup_i18n(config_path):
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f) or {}
     except Exception as e:
-        logger.error(f"Failed to load config file: {e}")
+        logger.error(_("Failed to load config file: {error}").format(error=e))
         config = {}
 
     # 合并配置
@@ -41,17 +41,18 @@ def setup_i18n(config_path):
 
     # 检查语言是否受支持
     if default_language not in supported_languages:
-        logger.warning(f"Language {default_language} not in supported languages {supported_languages}, using zh_CN")
+        logger.warning(_("Language {language} not in supported languages {supported}, using zh_CN").format(
+            language=default_language, supported=supported_languages))
         default_language = 'zh_CN'
 
     # 确保locale_dir存在
     locale_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), locale_dir)
     if not os.path.exists(locale_dir):
-        logger.error(f"Locale directory {locale_dir} does not exist")
+        logger.error(_("Locale directory {path} does not exist").format(path=locale_dir))
         # 使用默认路径作为备选
         locale_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'i18n')
         if not os.path.exists(locale_dir):
-            logger.error(f"Default locale directory {locale_dir} also does not exist")
+            logger.error(_("Default locale directory {path} also does not exist").format(path=locale_dir))
             return
 
     # 初始化gettext
@@ -64,9 +65,9 @@ def setup_i18n(config_path):
             fallback=True
         )
         _translation.install()
-        logger.info(f"Successfully set up i18n with language {default_language}")
+        logger.info(_("Successfully set up i18n with language {language}").format(language=default_language))
     except Exception as e:
-        logger.error(f"Failed to set up i18n: {e}")
+        logger.error(_("Failed to set up i18n: {error}").format(error=e))
         # Fallback to English if initialization fails
         _current_language = 'en'
         _translation = gettext.translation(

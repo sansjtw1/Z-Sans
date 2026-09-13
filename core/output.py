@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 from xml.sax.saxutils import escape, quoteattr
 from core.i18n import _, get_current_language
+from core.version import __version__ as ZSANS_VERSION
 
 logger = logging.getLogger('zsans.output')
 
@@ -86,6 +87,12 @@ class OutputHandler:
                 elif fmt == 'graphml':
                     filename = self._export_graphml(base_filename)
                     results['graphml'] = filename
+                elif fmt == 'neo4j':
+                    filename = self._export_neo4j_csv(base_filename)
+                    results['neo4j'] = filename
+                elif fmt == 'sarif':
+                    filename = self._export_sarif(base_filename)
+                    results['sarif'] = filename
                 elif fmt == 'report':
                     filename = self._generate_report(base_filename)
                     results['report'] = filename
@@ -128,7 +135,8 @@ class OutputHandler:
                 _('Title/Note'), 
                 _('Fingerprints'), 
                 _('CMS'), 
-                _('Server')
+                _('Server'),
+                _('Findings')
             ])
             
             for uid, asset in nodes_snapshot:
@@ -167,7 +175,12 @@ class OutputHandler:
                     title_or_note,
                     fingerprints,
                     cms,
-                    server
+                    server,
+                    ",".join(sorted({
+                        str(x.get('rule'))
+                        for x in (asset.properties.get('findings') or [])
+                        if isinstance(x, dict) and x.get('rule')
+                    }))
                 ])
         
         with open(relations_filename, 'w', encoding='utf-8-sig', newline='') as f:
@@ -186,7 +199,100 @@ class OutputHandler:
         logger.info(_("Exported CSV asset list: {assets_file}, {relations_file}").format(
             assets_file=assets_filename, relations_file=relations_filename))
         return [assets_filename, relations_filename]
-    
+
+    def _export_neo4j_csv(self, base_filename):
+        """导出 Neo4j / BloodHound 风格的 CSV（节点表 + 关系表）。"""
+        nodes_filename = os.path.join(self.output_dir, f"{base_filename}_neo4j_nodes.csv")
+        rels_filename = os.path.join(self.output_dir, f"{base_filename}_neo4j_rels.csv")
+
+        with self.engine.asset_graph.lock:
+            nodes_snapshot = list(self.engine.asset_graph.nodes.items())
+            edges_snapshot = list(self.engine.asset_graph.edges.items())
+
+        with open(nodes_filename, 'w', encoding='utf-8-sig', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['uid:ID', ':LABEL', 'value', 'type', 'depth',
+                             'state', 'source', 'findings_count'])
+            for _uid, asset in nodes_snapshot:
+                findings = asset.properties.get('findings')
+                writer.writerow([
+                    asset.uid,
+                    asset.type,
+                    asset.value,
+                    asset.type,
+                    asset.depth,
+                    asset.state,
+                    asset.source,
+                    len(findings) if isinstance(findings, list) else 0,
+                ])
+
+        with open(rels_filename, 'w', encoding='utf-8-sig', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([':START_ID', ':END_ID', ':TYPE', 'relation'])
+            for (source_id, target_id), relation_type in edges_snapshot:
+                writer.writerow([source_id, target_id, relation_type, relation_type])
+
+        logger.info(_("Exported Neo4j CSV: {nodes_file}, {rels_file}").format(
+            nodes_file=nodes_filename, rels_file=rels_filename))
+        return [nodes_filename, rels_filename]
+
+    def _export_sarif(self, base_filename):
+        """把资产上的 findings 导出为 SARIF 2.1.0。"""
+        filename = os.path.join(self.output_dir, f"{base_filename}.sarif")
+
+        with self.engine.asset_graph.lock:
+            nodes_snapshot = list(self.engine.asset_graph.nodes.items())
+
+        level_map = {
+            'critical': 'error', 'high': 'error', 'medium': 'warning',
+            'low': 'note', 'info': 'note',
+        }
+        rules = {}
+        results = []
+        for _uid, asset in nodes_snapshot:
+            findings = asset.properties.get('findings')
+            if not isinstance(findings, list):
+                continue
+            for finding in findings:
+                if not isinstance(finding, dict):
+                    continue
+                rule_id = str(finding.get('rule') or 'finding')
+                if rule_id not in rules:
+                    rules[rule_id] = {
+                        'id': rule_id,
+                        'name': rule_id,
+                        'shortDescription': {'text': rule_id},
+                    }
+                location = finding.get('target_uid') or asset.uid
+                results.append({
+                    'ruleId': rule_id,
+                    'level': level_map.get(finding.get('severity'), 'warning'),
+                    'message': {'text': str(finding.get('title') or rule_id)},
+                    'locations': [{'logicalLocations': [{'fullyQualifiedName': str(location)}]}],
+                    'properties': {'evidence': finding.get('evidence') or {}},
+                })
+
+        sarif = {
+            '$schema': 'https://json.schemastore.org/sarif-2.1.0.json',
+            'version': '2.1.0',
+            'runs': [{
+                'tool': {
+                    'driver': {
+                        'name': 'Z-Sans',
+                        'version': ZSANS_VERSION,
+                        'informationUri': 'https://github.com/sansjtw1/Z-Sans',
+                        'rules': list(rules.values()),
+                    }
+                },
+                'results': results,
+            }],
+        }
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(sarif, f, ensure_ascii=False, indent=2)
+
+        logger.info(_("Exported SARIF: {filename}").format(filename=filename))
+        return filename
+
     def _export_graphml(self, base_filename):
         filename = os.path.join(self.output_dir, f"{base_filename}.graphml")
 
@@ -206,6 +312,7 @@ class OutputHandler:
             f.write('  <key id="fingerprints" for="node" attr.name="fingerprints" attr.type="string"/>\n')
             f.write('  <key id="cms" for="node" attr.name="cms" attr.type="string"/>\n')
             f.write('  <key id="server" for="node" attr.name="server" attr.type="string"/>\n')
+            f.write('  <key id="findings" for="node" attr.name="findings" attr.type="string"/>\n')
 
             f.write('  <key id="relation" for="edge" attr.name="relation" attr.type="string"/>\n')
 
@@ -242,6 +349,13 @@ class OutputHandler:
                     if "server" in asset.properties and asset.properties["server"]:
                         f.write(f'      <data key="server">{_xml_text(asset.properties["server"])}</data>\n')
 
+                findings = asset.properties.get("findings")
+                if findings:
+                    rules = ",".join(sorted(
+                        str(x.get("rule")) for x in findings
+                        if isinstance(x, dict) and x.get("rule")))
+                    f.write(f'      <data key="findings">{_xml_text(rules)}</data>\n')
+
                 f.write('    </node>\n')
 
             edge_id = 0
@@ -263,7 +377,7 @@ class OutputHandler:
         stats = self.engine.asset_graph.stats()
         metrics = self.engine.metrics
         gen_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        zs_version = "0.0.5"
+        zs_version = ZSANS_VERSION
         if hasattr(self.engine, 'get_export_metadata'):
             try:
                 _meta = self.engine.get_export_metadata()
@@ -291,6 +405,16 @@ class OutputHandler:
 
         active_assets.sort(key=lambda x: x.type)
         eliminated_assets.sort(key=lambda x: x.type)
+
+        # 汇总所有资产上的 findings（用于报告 Findings 页签与 SARIF 导出一致性）
+        from core.findings import severity_rank
+        all_findings = []
+        for _asset in list(active_assets) + list(eliminated_assets):
+            for _finding in (_asset.properties.get('findings') or []):
+                if isinstance(_finding, dict):
+                    all_findings.append(_finding)
+        all_findings.sort(key=lambda x: (
+            severity_rank(x.get('severity')), str(x.get('target_uid') or '')))
 
         # Build asset type distribution data for chart
         asset_type_dist = stats.get('asset_types', {})
@@ -837,6 +961,7 @@ class OutputHandler:
             <button class="nav-tab" onclick="switchTab('assets')">''' + T('Active Assets') + '''</button>
             <button class="nav-tab" onclick="switchTab('eliminated')">''' + T('Eliminated') + '''</button>
             <button class="nav-tab" onclick="switchTab('metrics')">''' + T('Metrics') + '''</button>
+            <button class="nav-tab" onclick="switchTab('findings')">''' + T('Findings') + '''</button>
         </div>
 
         <!-- Overview Tab -->
@@ -1157,6 +1282,30 @@ class OutputHandler:
 ''')
             if not eliminated_reasons:
                 f.write('''                            <tr><td colspan="2"><div class="empty-state"><div class="empty-icon">&#128269;</div>''' + T('No data') + '''</div></td></tr>
+''')
+            f.write('''                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Findings Tab -->
+        <div id="tab-findings" class="tab-content">
+            <div class="card">
+                <h2>''' + T('Findings') + '''</h2>
+                <div class="table-wrapper">
+                    <table id="findings-table">
+                        <thead>
+                            <tr><th>''' + T('Severity') + '''</th><th>''' + T('Rule') + '''</th><th>''' + T('Target') + '''</th><th>''' + T('Title') + '''</th></tr>
+                        </thead>
+                        <tbody>
+''')
+            if all_findings:
+                for _finding in all_findings:
+                    f.write('''                            <tr><td><code>''' + escape(str(_finding.get('severity', ''))) + '''</code></td><td class="val-monospace">''' + escape(str(_finding.get('rule', ''))) + '''</td><td class="val-monospace">''' + escape(str(_finding.get('target_uid', ''))) + '''</td><td>''' + escape(str(_finding.get('title', ''))) + '''</td></tr>
+''')
+            else:
+                f.write('''                            <tr><td colspan="4"><div class="empty-state"><div class="empty-icon">&#128269;</div>''' + T('No data') + '''</div></td></tr>
 ''')
             f.write('''                        </tbody>
                     </table>

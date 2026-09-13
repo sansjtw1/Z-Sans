@@ -8,6 +8,7 @@ asset_scope:
   include_subdomains: true          # Include subdomains
   include_ip_ranges: true           # Include IP ranges
   seed_scope: registrable           # Seed scope expansion: registrable (expand to registrable domain via Public Suffix List, e.g. www.jiyu.com -> jiyu.com; beijing.edu.cn stays beijing.edu.cn) / exact (no expansion, seed domain and its subdomains only)
+  ipv6_prefix: null                # Expand IPv6 seeds by this prefix (e.g. 64); null = exact match only
 
 # Concurrency configuration
 concurrency:
@@ -40,6 +41,14 @@ asset_types:
       crtsh: true         # Certificate Transparency query
       dns_brute: true     # Built-in DNS brute-force subdomain enumeration
       dnsx: true          # DNS resolution tool
+      cert_probe:         # TLS certificate probing (SAN extraction / expiry / self-signed)
+        enabled: true
+        ports: [443]          # Probing port(s)
+        expiry_warn_days: 30  # Emit "expiring soon" finding below this many days left
+        self_signed_finding: true  # Emit a finding for self-signed certificates
+    wildcard:             # Wildcard-DNS detection (drops brute-force false positives)
+      enabled: true
+      samples: 2          # Number of random-label probes
 
   # IP asset configuration
   ip:
@@ -92,6 +101,8 @@ output:
     csv: true          # CSV format
     graphml: true      # GraphML format
     html: true         # HTML format
+    sarif: true        # SARIF 2.1.0 (findings, for CI security pipelines)
+    neo4j: false       # Neo4j / BloodHound-style CSV (nodes + relationships)
   auto_open: true      # Auto-open reports
 
 # External tool configuration
@@ -104,6 +115,24 @@ external_tools:
   fingerprint:       # Fingerprinting configuration
     enabled: true     # Enable fingerprint identification (uses local multi-arch EHole)
     engine: auto      # Fingerprint engine: auto (use whichever is available) / ehole / whatweb / both (run both and merge)
+
+# Historical URL harvesting (off by default; external service ToS/rate limits apply)
+historical_urls:
+  enabled: false
+  wayback:               # Wayback Machine CDX
+    enabled: true
+    max_results: 2000    # Max entries per domain
+    timeout: 30          # Request timeout (seconds)
+  commoncrawl:           # Common Crawl index (slower)
+    enabled: false
+    max_results: 1000
+
+# Subdomain takeover detection (detect-only: never claims/registers a resource)
+takeover:
+  enabled: true
+  http_probe: true       # Confirm via one HTTP request after a CNAME hit
+  timeout: 8             # Per-probe timeout (seconds)
+  detect_only: true      # Keep true
 
 # Internationalization configuration
 language:
@@ -131,8 +160,25 @@ http:
   timeout: 10         # Timeout (seconds)
   retries: 3          # Retry attempts
   user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36  # User agent
-  verify_ssl: false   # Verify SSL certificates
+  verify_ssl: true    # Verify SSL certificates
   proxy: null         # Proxy settings
   follow_redirects: true  # Follow redirects
   redirect_as_new_asset: true  # Treat redirects as new assets
   max_redirects: 5    # Maximum redirects
+  rate_limit:         # Global rate limiting (polite scanning)
+    enabled: false           # Enable the limiter
+    requests_per_second: 5   # Global average QPS (token bucket)
+    burst: 5                 # Allowed burst
+    per_host_concurrency: 2  # Max concurrent requests per host (0 = unlimited)
+
+# Cross-run result cache (DNS / certificate / HTTP)
+cache:
+  enabled: false           # Default off; enabling speeds up rescans and --watch
+  dir: .cache/zsans        # sqlite cache directory
+  ttl:                     # TTL per namespace (seconds)
+    http: 3600
+    dns: 600
+    cert: 86400
+  max_entries: 100000      # Max cache entries
+  max_mb: 200              # Max cache file size (MB)
+  bypass_in_watch: true    # --watch bypasses the HTTP cache to observe live changes

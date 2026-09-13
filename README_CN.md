@@ -8,6 +8,7 @@
     <br />
     <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg"/></a>
     <a href="https://www.python.org/downloads/release/python-390/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9+-blue.svg"/></a>
+    <a href="https://github.com/sansjtw1/Z-Sans/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.1.0-blue.svg"/></a>
     <a href="https://github.com/sansjtw1/Z-Sans/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/sansjtw1/Z-Sans"/></a>
     <br>
     <a href="README.md">README</a> | <a href="README_CN.md">中文文档</a> | <a href="https://sansjtw1.github.io/Z-Sans/docs/" target="_blank">在线文档</a>
@@ -17,14 +18,26 @@
 
 ## 🚀 项目简介
 
-Z-Sans 是一个强大的网络安全工具，专注于​​自动化资产发现与繁殖​​，帮助安全团队快速识别和映射组织的完整攻击面。通过少量种子资产（域名或URL），Z-Sans 能够自动化发现关联资产，例如域、IP、URL、端口和 JavaScript 资源。同时提供详细的资产报告。
+Z-Sans 是一个强大的网络安全工具，专注于​​自动化资产发现与繁殖​​，帮助安全团队快速识别和映射组织的完整攻击面。通过少量种子资产（域名或URL），Z-Sans 能够自动化发现关联资产，例如域、IP、URL、端口和 JavaScript 资源，并输出 JSON / CSV / GraphML / SARIF / Neo4j CSV / HTML 等多种报告，同时记录带证据的 **发现（findings）**。
+
+## 🆕 0.1.0 新增
+
+- **TLS 证书富化**：完整探测证书（颁发者 / 有效期 / SAN / 指纹），SAN 用于发现子域；过期 / 即将过期 / 自签名 / 主机名不匹配生成 finding
+- **发现与风险（Findings）**：可扩展的 `properties.findings` 模型（子域接管、证书问题等），在报告 **Findings** 页签展示并导出 **SARIF 2.1.0** 对接 CI
+- **子域接管检测**（仅检测）：CNAME 链匹配已知云服务，可选 HTTP 确认
+- **泛解析检测**：随机标签探测，剔除 DNS 爆破假阳性
+- **历史 URL**：可选的 Wayback（CDX）/ Common Crawl 采集
+- **完整 IPv6 支持** 与 **礼貌扫描**（全局限速 + 每工具并发上限）
+- **跨运行磁盘缓存**：缓存 DNS / HTTP / 证书结果
+- **新增导出**：SARIF 与 Neo4j / BloodHound 风格 CSV，Web 控制台提供 SARIF 下载
 
 ## ✨ 功能特点
 
 - **多类型资产支持**：域名、IP、URL、端口和JS文件等
 - **可配置的扫描策略**：基于优先级的扫描策略，支持自定义深度和并发控制
 - **丰富的工具集成**：支持 subfinder、naabu、subfinder 等多种外部工具
-- **灵活的输出格式**：支持 JSON、CSV、GraphML 和 HTML 等多种格式输出
+- **灵活的输出格式**：支持 JSON、CSV、GraphML、SARIF、Neo4j CSV 和 HTML 等多种格式输出
+- **发现与风险**：证书与子域接管等带证据的风险信号，计入报告并导出 SARIF
 - **国际化支持**：内置中英文语言支持
 - **详细的日志系统**：支持不同级别的日志输出，便于调试和监控
 - **模块化设计**：核心功能与工具实现分离，易于扩展
@@ -41,13 +54,19 @@ Z-Sans/
 ├── core/               # 核心代码
 │   ├── breeders/       # 繁殖器实现
 │   ├── tools/          # 工具封装
+│   ├── cache.py        # 跨运行磁盘缓存（sqlite）
+│   ├── findings.py     # finding 模型（检测器与导出共用）
+│   ├── takeover.py     # 子域接管指纹与检测
+│   ├── version.py      # 版本号唯一来源
 │   ├── i18n.py         # 国际化支持
-│   ├── output.py       # 输出处理
+│   ├── output.py       # 输出处理（JSON/CSV/GraphML/SARIF/Neo4j/HTML）
 │   └── zsans_engine.py # 核心引擎
 ├── i18n/               # 国际化资源
 ├── output/             # 输出目录
 ├── plugins/            # 插件目录（事件驱动扩展）
 ├── templates/          # 模板文件
+├── tests/              # pytest 测试
+├── tools/              # 辅助脚本（i18n 编译等）
 ├── breeding-config.yaml # 配置文件
 ├── main.py             # 入口文件
 ├── README.md           # 本自述文件
@@ -240,10 +259,12 @@ resource_limits:
 
 每次扫描都会在 output/ 目录下创建一个带时间戳的子目录，其中包含：
 
-- *.json — 完整的资产图（格式：json / graphml）
-- *_assets.csv / *_relations.csv — 资产与关系数据（便于在 Excel 中使用）
+- *.json — 完整的资产图（schema 版本 3），含 `properties.findings` / `properties.cert`
+- *_assets.csv / *_relations.csv — 资产与关系数据（便于在 Excel 中使用，新增 `Findings` 列）
 - *_graphml — GraphML 格式的关系图
-- *_report.html — 交互式报告，包含概览、拓扑、活跃资产、已排除资产及指标等标签页（支持筛选、搜索以及拓扑图的拖拽与缩放）
+- *.sarif — 由 findings 生成的 SARIF 2.1.0（`output.formats.sarif`，默认开启）
+- *_neo4j_nodes.csv / *_neo4j_rels.csv — Neo4j / BloodHound 风格导入文件（`output.formats.neo4j`）
+- *_report.html — 交互式报告，包含概览、拓扑、活跃资产、已排除资产、发现（Findings）及指标等标签页（支持筛选、搜索以及拓扑图的拖拽与缩放）
 
 ![HTML-output](images/output2.png)
 

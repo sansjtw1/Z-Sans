@@ -1128,7 +1128,7 @@
 <p>配置位于 <code>breeding-config.yaml</code>。报告与 Web 控制台语言跟随此配置。</p>
 <h3 id="8-https">8. 自签名 HTTPS 站点请求失败？<a class="headerlink" href="#8-https" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">http</span><span class="p">:</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">verify_ssl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">   </span><span class="c1"># 默认即 false，不校验证书兼容自签名</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">verify_ssl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">   </span><span class="c1"># 自签名站点需设为 false；默认值为 true</span>
 </code></pre></div>
 <h3 id="9">9. 想走代理？<a class="headerlink" href="#9" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">http</span><span class="p">:</span>
@@ -1163,7 +1163,7 @@
 <p>若安装了 <code>colorlog</code>，控制台日志会按级别着色（DEBUG=青、INFO=绿、WARNING=黄、ERROR=红、CRITICAL=粗红）。</p>
 <h2 id="web">Web 控制台认证<a class="headerlink" href="#web" title="Permanent link">&para;</a></h2>
 <h3 id="_6">控制台为什么要求输入密码？<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
-<p>环境变量 <code>ZSANS_WEB_PASSWORD</code> 已设置，所有接口都需要授权。在浏览器中用该口令登录（获得 24 小时会话 Cookie），或调用 API 时带上 <code>Authorization: Bearer &lt;口令&gt;</code> / <code>X-API-Key: &lt;口令&gt;</code> 请求头。</p>
+<p>环境变量 <code>ZSANS_WEB_PASSWORD</code> 已设置，除登录和登出接口外，所有接口都需要授权。在浏览器中用该口令登录（获得 24 小时会话 Cookie），或调用 API 时带上 <code>Authorization: Bearer &lt;口令&gt;</code> / <code>X-API-Key: &lt;口令&gt;</code> 请求头。</p>
 <h3 id="_7">如何关闭认证？<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
 <p>启动控制台时不设置 <code>ZSANS_WEB_PASSWORD</code> 即可。无认证模式只应在可信的本机/局域网使用。</p>
 <h2 id="_8">端口占用<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
@@ -1310,6 +1310,12 @@
                         <a class="text-2xl font-medium" href="../usage/output/">
                             
                             Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../usage/findings/">
+                            
+                            Findings & Risk
                             
                         </a>
                         

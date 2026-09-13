@@ -11,6 +11,7 @@ import tempfile
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import nullcontext
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 from core.i18n import _
@@ -174,6 +175,23 @@ class ToolOrchestrator:
         self.tool_defs = {}
         for tool_name in ('subfinder', 'naabu', 'ehole', 'whatweb'):
             self.tool_defs[tool_name] = {'extra_args': []}
+
+        # 每工具并发上限（concurrency.tools.<tool>）：限制同名工具的并发调用数，
+        # 与 executor 的 max_tasks（总并发）区分。值为空/<=0 时不限制。
+        self.tool_sems = {}
+        tools_cfg = self.config.get('concurrency', {}).get('tools', {}) or {}
+        for tool_name, limit in tools_cfg.items():
+            try:
+                limit = int(limit)
+            except (TypeError, ValueError):
+                continue
+            if limit > 0:
+                self.tool_sems[tool_name] = threading.BoundedSemaphore(limit)
+
+    def _tool_slot(self, name):
+        """返回某工具的并发槽（上下文管理器）；未配置上限时为零开销空上下文。"""
+        sem = self.tool_sems.get(name)
+        return sem if sem is not None else nullcontext()
     
     def register_tool(self, name, path=None, version=None, extra_args=None, **kwargs):
         """注册 / 覆盖一个外部工具的定义(供插件扩展)。
@@ -236,7 +254,8 @@ class ToolOrchestrator:
             # 绝不用 shell=True 字符串拼接 —— domain 来自被爬页面/Web 输入，
             # 拼接进 shell 命令会构成命令注入链。
             try:
-                subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+                with self._tool_slot('subfinder'):
+                    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
             except subprocess.CalledProcessError as e:
                 logger.error(_("Failed to use {path}: {error}").format(path=subfinder_path, error=e.stderr.decode() if e.stderr else str(e)))
                 if subfinder_path != 'subfinder':
@@ -244,7 +263,8 @@ class ToolOrchestrator:
                     cmd = ['subfinder', '-d', domain, '-o', temp_path, '-silent']
                     logger.debug(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
                     try:
-                        subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+                        with self._tool_slot('subfinder'):
+                            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
                     except subprocess.CalledProcessError:
                         logger.warning(_("System PATH subfinder failed, using internal method instead"))
                         return self._run_internal_dns_resolver(domain)
@@ -285,11 +305,9 @@ class ToolOrchestrator:
                 logger.error(_("Internal DNS resolver dnsxs.py does not exist"))
                 return []
                 
-            with tempfile.NamedTemporaryFile(delete=False, mode='w+t') as temp_file:
-                temp_path = temp_file.name
-            
             cmd = [PY_EXE, _script_path('dnsxs.py'), domain, '-t', 'A', '-q']
-            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
+            with self._tool_slot('dnsx'):
+                process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
             
             try:
                 output = process.stdout.decode('utf-8').strip()
@@ -326,13 +344,15 @@ class ToolOrchestrator:
                     return self._run_internal_port_scanner(ip)
         
         open_ports = {}
+        temp_path = None
         try:
             with tempfile.NamedTemporaryFile(delete=False, mode='w+t') as temp_file:
                 temp_path = temp_file.name
             
             cmd = [naabu_path, '-host', ip, '-json', '-o', temp_path, '-silent'] + self.tool_extra_args('naabu')
             logger.debug(_("Executing naabu command: {cmd}").format(cmd=' '.join(cmd)))
-            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=240)
+            with self._tool_slot('naabu'):
+                subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=240)
             
             with open(temp_path, 'r') as f:
                 for line in f:
@@ -343,14 +363,18 @@ class ToolOrchestrator:
                             open_ports[port] = 'unknown'
                     except json.JSONDecodeError:
                         continue
-            
-            os.unlink(temp_path)
         except subprocess.CalledProcessError as e:
             logger.error(_("Naabu execution failed: {error}").format(error=e.stderr.decode() if e.stderr else str(e)))
             return self._run_internal_port_scanner(ip)
         except Exception as e:
             logger.error(_("Naabu call exception: {error}").format(error=str(e)))
             return self._run_internal_port_scanner(ip)
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                try:
+                    os.unlink(temp_path)
+                except OSError:
+                    pass
         
         return open_ports
         
@@ -362,9 +386,6 @@ class ToolOrchestrator:
                 logger.error(_("Internal port scanner port.py does not exist"))
                 return {}
                 
-            with tempfile.NamedTemporaryFile(delete=False, mode='w+t') as temp_file:
-                temp_path = temp_file.name
-            
             # 端口范围可配置；默认覆盖常见 Web / 数据库 / 缓存 / 远程管理端口
             port_range = (
                 self.config.get('asset_types', {}).get('ip', {})
@@ -372,7 +393,8 @@ class ToolOrchestrator:
                                       '1-1024,3306,3389,5432,5900,6379,7001,8000-8500,8888,9000-9100,9200,27017,11211')
             )
             cmd = [PY_EXE, _script_path('port.py'), ip, '-p', port_range, '-q']
-            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
+            with self._tool_slot('port'):
+                process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
             
             output = process.stdout.decode().strip()
             if output:
@@ -410,6 +432,8 @@ class ToolOrchestrator:
         
         urls = []
         subdomains = []
+        url_path = None
+        subdomain_path = None
         try:
             with tempfile.NamedTemporaryFile(delete=False, mode='w+t') as url_file:
                 url_path = url_file.name
@@ -419,7 +443,8 @@ class ToolOrchestrator:
             cmd = [PY_EXE, _script_path('JSfinder.py'), '-u', url, '-ou', url_path, '-os', subdomain_path]
             logger.debug(_("Executing JSFinder command: {cmd}").format(cmd=' '.join(cmd)))
             js_timeout = self.config.get('external_tools', {}).get('jsfinder_timeout', 30) or 30
-            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=js_timeout, text=True, encoding='utf-8')
+            with self._tool_slot('jsfinder'):
+                process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=js_timeout, text=True, encoding='utf-8')
             if process.stdout:
                 # 仅记录前若干行，避免把整个JSFinder输出倾倒进日志
                 stdout_lines = process.stdout.rstrip('\n').split('\n')
@@ -459,12 +484,6 @@ class ToolOrchestrator:
                             logger.debug(_("JSFinder found subdomain: {subdomain}").format(subdomain=subdomain))
             except Exception as e:
                 logger.error(_("Failed to read JSFinder subdomain result file: {error}").format(error=str(e)))
-            
-            try:
-                os.unlink(url_path)
-                os.unlink(subdomain_path)
-            except Exception as e:
-                logger.error(_("Failed to delete JSFinder temporary files: {error}").format(error=str(e)))
             
             # 注:JSFinder 的真实结果已从 -ou / -os 输出文件可靠读取（见上方），
             # 不再解析 stdout —— stdout 中的 "Output N urls" / "Path:..." 等辅助行
@@ -539,6 +558,14 @@ class ToolOrchestrator:
             logger.error(_("JSFinder call exception: {error}").format(error=str(e)))
             logger.info(_("Trying internal method instead"))
             return self._internal_jsfinder(url)
+        finally:
+            # 无论成功、失败还是提前 return，都清理临时文件
+            for _tmp in (url_path, subdomain_path):
+                if _tmp and os.path.exists(_tmp):
+                    try:
+                        os.unlink(_tmp)
+                    except OSError as e:
+                        logger.error(_("Failed to delete JSfinder temporary file {path}: {error}").format(path=_tmp, error=str(e)))
         
         return urls, subdomains
         
@@ -551,9 +578,9 @@ class ToolOrchestrator:
         }
         
         try:
-            from core.zsans_engine import http_session
+            from core.zsans_engine import get_http_session
             timeout = self.config.get('http', {}).get('timeout', 15)
-            response = http_session.get(url, timeout=timeout)
+            response = get_http_session().get(url, timeout=timeout)
             if response.status_code != 200:
                 logger.warning(_("Failed to get URL content, status code: {code}").format(code=response.status_code))
                 return [], []
@@ -625,7 +652,8 @@ class ToolOrchestrator:
                 logger.debug(_("Adding original domain to subdomains list: {domain}").format(domain=domain))
             
             cmd = [PY_EXE, _script_path('free-subfinder.py'), domain, '-q']
-            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+            with self._tool_slot('free_subfinder'):
+                process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
             
             output = process.stdout.decode('utf-8', errors='ignore')
             for line in output.split('\n'):
@@ -807,7 +835,8 @@ class ToolOrchestrator:
                 # 统一使用参数列表调用（Windows 同样支持），避免 shell=True
                 # 字符串拼接 —— URL 来自被爬页面内容，拼接进 shell 命令会构成
                 # 命令注入链（cleaned_url 清洗仅作纵深防御，不再是安全边界）。
-                process = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
+                with self._tool_slot('ehole'):
+                    process = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
             except subprocess.TimeoutExpired:
                 logger.error(_("EHole execution timed out: {url}").format(url=cleaned_url))
                 return None
@@ -905,7 +934,8 @@ class ToolOrchestrator:
             logger.debug(_("Executing command: {cmd}").format(cmd=' '.join(cmd)))
 
             try:
-                process = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=90)
+                with self._tool_slot('whatweb'):
+                    process = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=90)
             except subprocess.TimeoutExpired:
                 logger.error(_("WhatWeb execution timed out: {url}").format(url=cleaned_url))
                 return None

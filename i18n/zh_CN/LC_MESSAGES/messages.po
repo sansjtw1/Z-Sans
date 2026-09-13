@@ -553,8 +553,8 @@ msgstr "收集插件 {name} 的 CLI 钩子失败: {error}"
 msgid "Failed to create default config file: {error}"
 msgstr "创建默认配置文件失败: {error}"
 
-msgid "Failed to delete JSFinder temporary files: {error}"
-msgstr "删除JSFinder临时文件失败: {error}"
+msgid "Failed to delete JSfinder temporary file {path}: {error}"
+msgstr "删除 JSfinder 临时文件失败: {path}, {error}"
 
 msgid "Failed to export {format} format: {error}"
 msgstr "导出 {format} 格式失败: {error}"
@@ -1159,6 +1159,63 @@ msgstr "查询crt.sh获取子域名: {domain}"
 
 msgid "raw_json"
 msgstr "原始 JSON"
+
+msgid "html_report"
+msgstr "HTML 报告"
+
+msgid "Live project snapshot failed: {error}"
+msgstr "实时项目快照失败: {error}"
+
+msgid "Failed to reload config before scan: {error}"
+msgstr "扫描前重新加载配置失败: {error}"
+
+msgid "Web task {task} failed: {error}"
+msgstr "Web 任务 {task} 失败: {error}"
+
+msgid "Delete project {project} failed: {error}"
+msgstr "删除项目 {project} 失败: {error}"
+
+msgid "List plugins failed: {error}"
+msgstr "列出插件失败: {error}"
+
+msgid "Web request {path}: {detail}"
+msgstr "Web 请求 {path}: {detail}"
+
+msgid "Web audit action={action} ip={ip} {details}"
+msgstr "Web 审计操作 action={action} ip={ip} {details}"
+
+msgid "Web audit action=logout ip={ip}"
+msgstr "Web 审计操作 action=logout ip={ip}"
+
+msgid "GET {path} error: {error}"
+msgstr "GET {path} 错误: {error}"
+
+msgid "POST {path} error: {error}"
+msgstr "POST {path} 错误: {error}"
+
+msgid "Z-Sans web console started on http://{host}:{port}"
+msgstr "Z-Sans Web 控制台已启动: http://{host}:{port}"
+
+msgid "Failed to load config file: {error}"
+msgstr "加载配置文件失败: {error}"
+
+msgid "Language {language} not in supported languages {supported}, using zh_CN"
+msgstr "语言 {language} 不在支持的语言列表 {supported} 中，将使用 zh_CN"
+
+msgid "Locale directory {path} does not exist"
+msgstr "Locale 目录 {path} 不存在"
+
+msgid "Default locale directory {path} also does not exist"
+msgstr "默认 Locale 目录 {path} 也不存在"
+
+msgid "Successfully set up i18n with language {language}"
+msgstr "已使用语言 {language} 成功设置 i18n"
+
+msgid "Failed to set up i18n: {error}"
+msgstr "设置 i18n 失败: {error}"
+
+msgid "Full traceback while processing asset {uid}:\n{traceback}"
+msgstr "处理资产 {uid} 时的完整异常堆栈:\n{traceback}"
 
 msgid "read failed"
 msgstr "读取失败"
@@ -1898,3 +1955,88 @@ msgstr "Z-Sans 资产繁殖引擎 v{VERSION} 已初始化"
 
 msgid "{count} errors during scan"
 msgstr "扫描过程中出现 {count} 个错误"
+
+msgid "Invalid exclusion pattern: {pattern}"
+msgstr "无效的排除规则模式: {pattern}"
+
+msgid "Web console bind address (default: 127.0.0.1)"
+msgstr "Web 控制台绑定地址（默认：127.0.0.1）"
+
+msgid "invalid plugin name"
+msgstr "无效的插件名"
+
+msgid "report not found"
+msgstr "报告不存在"
+
+msgid "Asset {uid} rejected: exceeds {type} limit"
+msgstr "资产 {uid} 已被拒绝: 超出 {type} 数量上限"
+
+msgid "Certificate decode failed: {error}"
+msgstr "证书解析失败: {error}"
+
+msgid "Certificate probe failed: {error}"
+msgstr "证书探测失败: {error}"
+
+msgid "Common Crawl query failed for {domain}: {error}"
+msgstr "Common Crawl 查询失败 {domain}: {error}"
+
+msgid "Exported Neo4j CSV: {nodes_file}, {rels_file}"
+msgstr "已导出 Neo4j CSV: {nodes_file}, {rels_file}"
+
+msgid "Exported SARIF: {filename}"
+msgstr "已导出 SARIF: {filename}"
+
+msgid "Findings"
+msgstr "发现"
+
+msgid "HTTP cache write failed: {error}"
+msgstr "HTTP 缓存写入失败: {error}"
+
+msgid "Possible subdomain takeover ({service})"
+msgstr "疑似子域接管（{service}）"
+
+msgid "Skipping wildcard-resolved subdomain: {subdomain}"
+msgstr "跳过泛解析命中的子域: {subdomain}"
+
+msgid "Subdomain takeover candidate: {domain}"
+msgstr "子域接管候选: {domain}"
+
+msgid "TLS certificate does not match the hostname"
+msgstr "TLS 证书与主机名不匹配"
+
+msgid "TLS certificate has expired"
+msgstr "TLS 证书已过期"
+
+msgid "TLS certificate is expiring soon"
+msgstr "TLS 证书即将过期"
+
+msgid "TLS certificate is self-signed"
+msgstr "TLS 证书为自签名"
+
+msgid "Takeover detection failed for {domain}: {error}"
+msgstr "子域接管检测失败 {domain}: {error}"
+
+msgid "Wayback CDX returned status {status}"
+msgstr "Wayback CDX 返回状态 {status}"
+
+msgid "Wayback query failed for {domain}: {error}"
+msgstr "Wayback 查询失败 {domain}: {error}"
+
+msgid "Wildcard DNS detected for {domain}; filtering brute-force false positives"
+msgstr "检测到泛解析 {domain}；已过滤爆破假阳性"
+
+msgid "Wildcard detection failed for {domain}: {error}"
+msgstr "泛解析检测失败 {domain}: {error}"
+
+msgid "about"
+msgstr "关于"
+
+msgid "about_desc"
+msgstr "Z-Sans 是一款基于资产繁殖引擎的轻量级自动化资产收集 / 攻击面发现工具。"
+
+msgid "open_source"
+msgstr "开源地址"
+
+msgid "documentation"
+msgstr "文档"
+

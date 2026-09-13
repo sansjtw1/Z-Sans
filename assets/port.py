@@ -18,10 +18,14 @@ def is_valid_ip(ip):
         return False
 
 def port_scan(target, port, timeout=1.0):
-    """尝试连接到指定端口"""
+    """尝试连接到指定端口（自动选择 IPv4/IPv6 套接字族）"""
     try:
+        try:
+            family = socket.AF_INET6 if ipaddress.ip_address(target).version == 6 else socket.AF_INET
+        except ValueError:
+            family = socket.AF_INET
         # 创建TCP套接字
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        with socket.socket(family, socket.SOCK_STREAM) as s:
             s.settimeout(timeout)
             # 尝试连接
             result = s.connect_ex((target, port))

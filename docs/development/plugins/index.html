@@ -1158,11 +1158,11 @@
 </tr>
 <tr>
 <td><code>engine.asset_graph</code></td>
-<td>The asset graph (<code>.nodes</code> / <code>.edges</code> / <code>add_asset()</code> / <code>add_edge()</code>), thread-safe</td>
+<td>The asset graph (<code>.nodes</code> / <code>.edges</code> / <code>add_asset()</code> / <code>try_add_asset()</code> / <code>add_edge()</code>), thread-safe. <code>try_add_asset(asset, max_count=None)</code> is the atomic entry point (returns <code>added</code> / <code>updated</code> / <code>exists</code> / <code>rejected</code>) and enforces the per-type quota inside the graph lock</td>
 </tr>
 <tr>
 <td><code>engine.queue</code></td>
-<td>The priority queue (<code>.add()</code> / <code>.size()</code> / <code>get_next()</code>)</td>
+<td>The priority queue (<code>.add()</code> / <code>.size()</code> / <code>get_next()</code> / <code>done()</code>)</td>
 </tr>
 <tr>
 <td><code>engine.metrics</code></td>
@@ -1188,8 +1188,16 @@
 <td><code>engine.plugin_conflicts</code></td>
 <td>Conflict records</td>
 </tr>
+<tr>
+<td><code>core.zsans_engine.get_http_session()</code></td>
+<td>Thread-local <code>requests.Session</code> (inherits proxy / User-Agent / SSL verification from the engine config). Use this for any HTTP request from a plugin</td>
+</tr>
 </tbody>
 </table></div>
+<div class="admonition note">
+<p class="admonition-title">HTTP session</p>
+<p><code>engine.zsans_engine.http_session</code> was historically a single global <code>requests.Session</code>. Because <code>requests.Session</code> is not thread-safe, it is now a per-thread instance. The legacy name <code>http_session</code> is kept as a compatibility alias that forwards to the current thread's session, so existing plugins keep working — but new code should call <code>get_http_session()</code>.</p>
+</div>
 <p>Asset object fields: <code>uid</code> (<code>type:value</code>), <code>type</code>, <code>value</code>, <code>depth</code>, <code>state</code>, <code>properties</code> (dict), <code>to_dict()</code>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Concurrency safety</p>
@@ -1297,7 +1305,7 @@
 </tr>
 <tr>
 <td><code>on_asset_discovered</code></td>
-<td>A new asset entered the store</td>
+<td>An asset was discovered by breeding (may already exist in the graph)</td>
 </tr>
 <tr>
 <td><code>on_asset_excluded</code></td>
@@ -1444,6 +1452,12 @@
                         <a class="text-2xl font-medium" href="../../usage/output/">
                             
                             Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../../usage/findings/">
+                            
+                            Findings & Risk
                             
                         </a>
                         

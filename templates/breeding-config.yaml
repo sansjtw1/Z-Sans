@@ -24,6 +24,7 @@ asset_scope:
                                     #                 beijing.edu.cn 保持为 beijing.edu.cn（edu.cn 是公共后缀，不会误拆）。
                                     #   exact       - 不做任何扩展，仅匹配种子域本身及其子域
                                     #                 例：种子 www.jiyu.com 只扫描 *.www.jiyu.com，不含 mail.jiyu.com。
+  ipv6_prefix: null                 # IPv6 种子按此前缀扩展网段（如 64）；null 表示仅精确匹配该地址
 
 # 并发任务配置
 concurrency:
@@ -56,6 +57,14 @@ asset_types:
       crtsh: true         # 启用证书透明度日志crt.sh查询
       dnsx: true          # 启用dnsx做DNS解析验证
       dns_brute: true     # 启用DNS暴力枚举子域名
+      cert_probe:         # TLS 证书探测（提取 SAN、检查有效期/自签名）
+        enabled: true
+        ports: [443]          # 探测端口
+        expiry_warn_days: 30  # 剩余天数低于该值生成"即将过期"发现
+        self_signed_finding: true  # 自签名证书是否生成发现
+    wildcard:             # 泛解析检测（剔除 DNS 爆破假阳性）
+      enabled: true
+      samples: 2          # 随机标签探测次数
 
   # IP资产配置
   ip:
@@ -110,6 +119,8 @@ output:
     csv: true          # CSV表格导出
     graphml: true      # GraphML拓扑图文件导出
     html: true         # 交互式HTML报告
+    sarif: true        # SARIF 2.1.0（findings，可对接 CI 安全流水线）
+    neo4j: false       # Neo4j/BloodHound 风格 CSV（节点表 + 关系表）
   auto_open: true      # 扫描完成自动打开HTML报告
 
 # 第三方外部工具配置
@@ -159,13 +170,48 @@ monitoring:
   interval: 3600        # 监控轮询间隔（秒）
   webhook_url: null     # 变更告警 Webhook 地址，POST JSON 通知
 
+# 历史 URL 采集（默认关闭；从 Wayback / Common Crawl 补充历史路径）
+historical_urls:
+  enabled: false
+  wayback:
+    enabled: true       # 启用 Wayback Machine CDX
+    max_results: 2000   # 单域名最大条数
+    timeout: 30         # 请求超时（秒）
+  commoncrawl:
+    enabled: false      # 启用 Common Crawl 索引（较慢）
+    max_results: 1000
+
+# 子域接管检测（仅检测，不做任何认领/利用）
+takeover:
+  enabled: true         # 对发现的目标做 CNAME 指纹匹配
+  http_probe: true      # 命中 CNAME 后是否再发一次 HTTP 请求确认
+  timeout: 8            # 单次探测超时（秒）
+  detect_only: true     # 仅检测；保持开启，切勿用于接管
+
 # HTTP网络请求全局配置
 http:
   timeout: 10         # 请求超时时间，单位：秒
   retries: 3          # 请求失败重试次数
   user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36  # 请求UA标识
-  verify_ssl: false   # SSL证书校验（兼容自签名证书站点）
+  verify_ssl: true    # SSL证书校验（如需兼容自签名证书站点可显式关闭）
   proxy: null         # 代理地址配置，不填则不使用代理
   follow_redirects: true  # 自动跟随页面重定向跳转
   redirect_as_new_asset: true  # 将重定向目标地址作为新资产收录
   max_redirects: 5    # 单条链接最大跟随重定向次数
+  rate_limit:          # 全局限速（礼貌扫描，避免打挂目标或被封）
+    enabled: false           # 是否启用限速
+    requests_per_second: 5   # 全局平均 QPS 上限（令牌桶）
+    burst: 5                 # 允许的突发请求数
+    per_host_concurrency: 2  # 同一主机最大并发请求数（0 表示不限制）
+
+# 跨运行缓存配置（DNS / 证书 / HTTP 结果）
+cache:
+  enabled: false           # 默认关闭；开启后重扫与 --watch 显著提速
+  dir: .cache/zsans        # 缓存目录（sqlite 文件）
+  ttl:                     # 各命名空间过期时间（秒）
+    http: 3600
+    dns: 600
+    cert: 86400
+  max_entries: 100000      # 最大缓存条目数
+  max_mb: 200              # 缓存文件大小上限（MB）
+  bypass_in_watch: true    # --watch 模式旁路 HTTP 缓存（观察实时变化）

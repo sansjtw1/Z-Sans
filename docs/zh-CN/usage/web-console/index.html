@@ -1009,6 +1009,26 @@
             
             
             <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../findings/"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Findings & Risk
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
     <a data-slot="sidebar-menu-button" data-active="true" data-sidebar="menu-button"
         data-size="default" href="./"
         class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
@@ -1114,7 +1134,7 @@
           
           <a data-slot="button" id="previous-button"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 extend-touch-target size-8 shadow-none md:size-7"
-            href="../output/">
+            href="../findings/">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               class="tabler-icon tabler-icon-arrow-left">
@@ -1151,16 +1171,16 @@
   <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
     <p>Web 控制台是基于浏览器的管理界面，用于浏览扫描项目、查看实时任务、编辑配置和管理插件。它完全由 Python 标准库实现，前端为单文件 SPA，无需构建或外网 CDN。</p>
 <h2 id="_1">启动<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>main.py<span class="w"> </span>--web<span class="w">                </span><span class="c1"># http://0.0.0.0:8050</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>main.py<span class="w"> </span>--web<span class="w">                </span><span class="c1"># http://127.0.0.1:8050</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python<span class="w"> </span>main.py<span class="w"> </span>--web<span class="w"> </span>--port<span class="w"> </span><span class="m">9000</span><span class="w">    </span><span class="c1"># 自定义端口</span>
 </code></pre></div>
 <ul>
-<li>默认监听 <code>0.0.0.0:8050</code></li>
+<li>默认监听 <code>127.0.0.1:8050</code>，可通过 <code>--host</code> 修改绑定地址</li>
 <li>常驻服务，<code>Ctrl+C</code> 退出</li>
 <li>启动后通过浏览器访问（默认 <code>http://localhost:8050</code>）</li>
 </ul>
 <h2 id="_2">认证<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>控制台<strong>默认无认证</strong>。通过环境变量 <code>ZSANS_WEB_PASSWORD</code> 设置口令后，<strong>所有接口在授权前禁止访问</strong>（页面请求返回独立登录页，API 请求返回 <code>401</code>）：</p>
+<p>控制台<strong>默认无认证</strong>。通过环境变量 <code>ZSANS_WEB_PASSWORD</code> 设置口令后，除登录和登出接口外，所有接口在授权前禁止访问（页面请求返回独立登录页，API 请求返回 <code>401</code>）：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">ZSANS_WEB_PASSWORD</span><span class="o">=</span><span class="s1">&#39;your-secret&#39;</span><span class="w"> </span>python<span class="w"> </span>main.py<span class="w"> </span>--web
 </code></pre></div>
 <p>两种授权方式：</p>
@@ -1210,7 +1230,7 @@
 </tr>
 <tr>
 <td>新建任务</td>
-<td>用 script/url/ip 种子启动扫描，可自定义深度、策略与并发</td>
+<td>用 domain/url/ip 种子启动扫描，可自定义深度、策略与并发</td>
 </tr>
 <tr>
 <td>实时任务</td>
@@ -1427,7 +1447,7 @@
 </table></div>
 <h2 id="_8">安全说明<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>认证</strong>：设置 <code>ZSANS_WEB_PASSWORD</code> 后所有接口需授权（见上文）；口令比较使用恒定时间比较，登录有限流</li>
+<li><strong>认证</strong>：设置 <code>ZSANS_WEB_PASSWORD</code> 后除登录和登出接口外，所有接口需授权（见上文）；口令比较使用恒定时间比较，登录有限流</li>
 <li>请求体上限 2 MB，防止内存耗尽 DoS</li>
 <li>SSE 日志流不再发送 <code>Access-Control-Allow-Origin: *</code>，扫描日志仅同源前端可读</li>
 <li>项目 ID 必须匹配 <code>\d{8}_\d{6}</code> 时间戳格式，防止路径穿越</li>
@@ -1450,7 +1470,7 @@
     
     <a data-slot="button"
         class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 shadow-none"
-        href="../output/">
+        href="../findings/">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
             class="tabler-icon tabler-icon-arrow-left ">
@@ -1458,7 +1478,7 @@
             <path d="M5 12l6 6"></path>
             <path d="M5 12l6 -6"></path>
         </svg>
-        <span class="max-[500px]:hidden">Output & Reports</span>
+        <span class="max-[500px]:hidden">Findings & Risk</span>
     </a>
     
     
@@ -1568,6 +1588,12 @@
                         <a class="text-2xl font-medium" href="../output/">
                             
                             Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../findings/">
+                            
+                            Findings & Risk
                             
                         </a>
                         

@@ -1131,7 +1131,7 @@
 </tbody>
 </table></div>
 <h3 id="on_asset_discovered">on_asset_discovered<a class="headerlink" href="#on_asset_discovered" title="Permanent link">&para;</a></h3>
-<p>Firing time: inside the discovery loop of <code>_process_asset()</code>, emitted once per new asset when <code>asset_graph.add_asset(new_asset)</code> returns <code>True</code> (<strong>first-time entry into the store</strong>). Only listen to it if you care about "new discoveries".</p>
+<p>Firing time: inside the discovery loop of <code>_process_asset()</code>, emitted once for <strong>each</strong> asset returned by the breeder — for every discovery, including an asset that already exists in the graph and was re-discovered by another parent (in which case the <code>discovered</code> edge is recorded as well). If you only want assets that were actually processed, listen to <code>on_asset_scanned</code>; if you need "first-time entry" semantics, check whether the asset already existed in <code>engine.asset_graph</code> (or its <code>state</code>).</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -1379,6 +1379,12 @@
                         <a class="text-2xl font-medium" href="../../usage/output/">
                             
                             Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../../usage/findings/">
+                            
+                            Findings & Risk
                             
                         </a>
                         

@@ -90,6 +90,7 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
 .prop-item { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 10px; }
 .prop-key { font-size:.7rem; color:var(--accent); margin-bottom:3px; word-break:break-all; }
 .prop-val { font-size:.8rem; color:var(--text); font-family:'SF Mono',Consolas,monospace; word-break:break-all; white-space:pre-wrap; max-height:120px; overflow-y:auto; }
+.report-frame { display:block; width:100%; height:min(78vh,900px); border:0; background:#fff; }
 
 /* ===== 响应式 ===== */
 @media (max-width: 768px) {
@@ -141,6 +142,7 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
       <button :class="{active: page==='tasks'}" @click="go('tasks')">{{ t('tasks') }}</button>
       <button :class="{active: page==='config'}" @click="go('config')">{{ t('config') }}</button>
       <button :class="{active: page==='plugins'}" @click="go('plugins')">{{ t('plugins') }}</button>
+      <button :class="{active: page==='about'}" @click="go('about')">{{ t('about') }}</button>
     </div>
   </div>
   <div class="container">
@@ -167,8 +169,11 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
               <td><input type="checkbox" :value="p.id" v-model="compareIds"></td>
               <td><a href="#" @click.prevent="viewProject(p.id)">{{ p.id }}</a></td>
               <td style="font-family:monospace">{{ p.path }}</td>
-              <td>{{ p.has_json?'JSON ':'' }}{{ p.has_csv?'CSV ':'' }}{{ p.has_graphml?'GraphML':'' }}</td>
-              <td><button class="btn btn-sm btn-ghost" @click="viewProject(p.id)">{{ t('view') }}</button></td>
+               <td>{{ p.has_json?'JSON ':'' }}{{ p.has_csv?'CSV ':'' }}{{ p.has_graphml?'GraphML ':'' }}{{ p.has_sarif?'SARIF ':'' }}{{ p.has_report?'HTML':'' }}</td>
+              <td>
+                <button class="btn btn-sm btn-ghost" @click="viewProject(p.id)">{{ t('view') }}</button>
+                <a v-if="p.has_sarif" class="btn btn-sm btn-ghost" :href="'/api/projects/' + encodeURIComponent(p.id) + '/sarif'" target="_blank" rel="noopener">SARIF</a>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -224,6 +229,7 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
           <button :class="{active: detailTab==='analysis'}" @click="detailTab='analysis'">{{ t('analysis') }}</button>
           <button :class="{active: detailTab==='topology'}" @click="detailTab='topology'">{{ t('topology') }}</button>
           <button :class="{active: detailTab==='raw'}" @click="detailTab='raw'">{{ t('raw_json') }}</button>
+          <button v-if="reportUrl" :class="{active: detailTab==='report'}" @click="detailTab='report'">{{ t('html_report') }}</button>
         </div>
         <div class="card" v-if="detailTab==='assets'">
           <div class="row" style="margin-bottom:10px">
@@ -289,6 +295,9 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
         </div>
         <div class="card" v-if="detailTab==='raw'">
           <textarea readonly v-model="rawJson"></textarea>
+        </div>
+        <div class="card" v-if="detailTab==='report'" style="padding:0;overflow:hidden">
+          <iframe class="report-frame" :src="reportUrl" :title="t('html_report')" sandbox="allow-scripts"></iframe>
         </div>
       </div>
       <div v-else-if="projectPending" class="card">
@@ -459,6 +468,24 @@ textarea { font-family:'SF Mono',Consolas,monospace; font-size:.8rem; line-heigh
       <div v-else class="card"><div class="empty">{{ t('no_plugins') }}</div></div>
     </div>
 
+    <!-- 关于 -->
+    <div v-if="page==='about'">
+      <div class="card">
+        <h2 style="font-size:1.1rem;margin-bottom:4px">{{ t('about') }}</h2>
+        <p style="color:var(--text2);margin-top:0">v{{ version }}</p>
+        <p>{{ t('about_desc') }}</p>
+        <div style="margin-top:20px">
+          <div style="font-weight:600;margin-bottom:6px">{{ t('open_source') }}</div>
+          <p style="margin:4px 0"><a href="https://github.com/sansjtw1/Z-Sans" target="_blank" rel="noopener">GitHub — sansjtw1/Z-Sans</a></p>
+          <p style="margin:4px 0"><a href="https://gitee.com/sansjtw/Z-Sans" target="_blank" rel="noopener">Gitee — sansjtw/Z-Sans</a></p>
+        </div>
+        <div style="margin-top:20px">
+          <div style="font-weight:600;margin-bottom:6px">{{ t('documentation') }}</div>
+          <p style="margin:4px 0"><a href="https://sansjtw1.github.io/Z-Sans/docs/" target="_blank" rel="noopener">https://sansjtw1.github.io/Z-Sans/docs/</a></p>
+        </div>
+      </div>
+    </div>
+
     <!-- 插件界面 -->
     <div v-if="page==='plugin' && activePlugin">
       <div class="row" style="margin-bottom:16px;justify-content:space-between">
@@ -525,6 +552,7 @@ createApp({
       assetFilter: '',
       typeFilter: '',
       rawJson: '',
+      reportUrl: '',
       tasks: [],
       activeTask: null,
       taskPollTimer: null,
@@ -669,11 +697,11 @@ createApp({
       });
     },
     viewProject(id) {
-      this.currentProjectId = id; this.page = 'project-detail'; this.detailTab='assets'; this.assetFilter=''; this.typeFilter='';
+      this.currentProjectId = id; this.page = 'project-detail'; this.detailTab='assets'; this.assetFilter=''; this.typeFilter=''; this.reportUrl = '/api/projects/' + encodeURIComponent(id) + '/report';
       this.api('/api/projects/' + id).then(d => {
         if (d && d.nodes) { this.projectData = d; this.rawJson = JSON.stringify(d, null, 2); this.$nextTick(() => this.renderTopo()); }
         else if (d && d.status === 'pending') { this.projectData = null; this.projectPending = true; }
-        else { this.projectData = null; this.projectPending = false; }
+        else { this.projectData = null; this.projectPending = false; this.reportUrl = ''; }
       });
     },
     renderTopo() {

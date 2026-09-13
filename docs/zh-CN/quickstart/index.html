@@ -1075,7 +1075,7 @@
 </table></div>
 <details class="tip">
 <summary>什么是"回退"？</summary>
-<p>Z-Sans 的<strong>工具编排器</strong>（<code>ToolOrchestrator</code>）会按顺序探测工具：配置路径 → 工具目录 → 系统 PATH。找不到时使用纯 PHP 或纯 Python 的内部实现，保证扫描不会因为缺少某个二进制而中断。</p>
+<p>Z-Sans 的<strong>工具编排器</strong>（<code>ToolOrchestrator</code>）会按顺序探测工具：配置路径 → 工具目录 → 系统 PATH。找不到时使用内置 Python 实现，保证扫描不会因为缺少某个二进制而中断。</p>
 </details>
 <h2 id="_3">安装<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/sansjtw1/Z-Sans.git
@@ -1125,7 +1125,7 @@
     out --&gt; ts
     ts --&gt; json &amp; csv1 &amp; csv2 &amp; graphml &amp; html</pre>
 
-<p>打开 HTML 报告，即可看到概览统计、力导向拓扑图、活跃资产、被排除资产与执行指标等标签页。</p>
+<p>打开 HTML 报告，即可看到概览统计、力导向拓扑图、活跃资产、已淘汰资产与执行指标等标签页。</p>
 <p>详细说明请参阅<a href="../usage/output/">输出与报告</a>。</p>
 <h2 id="_10">下一步<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1264,6 +1264,12 @@
                         <a class="text-2xl font-medium" href="../usage/output/">
                             
                             Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../usage/findings/">
+                            
+                            Findings & Risk
                             
                         </a>
                         

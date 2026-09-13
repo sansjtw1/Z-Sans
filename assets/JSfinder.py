@@ -57,7 +57,7 @@ def Extract_html(URL):
 	header = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36",
 	"Cookie": args.cookie}
 	try:
-		raw = requests.get(URL, headers = header, timeout=3, verify=False)
+		raw = requests.get(URL, headers=header, timeout=3, verify=True)
 		raw = raw.content.decode("utf-8", "ignore")
 		return raw
 	except:

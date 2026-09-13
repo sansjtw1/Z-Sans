@@ -1075,7 +1075,7 @@
 </table></div>
 <details class="tip">
 <summary>What does 'fallback' mean?</summary>
-<p>Z-Sans's <strong>ToolOrchestrator</strong> probes tools in order: configured path → tools directory → system PATH. When a tool cannot be found, it uses a pure PHP or pure Python internal implementation, ensuring scans are never interrupted by a missing binary.</p>
+<p>Z-Sans's <strong>ToolOrchestrator</strong> probes tools in order: configured path → tools directory → system PATH. When a tool cannot be found, it uses a built-in Python implementation, ensuring scans are never interrupted by a missing binary.</p>
 </details>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/sansjtw1/Z-Sans.git
@@ -1125,7 +1125,7 @@
     out --&gt; ts
     ts --&gt; json &amp; csv1 &amp; csv2 &amp; graphml &amp; html</pre>
 
-<p>Open the HTML report to see tabs for overview statistics, a force-directed topology graph, active assets, excluded assets, and execution metrics.</p>
+<p>Open the HTML report to see tabs for overview statistics, a force-directed topology graph, active assets, eliminated assets, and execution metrics.</p>
 <p>See <a href="../usage/output/">Output &amp; Reports</a> for detailed documentation.</p>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1264,6 +1264,12 @@
                         <a class="text-2xl font-medium" href="../usage/output/">
                             
                             Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../usage/findings/">
+                            
+                            Findings & Risk
                             
                         </a>
                         

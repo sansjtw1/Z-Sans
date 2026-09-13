@@ -553,8 +553,8 @@ msgstr "Failed to collect plugin CLI hooks for {name}: {error}"
 msgid "Failed to create default config file: {error}"
 msgstr "Failed to create default config file: {error}"
 
-msgid "Failed to delete JSFinder temporary files: {error}"
-msgstr "Failed to delete JSFinder temporary files: {error}"
+msgid "Failed to delete JSfinder temporary file {path}: {error}"
+msgstr "Failed to delete JSfinder temporary file {path}: {error}"
 
 msgid "Failed to export {format} format: {error}"
 msgstr "Failed to export {format} format: {error}"
@@ -1159,6 +1159,63 @@ msgstr "Querying crt.sh for subdomains: {domain}"
 
 msgid "raw_json"
 msgstr "Raw JSON"
+
+msgid "html_report"
+msgstr "HTML Report"
+
+msgid "Live project snapshot failed: {error}"
+msgstr "Live project snapshot failed: {error}"
+
+msgid "Failed to reload config before scan: {error}"
+msgstr "Failed to reload config before scan: {error}"
+
+msgid "Web task {task} failed: {error}"
+msgstr "Web task {task} failed: {error}"
+
+msgid "Delete project {project} failed: {error}"
+msgstr "Delete project {project} failed: {error}"
+
+msgid "List plugins failed: {error}"
+msgstr "List plugins failed: {error}"
+
+msgid "Web request {path}: {detail}"
+msgstr "Web request {path}: {detail}"
+
+msgid "Web audit action={action} ip={ip} {details}"
+msgstr "Web audit action={action} ip={ip} {details}"
+
+msgid "Web audit action=logout ip={ip}"
+msgstr "Web audit action=logout ip={ip}"
+
+msgid "GET {path} error: {error}"
+msgstr "GET {path} error: {error}"
+
+msgid "POST {path} error: {error}"
+msgstr "POST {path} error: {error}"
+
+msgid "Z-Sans web console started on http://{host}:{port}"
+msgstr "Z-Sans web console started on http://{host}:{port}"
+
+msgid "Failed to load config file: {error}"
+msgstr "Failed to load config file: {error}"
+
+msgid "Language {language} not in supported languages {supported}, using zh_CN"
+msgstr "Language {language} not in supported languages {supported}, using zh_CN"
+
+msgid "Locale directory {path} does not exist"
+msgstr "Locale directory {path} does not exist"
+
+msgid "Default locale directory {path} also does not exist"
+msgstr "Default locale directory {path} also does not exist"
+
+msgid "Successfully set up i18n with language {language}"
+msgstr "Successfully set up i18n with language {language}"
+
+msgid "Failed to set up i18n: {error}"
+msgstr "Failed to set up i18n: {error}"
+
+msgid "Full traceback while processing asset {uid}:\n{traceback}"
+msgstr "Full traceback while processing asset {uid}:\n{traceback}"
 
 msgid "read failed"
 msgstr "read failed"
@@ -1898,3 +1955,88 @@ msgstr "Z-Sans Asset Breeding Engine v{VERSION} initialized"
 
 msgid "{count} errors during scan"
 msgstr "{count} errors during scan"
+
+msgid "Invalid exclusion pattern: {pattern}"
+msgstr "Invalid exclusion pattern: {pattern}"
+
+msgid "Web console bind address (default: 127.0.0.1)"
+msgstr "Web console bind address (default: 127.0.0.1)"
+
+msgid "invalid plugin name"
+msgstr "invalid plugin name"
+
+msgid "report not found"
+msgstr "report not found"
+
+msgid "Asset {uid} rejected: exceeds {type} limit"
+msgstr "Asset {uid} rejected: exceeds {type} limit"
+
+msgid "Certificate decode failed: {error}"
+msgstr "Certificate decode failed: {error}"
+
+msgid "Certificate probe failed: {error}"
+msgstr "Certificate probe failed: {error}"
+
+msgid "Common Crawl query failed for {domain}: {error}"
+msgstr "Common Crawl query failed for {domain}: {error}"
+
+msgid "Exported Neo4j CSV: {nodes_file}, {rels_file}"
+msgstr "Exported Neo4j CSV: {nodes_file}, {rels_file}"
+
+msgid "Exported SARIF: {filename}"
+msgstr "Exported SARIF: {filename}"
+
+msgid "Findings"
+msgstr "Findings"
+
+msgid "HTTP cache write failed: {error}"
+msgstr "HTTP cache write failed: {error}"
+
+msgid "Possible subdomain takeover ({service})"
+msgstr "Possible subdomain takeover ({service})"
+
+msgid "Skipping wildcard-resolved subdomain: {subdomain}"
+msgstr "Skipping wildcard-resolved subdomain: {subdomain}"
+
+msgid "Subdomain takeover candidate: {domain}"
+msgstr "Subdomain takeover candidate: {domain}"
+
+msgid "TLS certificate does not match the hostname"
+msgstr "TLS certificate does not match the hostname"
+
+msgid "TLS certificate has expired"
+msgstr "TLS certificate has expired"
+
+msgid "TLS certificate is expiring soon"
+msgstr "TLS certificate is expiring soon"
+
+msgid "TLS certificate is self-signed"
+msgstr "TLS certificate is self-signed"
+
+msgid "Takeover detection failed for {domain}: {error}"
+msgstr "Takeover detection failed for {domain}: {error}"
+
+msgid "Wayback CDX returned status {status}"
+msgstr "Wayback CDX returned status {status}"
+
+msgid "Wayback query failed for {domain}: {error}"
+msgstr "Wayback query failed for {domain}: {error}"
+
+msgid "Wildcard DNS detected for {domain}; filtering brute-force false positives"
+msgstr "Wildcard DNS detected for {domain}; filtering brute-force false positives"
+
+msgid "Wildcard detection failed for {domain}: {error}"
+msgstr "Wildcard detection failed for {domain}: {error}"
+
+msgid "about"
+msgstr "About"
+
+msgid "about_desc"
+msgstr "Z-Sans is a lightweight automated attack-surface discovery tool powered by an asset breeding engine."
+
+msgid "open_source"
+msgstr "Open Source"
+
+msgid "documentation"
+msgstr "Documentation"
+

@@ -18,6 +18,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
 from core.i18n import _
+from core.version import __version__ as ZSANS_VERSION
 
 logger = logging.getLogger('zsans.web')
 
@@ -349,7 +350,7 @@ class ScanManager:
                         "seed_domains": sorted(engine.seed_domains),
                     }
                 except Exception as e:
-                    logger.debug("live project snapshot failed: %s", e)
+                    logger.debug(_("Live project snapshot failed: {error}").format(error=e))
                     return None
         return None
 
@@ -366,7 +367,7 @@ class ScanManager:
                 with self._lock:
                     self._base_config = fresh
         except Exception as e:
-            logger.warning("Failed to reload config before scan: %s", e)
+            logger.warning(_("Failed to reload config before scan: {error}").format(error=e))
 
         config = copy.deepcopy(self._base_config)
         if overrides:
@@ -450,7 +451,7 @@ class ScanManager:
                     if not ok and engine.metrics.get("errors"):
                         task["error"] = _("{count} errors during scan").format(count=engine.metrics.get("errors"))
             except Exception as e:
-                logger.error("Web task %s failed: %s", tid, e)
+                logger.error(_("Web task {task} failed: {error}").format(task=tid, error=e))
                 task["status"] = "failed"
                 task["error"] = str(e)
                 task["traceback"] = traceback.format_exc()
@@ -510,7 +511,7 @@ class ScanManager:
                     shutil.rmtree(proj_dir)
                 deleted.append(pid)
             except Exception as e:
-                logger.error("delete project %s failed: %s", pid, e)
+                logger.error(_("Delete project {project} failed: {error}").format(project=pid, error=e))
                 failed.append(pid)
         return deleted, failed
 
@@ -660,17 +661,44 @@ def list_projects(output_dir):
         json_file = _find_file(d, '.json', exclude='_report')
         csv_file = _find_file(d, '_assets.csv')
         graphml = _find_file(d, '.graphml')
+        sarif = _find_file(d, '.sarif')
+        neo4j_nodes = _find_file(d, '_neo4j_nodes.csv')
         projects.append({
             "id": name,
             "path": d,
             "has_json": bool(json_file),
             "has_csv": bool(csv_file),
             "has_graphml": bool(graphml),
+            "has_report": bool(_find_file(d, '_report.html')),
+            "has_sarif": bool(sarif),
+            "has_neo4j": bool(neo4j_nodes),
             "json_file": os.path.basename(json_file) if json_file else None,
             "csv_file": os.path.basename(csv_file) if csv_file else None,
             "graphml_file": os.path.basename(graphml) if graphml else None,
+            "sarif_file": os.path.basename(sarif) if sarif else None,
         })
     return projects
+
+
+def find_project_file(output_dir, pid, suffix, exclude=None):
+    """返回项目目录内匹配后缀的文件路径（带路径穿越防护）。
+
+    与 find_project_report 同源的校验：仅允许时间戳项目目录，且结果必须落在
+    该目录内（realpath 校验，防符号链接逃逸）。
+    """
+    if not re.match(r'^\d{8}_\d{6}$', pid or ''):
+        return None
+    output_root = os.path.realpath(output_dir)
+    project_dir = os.path.realpath(os.path.join(output_root, pid))
+    if not project_dir.startswith(output_root + os.sep) or not os.path.isdir(project_dir):
+        return None
+    path = _find_file(project_dir, suffix, exclude=exclude)
+    if not path:
+        return None
+    path = os.path.realpath(path)
+    if not path.startswith(project_dir + os.sep) or not os.path.isfile(path):
+        return None
+    return path
 
 
 def _find_file(d, suffix, exclude=None):
@@ -681,6 +709,23 @@ def _find_file(d, suffix, exclude=None):
     except Exception:
         pass
     return None
+
+
+def find_project_report(output_dir, pid):
+    """返回项目 HTML 报告路径；仅允许时间戳项目目录内的报告文件。"""
+    if not re.match(r'^\d{8}_\d{6}$', pid or ''):
+        return None
+    output_root = os.path.realpath(output_dir)
+    project_dir = os.path.realpath(os.path.join(output_root, pid))
+    if not project_dir.startswith(output_root + os.sep) or not os.path.isdir(project_dir):
+        return None
+    report = _find_file(project_dir, '_report.html')
+    if not report:
+        return None
+    report = os.path.realpath(report)
+    if not report.startswith(project_dir + os.sep) or not os.path.isfile(report):
+        return None
+    return report
 
 
 def read_project_json(output_dir, pid):
@@ -1061,7 +1106,7 @@ def list_plugins(engine_factory):
             for info in engine.plugins.values()
         ]
     except Exception as e:
-        logger.error("list_plugins failed: %s", e)
+        logger.error(_("List plugins failed: {error}").format(error=e))
         return []
     finally:
         # 每次都会 new 一个 BreedingEngine（含 20 线程池），用完必须释放，
@@ -1092,7 +1137,7 @@ WEB_I18N_KEYS = [
     "real_time_log","follow_log","no_tasks","no_projects","config_file",
     "reload","save","config_saved","plugin","name","version","handlers",
     "events","description","enable","disable","no_plugins","search_assets","enter",
-    "all_types","assets","analysis","topology","raw_json","no_match",
+    "all_types","assets","analysis","topology","raw_json","html_report","no_match",
     "type_dist","state_dist","depth_dist","no_data","depth","high_related",
     "seed_domains","nodes","edges","type_count","max_depth_l","props",
     "no_props","source","type","close","scan_running","scan_after_done",
@@ -1102,6 +1147,7 @@ WEB_I18N_KEYS = [
     "strategy_time_based","select_two_projects","confirm_delete_projects",
     "delete_result","delete_failed","rescan_started","rescan_failed",
     "need_one_seed","no_logs","operation_failed","save_failed","comma_separated",
+    "about","about_desc","open_source","documentation",
 ]
 
 _web_gettext_cache = {}
@@ -1125,11 +1171,15 @@ def _web_gettext(lang):
 def web_i18n_dict(lang):
     """返回前端语言包（key -> 当前语言翻译），走项目 gettext 体系。"""
     g = _web_gettext(lang)
-    return {k: g(k) for k in WEB_I18N_KEYS}
+    result = {k: g(k) for k in WEB_I18N_KEYS}
+    # 新增文案在未重新编译 messages.mo 的开发环境中也要有可用显示文本。
+    if result.get('html_report') == 'html_report':
+        result['html_report'] = 'HTML 报告' if lang.startswith('zh') else 'HTML Report'
+    return result
 
 
 class ZSansWebHandler(BaseHTTPRequestHandler):
-    server_version = "Z-Sans-Web/0.0.5"
+    server_version = "Z-Sans-Web/" + ZSANS_VERSION
 
     def log_message(self, fmt, *args):
         # 抑制默认的访问日志噪音，只保留在 debug 级别。
@@ -1140,7 +1190,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
             detail = fmt % args if args else fmt
         except Exception:
             detail = fmt
-        logger.debug("web %s %s", path, detail)
+        logger.debug(_("Web request {path}: {detail}").format(path=path, detail=detail))
 
     # ---- 工具 ----
     def _send_json(self, obj, status=200):
@@ -1192,6 +1242,9 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
             '.mjs': 'application/javascript; charset=utf-8',
             '.css': 'text/css; charset=utf-8',
             '.json': 'application/json; charset=utf-8',
+            '.sarif': 'application/json; charset=utf-8',
+            '.csv': 'text/csv; charset=utf-8',
+            '.graphml': 'application/xml; charset=utf-8',
             '.png': 'image/png',
             '.jpg': 'image/jpeg',
             '.jpeg': 'image/jpeg',
@@ -1211,6 +1264,16 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def _audit(self, action, **fields):
+        """记录 Web 管理操作，但不记录配置正文、口令等敏感值。"""
+        details = ' '.join(
+            '{}={!r}'.format(key, value)
+            for key, value in fields.items()
+            if value is not None
+        )
+        logger.info(_("Web audit action={action} ip={ip} {details}").format(
+            action=action, ip=self._client_ip(), details=details))
 
     def _stream_logs(self, tid):
         """SSE 日志流：长连接，有新日志/状态变化即推送。
@@ -1367,6 +1430,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(body_bytes)))
         self.end_headers()
         self.wfile.write(body_bytes)
+        logger.info(_("Web audit action=logout ip={ip}").format(ip=self._client_ip()))
 
     def _reject_unauthorized(self, is_api_request):
         if is_api_request:
@@ -1398,6 +1462,27 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                 self._send_json({"lang": lang, "dict": web_i18n_dict(lang)})
             elif path == '/api/projects':
                 self._send_json(list_projects(self._get_manager()._output_dir))
+            elif path.startswith('/api/projects/') and path.endswith('/report'):
+                pid = path[len('/api/projects/'):-len('/report')].strip('/')
+                report_file = find_project_report(self._get_manager()._output_dir, pid)
+                if report_file is None:
+                    self._send_json({"error": _("report not found")}, 404)
+                else:
+                    self._send_file(report_file)
+            elif path.startswith('/api/projects/') and path.endswith('/sarif'):
+                pid = path[len('/api/projects/'):-len('/sarif')].strip('/')
+                sarif_file = find_project_file(self._get_manager()._output_dir, pid, '.sarif')
+                if sarif_file is None:
+                    self._send_json({"error": _("not found")}, 404)
+                else:
+                    self._send_file(sarif_file)
+            elif path.startswith('/api/projects/') and path.endswith('/neo4j'):
+                pid = path[len('/api/projects/'):-len('/neo4j')].strip('/')
+                nodes_file = find_project_file(self._get_manager()._output_dir, pid, '_neo4j_nodes.csv')
+                if nodes_file is None:
+                    self._send_json({"error": _("not found")}, 404)
+                else:
+                    self._send_file(nodes_file)
             elif path.startswith('/api/projects/'):
                 pid = path.rsplit('/', 1)[-1]
                 data = read_project_json(self._get_manager()._output_dir, pid)
@@ -1476,7 +1561,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
             else:
                 self._send_json({"error": _("not found"), "path": path}, 404)
         except Exception as e:
-            logger.error("GET %s error: %s", path, e)
+            logger.error(_("GET {path} error: {error}").format(path=path, error=e))
             traceback.print_exc()
             self._send_json({"error": str(e)}, 500)
 
@@ -1489,7 +1574,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
             try:
                 self._handle_login()
             except Exception as e:
-                logger.error("POST %s error: %s", path, e)
+                logger.error(_("POST {path} error: {error}").format(path=path, error=e))
                 traceback.print_exc()
                 self._send_json({"error": str(e)}, 500)
             return
@@ -1497,7 +1582,7 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
             try:
                 self._handle_logout()
             except Exception as e:
-                logger.error("POST %s error: %s", path, e)
+                logger.error(_("POST {path} error: {error}").format(path=path, error=e))
                 traceback.print_exc()
                 self._send_json({"error": str(e)}, 500)
             return
@@ -1530,31 +1615,38 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                     self._send_json({"error": _("invalid seed assets"), "invalid": invalid}, 400)
                     return
                 tid = self._get_manager().start_scan(validated, overrides)
+                self._audit('scan_start', task_id=tid, seed_count=len(validated))
                 self._send_json({"id": tid, "status": "started"})
             elif path == '/api/projects/delete':
                 body = self._json_body()
                 ids = body.get('ids') or []
                 deleted, failed = self._get_manager().delete_projects(ids)
+                self._audit('project_delete', requested_ids=ids, deleted=deleted, failed=failed)
                 self._send_json({"ok": True, "deleted": deleted, "failed": failed})
             elif path == '/api/tasks/stop':
                 body = self._json_body()
                 tid = body.get('id')
                 ok = self._get_manager().stop_scan(tid)
+                self._audit('scan_stop', task_id=tid, success=ok)
                 self._send_json({"ok": ok})
             elif path == '/api/tasks/rescan':
                 body = self._json_body()
                 tid = body.get('id')
                 new_id = self._get_manager().rescan_task(tid)
                 if new_id:
+                    self._audit('scan_rescan', source_task_id=tid, task_id=new_id)
                     self._send_json({"ok": True, "id": new_id})
                 else:
+                    self._audit('scan_rescan', source_task_id=tid, success=False)
                     self._send_json({"error": _("task not found or no seeds")}, 404)
             elif path == '/api/config':
                 raw = self._read_body().decode('utf-8')
                 ok, err = write_config_yaml(self._get_manager()._config_path, raw)
                 if ok:
+                    self._audit('config_replace', path=self._get_manager()._config_path)
                     self._send_json({"ok": True})
                 else:
+                    self._audit('config_replace', path=self._get_manager()._config_path, success=False)
                     self._send_json({"error": err}, 500)
             elif path == '/api/config/patch':
                 body = self._json_body()
@@ -1572,28 +1664,36 @@ class ZSansWebHandler(BaseHTTPRequestHandler):
                     return
                 ok, werr = write_config_yaml(self._get_manager()._config_path, new_raw)
                 if ok:
+                    self._audit('config_patch', path=self._get_manager()._config_path,
+                                keys=sorted(updates.keys()))
                     self._send_json({"ok": True, "applied": list(updates.keys())})
                 else:
+                    self._audit('config_patch', path=self._get_manager()._config_path,
+                                keys=sorted(updates.keys()), success=False)
                     self._send_json({"error": werr}, 500)
             elif path.startswith('/api/plugins/') and path.endswith('/toggle'):
                 name = path.split('/')[3]
                 ok, msg, now = self._get_manager().toggle_plugin(name)
                 if ok:
+                    self._audit('plugin_toggle', plugin=name, disabled=now)
                     self._send_json({"ok": True, "message": msg, "disabled": now})
                 else:
+                    self._audit('plugin_toggle', plugin=name, success=False)
                     self._send_json({"error": msg}, 500)
             elif path.startswith('/api/plugins/') and path.endswith('/config'):
                 name = path.split('/')[3]
                 body = self._json_body()
                 ok, err = self._get_manager().set_plugin_config(name, body.get('config') or {})
                 if ok:
+                    self._audit('plugin_config_replace', plugin=name)
                     self._send_json({"ok": True})
                 else:
+                    self._audit('plugin_config_replace', plugin=name, success=False)
                     self._send_json({"error": err}, 500)
             else:
                 self._send_json({"error": _("not found")}, 404)
         except Exception as e:
-            logger.error("POST %s error: %s", path, e)
+            logger.error(_("POST {path} error: {error}").format(path=path, error=e))
             traceback.print_exc()
             self._send_json({"error": str(e)}, 500)
 
@@ -1647,14 +1747,14 @@ def start_web_server(base_config, config_path, output_dir, port=8050, host='127.
         from main import VERSION as _zs_version
         zs_version = _zs_version
     except Exception:
-        zs_version = "0.0.6"
+        zs_version = ZSANS_VERSION
     server = ZSansWebServer((host, port), ZSansWebHandler, manager, zs_version, lang=lang, auth=auth)
     if auth.enabled:
         logger.info(_("Web authentication enabled (ZSANS_WEB_PASSWORD is set); "
                       "API clients can authenticate via 'Authorization: Bearer <password>' or 'X-API-Key' header"))
     else:
         logger.warning(_("Web authentication disabled; set the ZSANS_WEB_PASSWORD environment variable to require a password"))
-    logger.info("Z-Sans web console started on http://%s:%d", host, port)
+    logger.info(_("Z-Sans web console started on http://{host}:{port}").format(host=host, port=port))
     try:
         server.serve_forever()
     except KeyboardInterrupt:

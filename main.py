@@ -93,7 +93,7 @@ def configure_logging():
 
 logger = configure_logging()
 
-VERSION = "0.0.9"
+from core.version import __version__ as VERSION
 DEFAULT_CONFIG_PATH = "breeding-config.yaml"
 PLUGINS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plugins')
 
@@ -103,7 +103,7 @@ _CLI_CONFLICTS = []
 from core.zsans_engine import (
     Asset, DomainAsset, IPAsset, URLAsset, PortAsset, JSAsset,
     ASSET_TYPE_DOMAIN, ASSET_TYPE_IP, ASSET_TYPE_URL, ASSET_TYPE_PORT, ASSET_TYPE_JS,
-    AssetFactory, AssetGraph, PriorityBreedingQueue
+    AssetFactory, AssetGraph, PriorityBreedingQueue, _normalize_ip
 )
 from core.breeders.breeders import BreederFactory
 from core.tools.tools import ToolOrchestrator
@@ -191,7 +191,7 @@ class BreedingEngine:
         except Exception:
             cfg_hash = None
         return {
-            "schema_version": 2,
+            "schema_version": 3,
             "zs_version": VERSION,
             "stats": {
                 "nodes": len(self.asset_graph.nodes),
@@ -269,10 +269,19 @@ class BreedingEngine:
             elif asset_type == ASSET_TYPE_IP:
                 self.seed_ips.add(value)
                 try:
-                    ip_parts = value.split('.')
-                    if len(ip_parts) >= 2:
+                    import ipaddress
+                    addr = ipaddress.ip_address(_normalize_ip(value))
+                    if addr.version == 4:
+                        # 历史行为：IPv4 裸地址按 /16 扩展
+                        ip_parts = str(addr).split('.')
                         ip_range = f"{ip_parts[0]}.{ip_parts[1]}.0.0"
                         self.seed_ip_ranges.add(ip_range)
+                    else:
+                        # IPv6：默认仅精确匹配；asset_scope.ipv6_prefix 可指定前缀扩展
+                        prefix = self.config.get('asset_scope', {}).get('ipv6_prefix')
+                        if prefix:
+                            network = ipaddress.ip_network(f"{addr}/{int(prefix)}", strict=False)
+                            self.seed_ip_ranges.add(str(network))
                 except Exception as e:
                     logger.error(_("Error recording IP range: {error}").format(error=str(e)))
             
@@ -413,18 +422,21 @@ class BreedingEngine:
                 self.emit_hook("on_asset_eliminated", asset=asset)
             
             for new_asset in new_assets:
-                # 资产首次进入图谱或虽已存在但可重新处理时，记录"发现"边并派发事件。
-                # 注意：边与事件不应依赖 queue.add 的返回值——同一资产被重复发现时
-                # 仍会走 add_asset=True / queue.add=False，此时边和事件同样要记录，
-                # 否则拓扑缺边、on_asset_discovered 丢失、统计虚高。
-                if self._type_capacity_reached(new_asset.type):
-                    new_asset.state = "excluded"
-                    new_asset.properties["excluded_reason"] = _("Exceeds {type} limit {limit}").format(
-                        type=new_asset.type, limit=self._type_limit(new_asset.type))
+                # 配额检查与入库在同一把锁内原子完成（try_add_asset），避免并发下
+                # 多个 worker 同时通过配额检查导致类型数量超发。
+                # try_add_asset 对已存在且处于 scanned/eliminated/scanning 的资产返回
+                # "exists"，但节点已在图谱中——仍需记录"发现"边并派发事件，否则重复
+                # 发现会造成拓扑缺边、on_asset_discovered 丢失。是否需要重新入队才由
+                # 返回值决定。
+                status = self.asset_graph.try_add_asset(new_asset, self._type_limit(new_asset.type))
+                if status == "rejected":
+                    # 超过类型配额：try_add_asset 已置 excluded 并写入原因
+                    logger.debug(_("Asset {uid} rejected: exceeds {type} limit").format(
+                        uid=new_asset.uid, type=new_asset.type))
                     continue
-                if self.asset_graph.add_asset(new_asset):
-                    self.asset_graph.add_edge(asset, new_asset, "discovered")
-                    self.emit_hook("on_asset_discovered", asset=new_asset, source=asset)
+                self.asset_graph.add_edge(asset, new_asset, "discovered")
+                self.emit_hook("on_asset_discovered", asset=new_asset, source=asset)
+                if status in ("added", "updated"):
                     self.queue.add(new_asset)
             
             self.emit_hook("on_asset_scanned", asset=asset, new_assets=list(new_assets))
@@ -447,8 +459,8 @@ class BreedingEngine:
             logger.error(_("Error processing asset {uid}: {error}").format(uid=asset.uid, error=str(e)))
             import traceback
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Full traceback while processing asset %s:\n%s",
-                             asset.uid, traceback.format_exc())
+                logger.debug(_("Full traceback while processing asset {uid}:\n{traceback}").format(
+                    uid=asset.uid, traceback=traceback.format_exc()))
             asset.state = "failed"
             with self._metrics_lock:
                 self.metrics["errors"] += 1
@@ -459,7 +471,7 @@ class BreedingEngine:
         workers = max(1, self.config.get("concurrency", {}).get("max_tasks", 1))
         strategy = self.config.get("strategy", "priority_based")
         in_flight = 0
-        futures = set()
+        futures = {}   # future -> asset，用于任务完成后将资产移出「处理中」集合
         
         executor = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="zsans")
         self._executor = executor
@@ -470,7 +482,7 @@ class BreedingEngine:
                     if not asset:
                         break
                     in_flight += 1
-                    futures.add(executor.submit(self._process_asset, asset))
+                    futures[executor.submit(self._process_asset, asset)] = asset
                 
                 if in_flight == 0:
                     break
@@ -480,7 +492,9 @@ class BreedingEngine:
                     # 同时完成时因每次 break 被迫逐个轮询而拖慢吞吐。
                     completed_any = False
                     for future in as_completed(futures, timeout=1.0):
-                        futures.discard(future)
+                        asset = futures.pop(future, None)
+                        if asset is not None:
+                            self.queue.done(asset)
                         in_flight -= 1
                         completed_any = True
                         if self._stop_requested or self.state != "running":
@@ -495,7 +509,9 @@ class BreedingEngine:
             
             if self.state == "running" and not self._stop_requested and in_flight > 0:
                 for future in as_completed(futures):
-                    futures.discard(future)
+                    asset = futures.pop(future, None)
+                    if asset is not None:
+                        self.queue.done(asset)
                     in_flight -= 1
         finally:
             self._executor = None
@@ -517,13 +533,6 @@ class BreedingEngine:
         elif asset_type == ASSET_TYPE_JS:
             return limits.get("max_js", 1000)
         return None
-
-    def _type_capacity_reached(self, asset_type):
-        limit = self._type_limit(asset_type)
-        if limit is None:
-            return False
-        with self.asset_graph.lock:
-            return self.asset_graph.type_counts.get(asset_type, 0) >= limit
 
     def _check_resource_limits(self, asset):
         asset_type_config = self.config.get("asset_types", {}).get(asset.type, {})
@@ -1296,6 +1305,10 @@ def run_watch(config, domain_seeds, url_seeds):
         cycle_start = time.time()
         logger.info(_("Watch cycle starting..."))
         engine = BreedingEngine(config)
+        # watch 模式需要观察实时变化，默认旁路 HTTP 缓存
+        if config.get('cache', {}).get('bypass_in_watch', True):
+            from core.zsans_engine import set_cache_bypass
+            set_cache_bypass(True)
         for domain in domain_seeds:
             engine.add_seed(ASSET_TYPE_DOMAIN, domain)
         for url in url_seeds:

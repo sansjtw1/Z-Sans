@@ -8,7 +8,7 @@
         <br />
         <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg"/></a>
         <a href="https://www.python.org/downloads/release/python-390/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9+-blue.svg"/></a>
-        <a href="https://github.com/sansjtw1/Z-Sans/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.0.7-blue.svg"/></a>
+        <a href="https://github.com/sansjtw1/Z-Sans/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.1.0-blue.svg"/></a>
         <br>
         <a href="README.md">English</a> | <a href="README_CN.md">中文</a> | <a href="https://sansjtw1.github.io/Z-Sans/docs/" target="_blank">Online Docs</a> | <a href="https://github.com/sansjtw1/Z-Sans/releases">Releases</a>
     </p>
@@ -18,7 +18,18 @@
 
 ## 🚀 Project Overview
 
-Z-Sans is a cybersecurity tool built around an innovative **Asset Breeding Engine** that automates attack-surface discovery and mapping. Starting from a small set of seed assets (domains or URLs), Z-Sans systematically discovers and expands digital assets — domains, IP addresses, URLs, ports, and JavaScript resources — applying configurable breeding strategies to grow an asset graph, and then produces detailed reports (JSON, CSV, GraphML, HTML).
+Z-Sans is a cybersecurity tool built around an innovative **Asset Breeding Engine** that automates attack-surface discovery and mapping. Starting from a small set of seed assets (domains or URLs), Z-Sans systematically discovers and expands digital assets — domains, IP addresses, URLs, ports, and JavaScript resources — applying configurable breeding strategies to grow an asset graph, and then produces detailed reports (JSON, CSV, GraphML, SARIF, Neo4j CSV, HTML) together with evidence-backed **findings**.
+
+## 🆕 What's new in 0.1.0
+
+- **TLS certificate enrichment** — full certificate probing (issuer / validity / SAN / fingerprint); SAN names feed subdomain discovery, and expiring / expired / self-signed / hostname-mismatch certificates become findings
+- **Findings & risk** — an extensible `properties.findings` model (subdomain-takeover, certificate issues, …) rendered in a dedicated **Findings** report tab and exported as **SARIF 2.1.0** for CI
+- **Subdomain-takeover detection** (detect-only) — CNAME chain matched against known cloud services, with optional HTTP confirmation
+- **Wildcard-DNS detection** — random-label probes drop brute-force false positives
+- **Historical URLs** — optional Wayback (CDX) / Common Crawl harvesting
+- **Full IPv6 support** and **polite scanning** (global rate limiting + per-tool concurrency caps)
+- **Cross-run disk cache** for DNS / HTTP / certificate results
+- **New exports** — SARIF and Neo4j / BloodHound-style CSV, plus a Web-console SARIF download
 
 ## ✨ Key Features
 
@@ -27,7 +38,8 @@ Z-Sans is a cybersecurity tool built around an innovative **Asset Breeding Engin
 - **Configurable Strategies**: `priority_based`, `depth_first`, `breadth_first`, `time_based`
 - **Checkpoint & Resume**: Save progress to a checkpoint, resume interrupted scans with `--resume`
 - **Change Monitoring**: `--watch` mode rescans on a schedule and reports asset changes via Webhook
-- **Flexible Output**: JSON, CSV, GraphML, and localized multi-tab HTML reports
+- **Flexible Output**: JSON, CSV, GraphML, SARIF, Neo4j CSV, and localized multi-tab HTML reports
+- **Findings**: Certificate and subdomain-takeover risk signals with evidence, exported to the report and SARIF
 - **Interactive Topology Map**: Canvas-based asset graph with pan/zoom in the HTML report
 - **Tool Integration**: Subfinder, naabu, EHole, plus built-in lightweight resolvers
 - **Plugin System**: Event-driven plugin framework for custom reports, external intel, Webhook notifications, and more (see the [Plugin Development Guide](plugins/README.md))
@@ -42,16 +54,21 @@ Z-Sans/
 ├── core/
 │   ├── breeders/           # Asset breeding algorithms per asset type
 │   ├── tools/              # Tool integrations and orchestrator
+│   ├── cache.py            # Cross-run disk cache (sqlite)
+│   ├── findings.py         # Finding model shared by detectors and exporters
+│   ├── takeover.py         # Subdomain-takeover signatures and detection
+│   ├── version.py          # Single source of truth for the version
 │   ├── i18n.py             # Internationalization
-│   ├── output.py           # Report / format exporters
+│   ├── output.py           # Report / format exporters (JSON/CSV/GraphML/SARIF/Neo4j/HTML)
 │   └── zsans_engine.py     # Core breeding engine, asset graph, priority queue
 ├── i18n/                   # Locale resources (en / zh_CN)
 ├── images/                 # Documentation images
 ├── plugins/                # Plugin directory (event-driven extensions)
 ├── templates/              # Config templates
+├── tests/                  # pytest suite
+├── tools/                  # Helper scripts (i18n build, bundled tools)
 ├── breeding-config.yaml    # Main configuration
 ├── main.py                 # Entry point / CLI
-├── CHANGELOG.md            # v0.0.4 → v0.0.5 release notes
 └── requirements.txt        # Python dependencies
 ```
 
@@ -219,10 +236,12 @@ monitoring:
 
 Each scan writes to a timestamped subdirectory under `output/`, containing:
 
-- `*.json` — full asset graph (format: `json` / `graphml`)
-- `*_assets.csv` / `*_relations.csv` — assets and relations (for Excel-friendly)
+- `*.json` — full asset graph (schema version 3), including `properties.findings` / `properties.cert`
+- `*_assets.csv` / `*_relations.csv` — assets and relations (Excel-friendly; a `Findings` column is included)
 - `*_graphml` — GraphML relationship graph
-- `*_report.html` — interactive report with Overview, Topology, Active Assets, Eliminated, and Metrics tabs (filters, search and topology drag/zoom)
+- `*.sarif` — SARIF 2.1.0 built from findings (enable via `output.formats.sarif`, on by default)
+- `*_neo4j_nodes.csv` / `*_neo4j_rels.csv` — Neo4j / BloodHound-style import files (`output.formats.neo4j`)
+- `*_report.html` — interactive report with Overview, Topology, Active Assets, Eliminated, Findings, and Metrics tabs (filters, search and topology drag/zoom)
 
 ![html-output](images/output2.png)
 

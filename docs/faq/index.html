@@ -1128,7 +1128,7 @@
 <p>The setting lives in <code>breeding-config.yaml</code>. Both the reports and the Web console follow this configuration.</p>
 <h3 id="8-requests-to-self-signed-https-sites-fail">8. Requests to self-signed HTTPS sites fail?<a class="headerlink" href="#8-requests-to-self-signed-https-sites-fail" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">http</span><span class="p">:</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">verify_ssl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">   </span><span class="c1"># false by default; skips certificate validation to support self-signed sites</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">verify_ssl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">   </span><span class="c1"># set to false for self-signed sites; the default is true</span>
 </code></pre></div>
 <h3 id="9-want-to-use-a-proxy">9. Want to use a proxy?<a class="headerlink" href="#9-want-to-use-a-proxy" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">http</span><span class="p">:</span>
@@ -1163,7 +1163,7 @@
 <p>If <code>colorlog</code> is installed, console logs are colored by level (DEBUG=cyan, INFO=green, WARNING=yellow, ERROR=red, CRITICAL=bold red).</p>
 <h2 id="web-console-authentication">Web Console Authentication<a class="headerlink" href="#web-console-authentication" title="Permanent link">&para;</a></h2>
 <h3 id="the-console-asks-for-a-password-why">The console asks for a password — why?<a class="headerlink" href="#the-console-asks-for-a-password-why" title="Permanent link">&para;</a></h3>
-<p>The environment variable <code>ZSANS_WEB_PASSWORD</code> is set, so all endpoints require authorization. Log in with that password in the browser (you get a 24-hour session cookie), or call the API with <code>Authorization: Bearer &lt;password&gt;</code> / <code>X-API-Key: &lt;password&gt;</code> headers.</p>
+<p>The environment variable <code>ZSANS_WEB_PASSWORD</code> is set, so all endpoints except login and logout require authorization. Log in with that password in the browser (you get a 24-hour session cookie), or call the API with <code>Authorization: Bearer &lt;password&gt;</code> / <code>X-API-Key: &lt;password&gt;</code> headers.</p>
 <h3 id="how-do-i-disable-authentication-again">How do I disable authentication again?<a class="headerlink" href="#how-do-i-disable-authentication-again" title="Permanent link">&para;</a></h3>
 <p>Unset <code>ZSANS_WEB_PASSWORD</code> when starting the console. Only run it unauthenticated on a trusted localhost/LAN.</p>
 <h2 id="port-in-use">Port in Use<a class="headerlink" href="#port-in-use" title="Permanent link">&para;</a></h2>
@@ -1310,6 +1310,12 @@
                         <a class="text-2xl font-medium" href="../usage/output/">
                             
                             Output & Reports
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../usage/findings/">
+                            
+                            Findings & Risk
                             
                         </a>
                         
